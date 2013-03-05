@@ -1,0 +1,17 @@
+Source: sidu-base
+Section: unknown
+Priority: extra
+Maintainer: J. Hamatoma <hama@siduction.net>
+Build-Depends: debhelper (>= 8.0.0)
+Standards-Version: 3.9.3
+Homepage: http://siduction.org
+Vcs-git:  git://git3@git.siduction.org:code/sidu-base
+Vcs-Browser: http://git.siduction.org/?p=code/sidu-base.git
+
+Package: sidu-base
+Architecture: all
+Depends: ${misc:Depends},
+    python (>= 2.7)
+Description: A toolkit for Django (Python) based GUI applications 
+ The approach: a easy and quick possability to create browser based
+ applications.

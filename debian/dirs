@@ -1,0 +1,4 @@
+var/cache/sidu-base
+var/cache/sidu-base/shellserver-tasks
+var/cache/sidu-base/public
+/usr/share/sidu-base/backend
