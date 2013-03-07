@@ -76,30 +76,24 @@ ID:
         snippets.read(self._menuName)
         html = menu.buildHtml(snippets) 
         diff = Aux.compareText(''' <ul>
- <li class="current-item"><a href="home">Startseite
-</a> <ul  id="main">
-  <li class="current-item"><a href="impressum">Impressum und Kontakt
-</a>
+ <li class="current-item"><a href="home">Startseite</a> <ul  id="main">
+  <li><a href="impressum">Impressum und Kontakt</a>
 
   </li>
 
  </ul>
 </li>
-<li class="current-item"><a href="help">Hilfe
-</a> <ul  id="help">
-  <li class="current-item"><a href="help#about">Ueber uns
-</a>
+<li><a href="help">Hilfe</a> <ul  id="help">
+  <li><a href="help#about">Ueber uns</a>
 
   </li>
-  <li class="current-item"><a href="help#authors">Autoren
-</a>
+  <li><a href="help#authors">Autoren</a>
 
   </li>
 
  </ul>
 </li>
-<li class="current-item"><a href="bye">Auf Wiedersehen   
-</a></li>
+<li><a href="bye">Auf Wiedersehen</a></li>
 
  </ul>
 ''',

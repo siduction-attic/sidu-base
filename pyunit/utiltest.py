@@ -1,8 +1,10 @@
 # Project: https://github.com/republib/republib/wiki
 # Licence: Public domain: http://www.wtfpl.net
-from django.test import TestCase
+import os, sys
+
+from unittest import TestCase, main
 from util.config import Config
-from util.util import * 
+from util.util import Util, exceptionString, say, sayError
 
 class Test(TestCase):
 
@@ -48,6 +50,18 @@ value.conf2=4711
         os.unlink(conf1)
         os.unlink(conf2)
  
+    def testConfigMissingInclude(self):
+        conf1 = self._temp + "reutil1.conf"
+        conf2 = self._temp + "reutil2.conf"
+        Util.writeFile(conf1, '''
+include "%s"
+value.conf1=True
+'''         % conf2)
+        say('We expect a missing include file: ' + conf2)
+        conf = Config(conf1)
+        self.assertTrue(conf != None)
+        os.unlink(conf1)
+        
     def testExceptionString(self):
         name = Util.getTempDir(None, True) + 'reutiltest.exceptiontest.txt'
         try:
@@ -82,6 +96,6 @@ value.conf2=4711
         os.rmdir(base)
         
 if __name__ == "__main__":
-    #import sys;sys.argv = ['', 'Test.testName']
-    #unittest.main()
-    pass
+    import sys;sys.argv = ['', 'Test.testName']
+    main()
+    

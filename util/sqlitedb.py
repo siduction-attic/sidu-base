@@ -26,7 +26,7 @@ class SqLiteDb(SqlDb):
             sql = self.buildDropTable(tableInfo)
             cursor = self.getCursor()
             cursor.execute(sql)
-        except Exception, e:
+        except Exception as e:
             logging.error('dropTable: ' + repr(e))
             raise(e)
          
@@ -38,7 +38,7 @@ class SqLiteDb(SqlDb):
             sql = self.buildCreateTable(tableInfo)
             cursor = self.getCursor()
             cursor.execute(sql)
-        except Exception, e:
+        except Exception as e:
             logging.error('createTable: ' + repr(e))
             raise(e)
             
@@ -120,7 +120,7 @@ class SqLiteDb(SqlDb):
                 for ii in xrange(len(row)):
                     key = cursor.description[ii][0]
                     record[key] = row[ii];
-        except Exception, e:
+        except Exception as e:
             if mustExist:
                 logging.error('selectByKey(%s, %s): %s' % (tableInfo._tablename, 
                     repr(value), repr(e)))
@@ -150,7 +150,7 @@ class SqLiteDb(SqlDb):
                 for ii in xrange(len(row)):
                     key = cursor.description[ii][0]
                     record[key] = row[ii];
-        except Exception, e:
+        except Exception as e:
             if mustExist:
                 logging.error('selectByValues(%s, %s): %s' % (tableInfo._tablename, 
                     repr(values), repr(e)))

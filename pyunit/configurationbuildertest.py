@@ -4,7 +4,8 @@ Created on 27.02.2013
 @author: hm
 '''
 import unittest, os.path
-from util.configurationbuilder import ConfigurationBuilder, SqLiteConfigurationDb
+from util.configurationbuilder import ConfigurationBuilder
+from util.configurationbuilder import SqLiteConfigurationDb, main
 from util.util import Util
 
 class Test(unittest.TestCase):
@@ -39,7 +40,6 @@ title=Module Test
                 )
         
     def test0SqLite(self):
-        self.setUp()
         dbName = self._dbName
         if os.path.exists(dbName):
             os.unlink(dbName)
@@ -48,8 +48,14 @@ title=Module Test
         self.assertTrue(os.path.exists(dbName))
         self.assertTrue(db.getDb() != None)
         
+    def testGetLanguage(self):
+        config = ConfigurationBuilder()
+        self.assertEqual('de', config.getLanguage('abc_de.conf'))
+        self.assertEqual('de', config.getLanguage('ABC_DE.CONF'))
+        self.assertEqual('pt-br', config.getLanguage('abc_pt-BR.conf'))
+        self.assertEqual(None, config.getLanguage('abc_de.x/y.conf'))
+        
     def test1Config(self):
-        self.setUp()
         db = SqLiteConfigurationDb(self._dbName)
         config = ConfigurationBuilder(db)
         config.addFile(self._configFile)
@@ -62,7 +68,6 @@ title=Module Test
         self.assertEquals('Module Test', config.getValue('title', 'en')['value'])
         
     def test2addDirectory(self):
-        self.setUp()
         dbName = self._dbName
         if os.path.exists(dbName):
             os.unlink(dbName)
@@ -76,6 +81,44 @@ title=Module Test
             config.getValue('data.string.long')['value'])
         self.assertEquals('Module Test', config.getValue('title', 'en')['value'])
        
+    def testMain(self):
+        dbName = Util.getTempFile('dummy.db', 'conftest')
+        if os.path.exists(dbName):
+            os.unlink(dbName)
+        textFile = Util.getTempFile('dummy_de.conf', 'conftest')
+        Util.writeFile(textFile, '''
+myKey.first=abcde
+'''         )
+        args = ["--drop-tables", 
+            "--create-tables",
+            "--prefix=NeverEver",
+            "--suffix=.never",
+            "--verbose",
+            "--summary",
+            dbName,
+            textFile]
+        main(args)
+        self.assertTrue(os.path.exists(dbName))
+        
+    def testMain2(self):
+        dbName = Util.getTempFile('dummy.db', 'conftest')
+        if os.path.exists(dbName):
+            os.unlink(dbName)
+        textFile = Util.getTempFile('dummy_de.conf', 'conftest')
+        Util.writeFile(textFile, '''
+myKey.first=abcde
+'''         )
+        args = ["-d", 
+            "-c",
+            "-p", "dummy",
+            "--suffix=.conf",
+            "-v",
+            "-y",
+            dbName,
+            textFile]
+        main(args)
+        self.assertTrue(os.path.exists(dbName))
+        
 if __name__ == "__main__":
     #import sys;sys.argv = ['', 'Test.testName']
     unittest.main()

@@ -83,10 +83,11 @@ class Menu(object):
         currentLink = session._pageAndBookmark
         if currentLink != None:
             currentLink = currentLink.lower()
+            currentLink2 = currentLink + '#'
         fn = (session._homeDir + 'config/' + self._name + '_'
               + session._language + '.conf')
         if not os.path.exists(fn):
-            fn = self._homeDir + 'config/' + self._name + '_en.conf'
+            fn = session._homeDir + 'config/' + self._name + '_en.conf'
         if not os.path.exists(fn):
             session.error('Menu.read(): not found: ' + fn)
         with open(fn, "r") as fp:
@@ -102,9 +103,14 @@ class Menu(object):
                 if line.startswith('*'):
                     fields = rexpr.split(line, 3)
                     level = len(fields[0]) - 1
-                    id = fields[1]
+                    mId = fields[1]
                     link = fields[2]
-                    title = fields[3].lstrip()
+                    ix = link.find('#')
+                    # abc#xxx -> abc?label=xxxx#xxx
+                    #if ix > 0:
+                    #    link =  link[0:ix] + '?label=' + link[ix+1:] + link[ix:]
+                    title = fields[3].rstrip().replace('&#8658;', '').rstrip()
+                    
                     if level >= maxLevel:
                         self.error('{:s}-{:d}: indent level too large'.format(
                             fn, lineNo))
@@ -112,7 +118,7 @@ class Menu(object):
                         self.error('{:s}-{:d}: indent level gap found').format(
                             fn, lineNo)
                     else:
-                        item = MenuItem(level, id, title, link)
+                        item = MenuItem(level, mId, title, link)
                         menuStack[level] = item
                         if level == 0:
                             self._topLevelItems.append(item)
@@ -120,9 +126,11 @@ class Menu(object):
                             menuStack[level - 1].addItem(item)
                         for ii in xrange(level + 1, maxLevel):
                             menuStack[ii] = None
-                        if currentLink != None and currentLink == link.lower():
-                            for ii in xrange(0, level):
-                                menuStack[ii]._active = True
+                        if (currentLink != None 
+                                and (currentLink == link.lower()
+                                     or link.lower().startswith(currentLink2))):
+                            for ii in xrange(level+1):
+                                menuStack[ii]._isActive = True
                     lastLevel = level
                     
     def buildOneLevel(self, level, items, parentIsActive):
@@ -137,15 +145,18 @@ class Menu(object):
             entries = ''
             snippet = 'LEVEL_' + str(level)
             template = self._snippets.get(snippet)
+            index = 0
             for item in items:
+                index += 1
                 name = 'ENTRY_' + str(level)
                 templateEntry = self._snippets.get(name)
                 templateEntry = templateEntry.replace('{{link}}', item._link)
                 templateEntry = templateEntry.replace('{{title}}', item._title)
                 templateEntry = templateEntry.replace('{{link}}', item._link)
+                templateEntry = templateEntry.replace('{{index}}', str(index))
                 
                 classCurrent = '' 
-                if not item._isActive:
+                if item._isActive:
                     classCurrent = self._snippets.get('CLASS_CURRENT').rstrip()
                 templateEntry = templateEntry.replace('{{class_current}}', 
                     classCurrent)

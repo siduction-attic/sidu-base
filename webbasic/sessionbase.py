@@ -4,6 +4,7 @@ Created on 03.02.2013
 @author: hm
 '''
 import os.path, re, logging
+from django.http import HttpResponsePermanentRedirect
 
 from util.configurationbuilder import ConfigurationBuilder
 from util.sqlitedb import SqLiteDb
@@ -40,6 +41,9 @@ class SessionBase(object):
             self._homeDir = self.getConfigWithoutLanguage('.home.dir')
         else:
             self._homeDir = None
+        self._homeDir = '/home/ws/py/sidu-manual'
+        if self._homeDir and not self._homeDir.endswith('/'):
+            self._homeDir += '/'
 
     def handleMetaVar(self):
         value = self.getMetaVar('PATH_INFO')
@@ -47,9 +51,11 @@ class SessionBase(object):
             ix = value.rfind('/')
             if ix >= 0:
                 value = value[ix+1:]
-            ix = value.find('?')
-            if ix >= 0:
-                value = value[0, ix]
+            # /help?label=help-gen -> help#help-gen
+            #
+            #query = self.getMetaVar('QUERY_STRING')
+            #if query.startswith('label='):
+            #    value += '?label=' + query[6:] + '#' + query[6:]
             self._pageAndBookmark = value
             
         if self._application == None:
@@ -182,3 +188,20 @@ class SessionBase(object):
                         rc += value
                 
         return rc
+    
+    def redirect(self, relativeUrl, comingFrom):
+        '''Redirects to another location (URL).
+        @param relativeUrl: the target url (without domain and port)
+        @param comingFrom: info about the caller
+        @return: a response object for the redirection
+        '''
+        absUrl = 'http://' + self._request.META['SERVER_NAME'];
+        if ('SERVER_PORT' in self._request.META 
+                and self._request.META['SERVER_PORT'] != 80):
+            absUrl += ':' + str(self._request.META['SERVER_PORT'])
+        absUrl += relativeUrl
+        rc = HttpResponsePermanentRedirect(absUrl)
+        return rc
+        
+        
+        
