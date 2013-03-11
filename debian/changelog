@@ -1,9 +1,28 @@
-sidu-base (0.1.1) UNRELEASED; urgency=low
+sidu-base (0.1.2) unstable; urgency=low
 
+  * Standards:3.9.4
+  * Section:web
+    E: sidu-base: section-is-dh_make-template
+  * Priority:optional
+  * missing dependency: python-support (>=0.90)
+    E: sidu-base: missing-dependency-on-python-support python-support (>= 0.90)
+  * added myself as uploder
+  * added hendrikL as uploader
+  * added devil as uploader
+  * fix short description - lintian whining:
+    W: sidu-base: description-synopsis-starts-with-article
+  * debian/source/format 1.0
+  * gitignore modified, debian build crap
+
+ -- Alf Gaida <agaida@siduction.org>  Mon, 11 Mar 2013 21:40:17 +0100
+
+sidu-base (0.1.1) unstable; urgency=low
+
+  [ J. Hamatoma ]
   * configurationbuilder: main program for import
   * unittest with python v3.0
 
- -- J. Hamatoma <hama@siduction.net>  Thu, 07 Mar 2013 01:02:39 +0100
+ -- Alf Gaida <agaida@siduction.org>  Mon, 11 Mar 2013 21:24:33 +0100
 
 sidu-base (0.1) unstable; urgency=low
 

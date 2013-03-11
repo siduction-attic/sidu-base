@@ -1,3 +1,11 @@
 *.pyc
 .settings
 sqlite.db
+
+## don't track build crap
+debian/files
+debian/sidu-base.debhelper.log
+debian/sidu-base.substvars
+debian/sidu-base/
+debian/source/
+
