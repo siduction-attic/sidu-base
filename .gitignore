@@ -8,4 +8,4 @@ debian/sidu-base.debhelper.log
 debian/sidu-base.substvars
 debian/sidu-base/
 debian/source/
-
+.coverage

@@ -1,4 +1,4 @@
-import sys, os, os.path
+import sys, os.path, stat, time, codecs
 
 def exceptionString(excInfo, additionalInfo = None):
     '''Extracts the info as string from an exception info.
@@ -31,7 +31,7 @@ class Util:
         @param path: the file's name (with path)
         @param content: None or the file's content
         '''
-        fp = open(path, "w")
+        fp = codecs.open(path, "w", "UTF-8")
         if content != None:
             fp.write(content);
         fp.close()
@@ -44,7 +44,7 @@ class Util:
                 otherwise: the file's content
         '''
         rc = None
-        fp = open(path, "r")
+        fp = codecs.open(path, "r", "UTF-8")
         if fp != None:
             rc = fp.read()
         fp.close()
@@ -89,4 +89,17 @@ class Util:
         @return: the name of a file in the temporary directory
         '''
         rc = Util.getTempDir(subdir, True) + node
+        Util.deleteIfOlder(rc)
         return rc
+
+    @staticmethod
+    def deleteIfOlder(filename, maxAge = 24*3600):
+        '''Deletes a file if it is older than a given amount of seconds.
+        @param filename: the file to test with path
+        @param maxAge: the maximum age in seconds
+        '''
+        if os.path.exists(filename):
+            mdate = os.stat(filename).st_mtime
+            now = time.time()
+            if maxAge < now - mdate:
+                os.unlink(filename)

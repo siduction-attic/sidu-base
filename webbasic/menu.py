@@ -4,7 +4,7 @@ Created on 03.03.2013
 @author: hm
 '''
 
-import os.path, re
+import os.path, re, codecs
 from webbasic.htmlsnippets import HTMLSnippets
 
 
@@ -48,7 +48,7 @@ class MenuItem:
             rc = self
         else:
             for item in self._subMenus:
-                rc = self.findLink(link)
+                rc = item.findLink(link)
                 if rc != None:
                     break
         return rc
@@ -90,48 +90,51 @@ class Menu(object):
             fn = session._homeDir + 'config/' + self._name + '_en.conf'
         if not os.path.exists(fn):
             session.error('Menu.read(): not found: ' + fn)
-        with open(fn, "r") as fp:
-            maxLevel = 3
-            menuStack = []
-            for ii in range(maxLevel):
-                menuStack.append(None);
-            lastLevel = 0
-            lineNo = 0
-            rexpr = re.compile(r'\s+')
-            for line in fp:
-                lineNo += 1
-                if line.startswith('*'):
-                    fields = rexpr.split(line, 3)
-                    level = len(fields[0]) - 1
-                    mId = fields[1]
-                    link = fields[2]
-                    ix = link.find('#')
-                    # abc#xxx -> abc?label=xxxx#xxx
-                    #if ix > 0:
-                    #    link =  link[0:ix] + '?label=' + link[ix+1:] + link[ix:]
-                    title = fields[3].rstrip().replace('&#8658;', '').rstrip()
-                    
-                    if level >= maxLevel:
-                        self.error('{:s}-{:d}: indent level too large'.format(
-                            fn, lineNo))
-                    elif level > lastLevel + 1:
-                        self.error('{:s}-{:d}: indent level gap found').format(
-                            fn, lineNo)
-                    else:
-                        item = MenuItem(level, mId, title, link)
-                        menuStack[level] = item
-                        if level == 0:
-                            self._topLevelItems.append(item)
+        else:
+            with codecs.open(fn, "r", "UTF-8") as fp:
+                maxLevel = 3
+                menuStack = []
+                for ii in range(maxLevel):
+                    menuStack.append(None);
+                lastLevel = 0
+                lineNo = 0
+                rexpr = re.compile(r'\s+')
+                for line in fp:
+                    lineNo += 1
+                    if line.startswith('*'):
+                        fields = rexpr.split(line, 3)
+                        level = len(fields[0]) - 1
+                        mId = fields[1]
+                        link = fields[2]
+                        ix = link.find('#')
+                        # abc#xxx -> abc?label=xxxx#xxx
+                        #if ix > 0:
+                        #    link =  link[0:ix] + '?label=' + link[ix+1:] + link[ix:]
+                        title = fields[3].rstrip().replace('&#8658;', '').rstrip()
+                        
+                        if level >= maxLevel:
+                            self._session.error(
+                                '{:s}-{:d}: indent level too large'
+                                    .format(fn, lineNo))
+                        elif level > lastLevel + 1:
+                            self._session.error(
+                                '{:s}-{:d}: indent level gap found'
+                                    .format(fn, lineNo))
                         else:
-                            menuStack[level - 1].addItem(item)
-                        for ii in xrange(level + 1, maxLevel):
-                            menuStack[ii] = None
-                        if (currentLink != None 
-                                and (currentLink == link.lower()
-                                     or link.lower().startswith(currentLink2))):
-                            for ii in xrange(level+1):
-                                menuStack[ii]._isActive = True
-                    lastLevel = level
+                            item = MenuItem(level, mId, title, link)
+                            menuStack[level] = item
+                            if level == 0:
+                                self._topLevelItems.append(item)
+                            else:
+                                menuStack[level - 1].addItem(item)
+                            for ii in xrange(level + 1, maxLevel):
+                                menuStack[ii] = None
+                            if (currentLink != None 
+                                    and (currentLink == link.lower()
+                                         or link.lower().startswith(currentLink2))):
+                                for ii in xrange(level+1):
+                                    menuStack[ii]._isActive = True
+                        lastLevel = level
                     
     def buildOneLevel(self, level, items, parentIsActive):
         '''Builds the html construct of a menu item for one level.

@@ -1,4 +1,5 @@
 import logging, os.path
+import codecs
 
 class Config:
     '''Maintenances a dictionary read from file(s).'
@@ -26,7 +27,7 @@ class Config:
         '''Reads a configuration file.
         @param filename: the configuration file
         '''
-        fp = open(filename, "r")
+        fp = codecs.open(filename, "r", "UTF-8")
         lineNo = 0
         for line in fp:
             line = line.rstrip()

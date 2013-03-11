@@ -7,15 +7,12 @@ when you run "manage.py test".
 from unittest import TestCase
 import unittest, os.path
 
-from util.configimport import Import
+from aux import Aux  
 
 from sessionbase import SessionBase
 class HttpRequest:
     def __init__(self):
-        self.META = {
-            'HTTP_ACCEPT_LANGUAGE' : 'de,en; any',
-            'HTTP_HOST' : 'sidu-help'
-            }
+        self.META = Aux.getMetaData(None)
         
 class WebbasicTest(TestCase):
     def init(self):

@@ -1,3 +1,10 @@
+sidu-base (0.1.4) UNRELEASED; urgency=low
+
+  * field management with cookies
+  * test coverage 100%
+
+ -- J. Hamatoma <hama@siduction.net>  Tue, 12 Mar 2013 00:10:10 +0100
+
 sidu-base (0.1.2) unstable; urgency=low
 
   * Standards:3.9.4

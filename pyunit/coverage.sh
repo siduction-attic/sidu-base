@@ -11,7 +11,7 @@ if [ ! -d /usr/share/pyshared/coverage ] ; then
 	exit 1
 fi
 rm -Rf $DIR_COVER
-nosetests --with-coverage --cover-html --cover-html-dir=$DIR_COVER *.py
+nosetests --with-coverage --cover-html --cover-html-dir=$DIR_COVER *test.py
 if [ -x $BROWSER ] ; then
 	$BROWSER $DIR_COVER/index.html
 fi

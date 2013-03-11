@@ -4,7 +4,7 @@ Created on 27.02.2013
 @author: hm
 '''
 
-import os.path, re, time, sys
+import os.path, re, time, sys, codecs
 from xml.sax.saxutils import escape
 
 from sqlitedb import SqLiteDb
@@ -16,9 +16,9 @@ from argparse import ArgumentParser
 from argparse import RawDescriptionHelpFormatter
 
 __all__ = []
-__version__ = 0.1
+__version__ = 0.2
 __date__ = '2013.03.06'
-__updated__ = '2013.03.07'
+__updated__ = '2013.03.11'
 
 DEBUG = 1
 TESTRUN = 0
@@ -59,8 +59,7 @@ class ConfigurationBuilder(object):
                                 and language
         '''
         if not os.path.exists(dbName) or os.path.getsize(dbName) == 0:
-            db = SqLiteConfigurationDb(dbName, 
-                ConfigurationBuilder.getTableInfo())
+            db = SqLiteConfigurationDb(dbName)
             db.buildConfig()
             self._confDb = db
             for pair in filesAndLanguages:
@@ -80,7 +79,7 @@ class ConfigurationBuilder(object):
         tableInfo = db.getTableInfo('configuration')
         self._tableInfo = tableInfo
         parser = re.compile(r'^([a-zA-Z.][a-zA-Z0-9_.]*)%?=([<]xml[>])?(.*)')
-        with open(name, "r") as fp:
+        with codecs.open(name, "r", "UTF-8") as fp:
             for line in fp:
                 matcher = parser.match(line)
                 if matcher:
@@ -163,17 +162,14 @@ class SqLiteConfigurationDb:
  
 def showSummary(db):
     sql = 'select language, count(*) from configuration group by language'
-    try:
-        cursor = db.getCursor()
-        cursor.execute(sql)
-        rows = cursor.fetchall()
-        if rows == None or len(rows) == 0:
-            say("No records found")
-        else:
-            for row in rows:
-                say("{:5s}: {:3d}".format(row[0], row[1]))
-    except Exception as e:
-        sayError('SQL problem: ' + repr(e))
+    cursor = db.getCursor()
+    cursor.execute(sql)
+    rows = cursor.fetchall()
+    if rows == None or len(rows) == 0:
+        say("No records found")
+    else:
+        for row in rows:
+            say("{:5s}: {:3d}".format(row[0], row[1]))
     
         
 def main(argv=None): # IGNORE:C0111

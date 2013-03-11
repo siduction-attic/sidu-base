@@ -23,6 +23,8 @@ class SessionBase(object):
         self._request = request
         self._application = application
         self._pageAndBookmark = None
+        self._metaDynamic = ''
+        
         self.handleMetaVar()
         if application == None:
             application = self.getApplicationName(request)
@@ -41,7 +43,6 @@ class SessionBase(object):
             self._homeDir = self.getConfigWithoutLanguage('.home.dir')
         else:
             self._homeDir = None
-        self._homeDir = '/home/ws/py/sidu-manual'
         if self._homeDir and not self._homeDir.endswith('/'):
             self._homeDir += '/'
 
@@ -90,7 +91,8 @@ class SessionBase(object):
         @return None: the application cannot retrieved.<br>
                 otherwise: the application name
         '''
-        return self._application
+        application = request.META['SERVER_NAME']
+        return application
 
     def getConfig(self, key, language = None):
         '''Returns a value from the configuration db.
@@ -125,16 +127,32 @@ class SessionBase(object):
         value = key if record == None else record['value']
         return value
 
+    def getTemplateDir(self):
+        '''Returnts the directory with the templates.
+        @return the name of the directory containing the templates
+        '''
+        rc = self._homeDir + 'templates/'
+        return rc
+    
     def log(self, msg):
         '''Logs a message.
         @param msg: the message
         '''
         logging.info(msg)
         
-    def error(self, msg):
-        '''Logs an error message.
+    def trace(self, msg):
+        '''Logs a message.
         @param msg: the message
         '''
+        logging.debug(msg)
+        
+    def error(self, key, msg = None):
+        '''Logs an error message.
+        @param key: None of the key of the message (in configuration db)
+        @param msg: the message. Only relevant if key == None
+        '''
+        if key != None:
+            msg = self.getConfig(key)
         logging.error(msg)
    
     def valueOfPlaceholder(self, name, specialVars = None):
@@ -189,19 +207,19 @@ class SessionBase(object):
                 
         return rc
     
-    def redirect(self, relativeUrl, comingFrom):
+    def buildAbsUrl(self, relativeUrl):
         '''Redirects to another location (URL).
         @param relativeUrl: the target url (without domain and port)
-        @param comingFrom: info about the caller
-        @return: a response object for the redirection
+        @return: an absolute url
         '''
         absUrl = 'http://' + self._request.META['SERVER_NAME'];
         if ('SERVER_PORT' in self._request.META 
                 and self._request.META['SERVER_PORT'] != 80):
             absUrl += ':' + str(self._request.META['SERVER_PORT'])
+        if not relativeUrl.startswith('/'):
+            absUrl += '/'
         absUrl += relativeUrl
-        rc = HttpResponsePermanentRedirect(absUrl)
-        return rc
+        return absUrl
         
         
         

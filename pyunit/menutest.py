@@ -7,7 +7,7 @@ import unittest, os.path
 
 from aux import Aux
 from webbasic.menu import MenuItem, Menu
-from util.util import Util
+from util.util import Util, say
 from webbasic.htmlsnippets import HTMLSnippets
 
 class Test(unittest.TestCase):
@@ -25,7 +25,7 @@ class Test(unittest.TestCase):
 
 
     def buildSnippet(self):
-        fn = self._session._homeDir + 'config/' + self._menuName + '.snippet.html'
+        fn = self._session._homeDir + 'templates/' + self._menuName + '.snippets'
         if not os.path.exists(fn):
             Util.writeFile(fn, '''
 LEVEL_0:
@@ -66,6 +66,19 @@ ID:
 *   Bye  bye  Auf Wiedersehen   
 '''             )   
 
+    def buildMenuDefError(self):
+        fn = self._session._homeDir + 'config/menu_error_en.conf'
+        if not os.path.exists(fn):
+            Util.writeFile(fn, '''
+* - home Startseite
+** - home2 Home2
+*** - home3 Home3
+**** - home4 Home4
+* - home5 Home5
+*** - home6 Home6
+
+'''             )   
+
     def testBasic(self):
         self._session._pageAndBookmark = 'home'
         self.buildSnippet()
@@ -101,6 +114,31 @@ ID:
         if diff != None:
             self.fail(diff)
     
+    def testFindLink(self):
+        menu = Menu(self._session, self._menuName, True)
+        menu.read()
+        item = menu._topLevelItems[0]
+        self.assertTrue(item == item.findLink('home'))
+        item2 = item.findLink('impressum')        
+        self.assertTrue(item2 != None and item2._link == 'impressum')
+     
+    def testReadError(self):
+        self._session._pageAndBookmark = 'home'
+        self.buildSnippet()
+        self.buildMenuDef()
+        menu = Menu(self._session, 'missing_menu', True)
+        menu.read()
+        self.assertEquals(0, len(menu._topLevelItems))
+                 
+    def testReadError2(self):
+        self._session._pageAndBookmark = 'home'
+        self.buildSnippet()
+        self.buildMenuDefError()
+        menu = Menu(self._session, 'menu_error', True)
+        say('expected: level too large and gap detected:')
+        menu.read()
+        self.assertEquals(2, len(menu._topLevelItems))
+                 
 if __name__ == "__main__":
     #import sys;sys.argv = ['', 'Test.testName']
     unittest.main()

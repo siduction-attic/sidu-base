@@ -1,6 +1,6 @@
 # Project: https://github.com/republib/republib/wiki
 # Licence: Public domain: http://www.wtfpl.net
-import os, sys
+import os, sys, time
 
 from unittest import TestCase, main
 from util.config import Config
@@ -11,6 +11,7 @@ class Test(TestCase):
 
     def setUp(self):
         self._temp = '/tmp/' if os.sep == '/' else 'c:\\temp\\'
+        self._subdir = 'utiltest'
         pass
     
     def tearDown(self):
@@ -87,14 +88,40 @@ value.conf1=True
         self.assertEqual(True, os.path.exists(name))
         os.rmdir(name)
      
+    def testGetTempDir2(self):
+        subdir = '/tmp/tmp1'
+        if not os.path.exists(subdir):
+            os.mkdir(subdir)
+        os.environ['TEMP'] = subdir
+        self.assertEquals(subdir, Util.getTempDir(None, False))
+        del os.environ['TEMP']
+        subdir = '/tmp/tmp2/'
+        if not os.path.exists(subdir):
+            os.mkdir(subdir)
+        os.environ['TMP'] = subdir
+        self.assertEquals(subdir, Util.getTempDir(None, True))
+        del os.environ['TMP']
+
     def testGetTempFile(self):
-        subdir = 'reutiltest'
+        subdir = self._subdir
         base = Util.getTempDir(subdir, True)
         os.rmdir(base)
         name = Util.getTempFile('test', subdir)
         self.assertTrue(name.startswith(base))
         os.rmdir(base)
+       
+    def testDeleteIfOlder(self):
+        fn = Util.getTempFile('delOlder.tst', self._subdir)
+        Util.writeFile(fn, '')
+        self.assertTrue(os.path.exists(fn))
+        Util.deleteIfOlder(fn)
+        self.assertTrue(os.path.exists(fn))
+        time.sleep(1)
+        Util.deleteIfOlder(fn, 1)
+        self.assertFalse(os.path.exists(fn))
         
+        
+         
 if __name__ == "__main__":
     import sys;sys.argv = ['', 'Test.testName']
     main()

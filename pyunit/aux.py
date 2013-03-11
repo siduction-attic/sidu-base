@@ -4,10 +4,11 @@ Created on 04.03.2013
 @author: hm
 '''
 
-import re
+import re, os.path
 
 from webbasic.sessionbase import SessionBase
 from util.util import Util
+from util.configurationbuilder import ConfigurationBuilder
 
 class Aux(object):
     '''
@@ -28,9 +29,9 @@ class Aux(object):
         return rc
 
     @staticmethod
-    def getSession(application = None, request = None):
+    def getSession(application = None, request = None, openDb = False):
         request = Aux.getRequest() if request == None else request
-        session = SessionBase(request, application, False)
+        session = SessionBase(request, application, openDb)
         return session
     
     @staticmethod
@@ -39,8 +40,90 @@ class Aux(object):
             application = 'testappl'
         subdir = Util.getTempDir(application, True)
         Util.getTempDir('testappl/config', True)
+        Util.getTempDir('testappl/templates', True)
         return subdir
-        
+    @staticmethod
+    def getConfigFilename(lang):
+        if lang == None:
+            fn = Util.getTempFile('testappl.conf', 'testappl')
+        else:
+            fn = Util.getTempFile(
+                'testappl_' + lang + '.conf', 'testappl')
+        return fn
+     
+    @staticmethod
+    def buildConfigDb():
+        fn = Aux.getConfigFilename(None)
+        if not os.path.exists(fn):
+            Util.writeFile(fn, '''
+# Test config file
+test.language=de
+data.string.long=123456789 123456789 123456789 123456789 123456789 123456789
+data.int=34777
+data.bool=True
+'''
+                )
+        fnDe = Aux.getConfigFilename('de')
+        if not os.path.exists(fnDe):
+            Util.writeFile(fnDe, '''
+# Test config file for German
+title=Modultest
+'''
+                )
+        fnEn = Aux.getConfigFilename('en')
+        if not os.path.exists(fnEn):
+            Util.writeFile(fnEn, '''
+# Test config file for English
+title=Module Test
+'''
+                )
+        builder = ConfigurationBuilder()
+        fnDb = Util.getTempFile('config.db', 'testappl')
+        builder.buildSqLiteDb(fnDb, ((fn, None), (fnDe, 'de'), 
+                (fnEn, 'en')))
+
+    @staticmethod
+    def getMetaData(additionalVars):
+        vvars = {
+            'HTTP_ACCEPT_LANGUAGE' : 'de,pt-BR,de; abc',
+            'SERVER_NAME' : 'testappl',
+            'SERVER_PORT' : '8086',
+            }
+        for key in additionalVars:
+            vvars[key] = additionalVars[key]
+        return vvars
+      
+    @staticmethod 
+    def buildPageTemplate(pageName):
+        fn = Util.getTempFile(pageName + '.snippets', 'testappl/templates')
+        if not os.path.exists(fn):
+            Util.writeFile(fn, '''
+MAIN:
+<h1>{{title}}</h2>
+<form>
+<input type="text" name="f1" value="{{val_f1}} />
+</form>
+'''             )
+        return fn
+         
+    @staticmethod 
+    def buildPageFrame():
+        fn = Util.getTempFile('pageframe.html', 'testappl/templates')
+        if not os.path.exists(fn):
+            Util.writeFile(fn, '''
+<html>
+<head>
+{{META_DYNAMIC}}
+</head>
+<body>
+{{MENU}}
+{{CONTENT}}
+</body>
+</html>
+'''             )
+        return fn
+         
+            
     @staticmethod
     def compareText(source1, source2):
         list1 = re.split("\n", source1)
@@ -78,7 +161,10 @@ class DummyRequest:
     def __init__(self):
         self.META = { 
             "HTTP_HOST" : "testappl:8087",
-            "HTTP_ACCEPT_LANGUAGE" : "de; any many"
+            "HTTP_ACCEPT_LANGUAGE" : "de; any many",
+            "SERVER_NAME" : "localhost",
+            "SERVER_PORT" : "8000",
+            "PATH_INFO" : "/home/dummy"
             }
 
     
