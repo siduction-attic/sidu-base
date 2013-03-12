@@ -1,9 +1,13 @@
-sidu-base (0.1.4) UNRELEASED; urgency=low
+sidu-base (0.1.4) unstable; urgency=low
 
+  [ J. Hamatoma ]
   * field management with cookies
   * test coverage 100%
 
- -- J. Hamatoma <hama@siduction.net>  Tue, 12 Mar 2013 00:10:10 +0100
+  [ Alf Gaida ]
+  * rebuild fixes #1106 
+
+ -- Alf Gaida <agaida@siduction.org>  Tue, 12 Mar 2013 01:27:24 +0100
 
 sidu-base (0.1.2) unstable; urgency=low
 
