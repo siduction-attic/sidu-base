@@ -102,6 +102,18 @@ home.title=Testanwendung
         self.assertEquals('http://localhost:8000/home/help', 
             self._session.buildAbsUrl('home/help'))
     
+    def testBuildLanguage(self):
+        session = self._session
+        session._supportedLanguages = ['de', 'en', 'pt-br']
+        self.assertEquals('en', session.correctLanguage('en'))
+        self.assertEquals('de', session.correctLanguage('de-de,de-AT'))
+        self.assertEquals('pt-br', session.correctLanguage('pt-BR; ANY'))
+        self.assertEquals('pt-br', session.correctLanguage('pt;pt-XX'))
+        self.assertEquals('pt-br', session.correctLanguage('pt-pt;pt-XX'))
+        self.assertEquals('pt-br', session.correctLanguage('pt'))
+        self.assertEquals('en', session.correctLanguage('ru'))
+        self.assertEquals('en', session.correctLanguage(None))
+        
 if __name__ == "__main__":
     #import sys;sys.argv = ['', 'Test.testSessionBase']
     unittest.main()

@@ -31,7 +31,7 @@ class Aux(object):
     @staticmethod
     def getSession(application = None, request = None, openDb = False):
         request = Aux.getRequest() if request == None else request
-        session = SessionBase(request, application, openDb)
+        session = SessionBase(request, ['de', 'en', 'pt-br'], application, openDb)
         return session
     
     @staticmethod
@@ -155,8 +155,7 @@ MAIN:
                             line1[diff:diff2], line2[diff:diff2], line1, line2))
                 break
         return rc
-             
-        
+                   
 class DummyRequest:
     def __init__(self):
         self.META = { 

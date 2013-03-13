@@ -22,14 +22,19 @@ class Page(object):
     classdocs
     '''
 
-    def __init__(self, name, session):
+    def __init__(self, name, session, readSnippets = True):
         '''Constructor.
         @param name: the name of the page. Defines the template filename
         @param session: the session info
+        @param readSnippets: True: the page specific snippets will be read
         '''
         self._name = name
         self._session = session
         self._data = PageData(session)
+        self._snippets = None
+        if readSnippets:
+            self._snippets = HTMLSnippets(session)
+            self._snippets.read(name)
         
     def defineFields(self):
         '''This method must be overwritten:
@@ -58,8 +63,6 @@ class Page(object):
         @param htmlMenu: the HTML code for the menu
         @return: the content part of the page
         '''
-        self._snippets = HTMLSnippets(self._session)
-        self._snippets.read(self._name)
         body = self._snippets.get('MAIN')
         if hasattr(self, 'changeContent'):
             body = self.changeContent(body)

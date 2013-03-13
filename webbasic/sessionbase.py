@@ -4,10 +4,10 @@ Created on 03.02.2013
 @author: hm
 '''
 import os.path, re, logging
-from django.http import HttpResponsePermanentRedirect
 
 from util.configurationbuilder import ConfigurationBuilder
 from util.sqlitedb import SqLiteDb
+from util.util import Util
 
 class SessionBase(object):
     '''
@@ -16,14 +16,19 @@ class SessionBase(object):
     '''
 
 
-    def __init__(self, request, application = None, openConfig = True):
+    def __init__(self, request, languages, application = None, openConfig = True):
         '''
         Constructor
+        @param request: the HTTP request info
+        @param languages: the languages which are supported by the application
+        @param application: None of the name of the application
+        @param openConfig: True: the configuration database will be opened
         '''
         self._request = request
         self._application = application
         self._pageAndBookmark = None
         self._metaDynamic = ''
+        self._supportedLanguages = languages
         
         self.handleMetaVar()
         if application == None:
@@ -45,7 +50,34 @@ class SessionBase(object):
             self._homeDir = None
         if self._homeDir and not self._homeDir.endswith('/'):
             self._homeDir += '/'
+        self._language = self.correctLanguage(self.getMetaVar('HTTP_ACCEPT_LANGUAGE'))
 
+    def correctLanguage(self, language):
+        '''Search for a matching language.
+        @param language: a string starting with the language (ISO, e.g. en-US
+        @return: the best matching supported language
+        '''
+        if language == None:
+            rc = 'en'
+        else:
+            matcher = re.match(r'([a-z]{2}(-[a-zA-Z]{2})?)', language)
+            rc = language = 'en' if matcher == None else matcher.group(1).lower()
+            if language not in self._supportedLanguages:
+                ll = language[0:2]
+                rc = None
+                for lang in self._supportedLanguages:
+                    if ll.startswith(lang):
+                        # de-de matches de:
+                        rc = lang
+                        break
+                    elif ll == lang[0:2]:
+                        # pt-pt matches pt-br
+                        rc = lang
+                        break
+                if rc == None:
+                    rc = 'en'
+        return rc 
+         
     def handleMetaVar(self):
         value = self.getMetaVar('PATH_INFO')
         if value != None:
@@ -67,18 +99,13 @@ class SessionBase(object):
                     value = value[0:ix]
             self._application = value
         
-        value = self.getMetaVar('HTTP_ACCEPT_LANGUAGE')
-        matcher = re.match(r'([a-z]{2}(-[a-zA-Z]{2})?)', value)
-        self._language = 'en' if matcher == None else matcher.group(1).lower()
-           
-        
     def getMetaVar(self, name):
         '''Returns the value of a meta variable.
         @param name: the variable's name
         @param return: None: unknown variable<br>
                 otherwise: the value of the variable
         '''
-        if name not in self._request.META:
+        if not hasattr(self._request, 'META') or name not in self._request.META:
             rc = None
         else:
             rc = self._request.META[name]

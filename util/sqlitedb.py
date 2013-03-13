@@ -90,9 +90,9 @@ class SqLiteDb(SqlDb):
         @param tableInfo: the info of the table where the insert will be done
                             or the table name (if it is a string)
         '''
-        (sql, values) = self.buildInsert(record, tableInfo)
-        cursor = self.getCursor()
         try:
+            (sql, values) = self.buildInsert(record, tableInfo)
+            cursor = self.getCursor()
             cursor.execute(sql, values)
             self.commit()
         except Exception as e:
