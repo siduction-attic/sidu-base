@@ -1,9 +1,13 @@
-sidu-base (0.1.5) UNRELEASED; urgency=low
+sidu-base (0.1.5) unstable; urgency=low
 
+  [ J. Hamatoma ]
   * test for supported languages
   * reading snippets in the constructor of Page
 
- -- J. Hamatoma <hama@siduction.net>  Wed, 13 Mar 2013 20:36:41 +0100
+  [ Alf Gaida ]
+  * rebuild fixes #1111 
+
+ -- Alf Gaida <agaida@siduction.org>  Fri, 15 Mar 2013 02:22:29 +0100
 
 sidu-base (0.1.4) unstable; urgency=low
 
