@@ -7,7 +7,10 @@ import os.path, re, logging
 
 from util.configurationbuilder import ConfigurationBuilder
 from util.sqlitedb import SqLiteDb
-from util.util import Util
+from util.util import Util, say
+from webbasic.page import PageResult
+
+logger = logging.getLogger(__name__)
 
 class SessionBase(object):
     '''
@@ -15,41 +18,66 @@ class SessionBase(object):
     Live time: request
     '''
 
-
-    def __init__(self, request, languages, application = None, openConfig = True):
+    @staticmethod
+    def isHomeDir(path):
+        if not path.endswith(os.sep):
+            path += os.sep
+        rc = path if os.path.exists (path + 'config.db') else None
+        return rc
+    
+    @staticmethod
+    def findHomeDir(application, request = None):
+        curDir = os.path.realpath('.')
+        subdir = SessionBase.isHomeDir(curDir)
+        if subdir == None:
+            subdir = SessionBase.isHomeDir(os.path.dirname(curDir))
+        subdir = subdir if subdir != None else SessionBase.isHomeDir('/etc/' + application + '/home')
+        if subdir == None:
+            subdir = SessionBase.isHomeDir('/tmp/' + application)
+        if subdir == None:
+            subdir = SessionBase.isHomeDir('/usr/share/' + application)
+        if subdir == None and request != None and 'SCRIPT_PATH' in request.META:
+            script =  request.META['SCRIPT_PATH']
+            while subdir == None and len(script) > 1:
+                subdir = SessionBase.isHomeDir(script)
+                script = os.path.dirname(script)
+        return subdir
+    
+    def __init__(self, request, languages, application, homeDir = None):
         '''
         Constructor
         @param request: the HTTP request info
         @param languages: the languages which are supported by the application
         @param application: None of the name of the application
-        @param openConfig: True: the configuration database will be opened
+        @param homeDir: None or the base directory (containing config.db)
         '''
         self._request = request
         self._application = application
         self._pageAndBookmark = None
         self._metaDynamic = ''
         self._supportedLanguages = languages
+        self._logMessages = []
+        self._errorMessages = []
         
         self.handleMetaVar()
         if application == None:
             application = self.getApplicationName(request)
         self._application = application
-        self._configDbName = '/etc/' + application + '/config.db'
-        if not os.path.exists(self._configDbName):
-            self._configDbName = '/usr/share/' + application + '/config.db'
-        if not os.path.exists(self._configDbName):
-            self._configDbName = '/tmp/' + application + '/config.db'
-        
-        self._configInfo = ConfigurationBuilder.getTableInfo()
-        self._configDb = SqLiteDb(self._configDbName)
-        self._configDb.addTableInfo(self._configInfo)
-        
-        if openConfig:
-            self._homeDir = self.getConfigWithoutLanguage('.home.dir')
+        if homeDir != None: 
+            self._homeDir = homeDir 
         else:
-            self._homeDir = None
+            self._homeDir = SessionBase.findHomeDir(application, request)
         if self._homeDir and not self._homeDir.endswith('/'):
             self._homeDir += '/'
+        self._configDb = None
+        self._configDbName = None
+        if self._homeDir != None:
+            self._configDbName = self._homeDir + 'config.db'
+            self._configInfo = ConfigurationBuilder.getTableInfo()
+            if os.path.exists(self._configDbName):
+                self._configDb = SqLiteDb(self._configDbName)
+                self._configDb.addTableInfo(self._configInfo)
+        
         self._language = self.correctLanguage(self.getMetaVar('HTTP_ACCEPT_LANGUAGE'))
 
     def correctLanguage(self, language):
@@ -121,28 +149,50 @@ class SessionBase(object):
         application = request.META['SERVER_NAME']
         return application
 
-    def getConfig(self, key, language = None):
+    def getConfigOrNone(self, key):
         '''Returns a value from the configuration db.
         The value can be language dependent.
         @param key: the key of the wanted value
         @param language: None: the browser defined language will be tested first<br>
                         otherwise: the wanted language
-        @return: if none is found: the parameter <code>key</code><br>
+        @return: None: the key is not stored in the configuration db
                 otherwise: the value from the database
         '''
-        if language == None:
-            language = self._language
+        language = self._language
         record = self._configDb.selectByValues(self._configInfo,
             (('key', key), ('language', language)), False)
         if record == None and language != 'en':
             record = self._configDb.selectByValues(self._configInfo,
                 (('key', key), ('language', 'en')), False)
-        if record != None:  
-            value = record['value']
-        else:
-            value = key
+        if record == None:
+            rc = None
+        else:  
+            rc = record['value']
+        return rc
+ 
+    def getConfig(self, key):
+        '''Returns a value from the configuration db.
+        The value can be language dependent.
+        @param key: the key of the wanted value
+        @return: if none is found: the parameter <code>key</code><br>
+                otherwise: the value from the database
+        '''
+        rc = self.getConfigOrNone(key)
+        if rc == None:
+            rc = key
+        return rc
+   
+    def getConfigOrNoneWithoutLanguage(self, key):
+        '''Returns a value from the configuration db.
+        The value is language independent.
+        @param key: the key of the wanted value
+        @return: None: the key is not in the configuration db
+                otherwise: the value from the database
+        '''
+        record = self._configDb.selectByKey(self._configInfo, 'key', key)
+        value = None if record == None else record['value']
         return value
-    
+
     def getConfigWithoutLanguage(self, key):
         '''Returns a value from the configuration db.
         The value is language independent.
@@ -150,9 +200,10 @@ class SessionBase(object):
         @return: if none is found: the parameter <code>key</code><br>
                 otherwise: the value from the database
         '''
-        record = self._configDb.selectByKey(self._configInfo, 'key', key)
-        value = key if record == None else record['value']
-        return value
+        rc = self.getConfigOrNoneWithoutLanguage(key)
+        if rc == None:
+            rc = key
+        return rc
 
     def getTemplateDir(self):
         '''Returnts the directory with the templates.
@@ -165,13 +216,14 @@ class SessionBase(object):
         '''Logs a message.
         @param msg: the message
         '''
-        logging.info(msg)
+        logger.info(msg)
+        self._logMessages.append(msg)
         
     def trace(self, msg):
         '''Logs a message.
         @param msg: the message
         '''
-        logging.debug(msg)
+        logger.debug(msg)
         
     def error(self, key, msg = None):
         '''Logs an error message.
@@ -180,7 +232,8 @@ class SessionBase(object):
         '''
         if key != None:
             msg = self.getConfig(key)
-        logging.error(msg)
+        logger.error(msg)
+        self._errorMessages.append(msg)
    
     def valueOfPlaceholder(self, name, specialVars = None):
         '''Gets the value of a placeholder.
@@ -192,12 +245,10 @@ class SessionBase(object):
         rc = None
         if specialVars != None and name in specialVars:
             rc = specialVars[name]
-        elif name == 'language':
+        elif name == '!language':
             rc = self._language
         else:
-            rc = self.getConfig(name)
-            if rc == name:
-                rc = None
+            rc = self.getConfigOrNone(name)
         return rc
     
     def replaceVars(self, source, specialVars = None):
@@ -248,5 +299,11 @@ class SessionBase(object):
         absUrl += relativeUrl
         return absUrl
         
-        
+    def redirect(self, relativeUrl, caller):
+        '''Builds a redirection info.
+        @param relativeUrl: the target url (without domain and port)
+        @return: a PageResult instance
+        '''
+        rc = PageResult(None, relativeUrl, caller)
+        return rc
         

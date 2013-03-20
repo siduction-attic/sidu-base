@@ -33,8 +33,7 @@ PART-B:
 
 
     def testBasic(self):
-        session = Aux.getSession()
-        session._homeDir = self._dir
+        session = Aux.getSession(homeDir=self._dir)
         snippets = HTMLSnippets(session)
         snippets.read(self._snippetFilename)
         self.assertEquals('<div id="part1">\n<!--comment-->\n',
@@ -43,8 +42,7 @@ PART-B:
         self.assertEquals('', snippets.get('NOT_EXISTING_PART'))
         
     def testReadError(self):
-        session = Aux.getSession()
-        session._homeDir = self._dir
+        session = Aux.getSession(homeDir=self._dir)
         snippets = HTMLSnippets(session)
         snippets.read('notExistingFile')
         

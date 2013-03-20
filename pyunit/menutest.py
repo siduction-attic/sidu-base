@@ -14,8 +14,7 @@ class Test(unittest.TestCase):
 
 
     def setUp(self):
-        self._session = Aux.getSession()
-        self._session._homeDir = Aux.buildDummyHome()
+        self._session = Aux.getSession(homeDir = Aux.buildDummyHome())
         self._menuName = 'tmenu'
         
 
