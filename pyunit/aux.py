@@ -24,14 +24,19 @@ class Aux(object):
 
     
     @staticmethod
+    def getRequestApplication():
+        rc = DummyRequest()
+        return rc
+ 
+    @staticmethod
     def getRequest():
         rc = DummyRequest()
         return rc
 
     @staticmethod
-    def getSession(application = None, request = None, openDb = False):
+    def getSession(application = None, request = None, homeDir = None):
         request = Aux.getRequest() if request == None else request
-        session = SessionBase(request, ['de', 'en', 'pt-br'], application, openDb)
+        session = SessionBase(request, ['de', 'en', 'pt-br'], application, homeDir)
         return session
     
     @staticmethod
@@ -101,7 +106,7 @@ title=Module Test
 MAIN:
 <h1>{{title}}</h2>
 <form>
-<input type="text" name="f1" value="{{val_f1}} />
+<input type="text" name="f1" value="{{val_f1}}" />
 </form>
 '''             )
         return fn
@@ -163,7 +168,8 @@ class DummyRequest:
             "HTTP_ACCEPT_LANGUAGE" : "de; any many",
             "SERVER_NAME" : "localhost",
             "SERVER_PORT" : "8000",
-            "PATH_INFO" : "/home/dummy"
+            "PATH_INFO" : "/home/dummy",
+            "REMOTE_ADDR" : "127.0.0.1"
             }
 
     

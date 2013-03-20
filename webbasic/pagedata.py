@@ -22,7 +22,7 @@ class PageData:
         '''
         self._session = session
         # String --> FieldData
-        self._data = {}
+        self._dict = {}
         self._list = []
         # the name of the page specific entry in the cookie:
         self._cookieName = None
@@ -34,7 +34,7 @@ class PageData:
         '''
         field._no = len(self._list)
         self._list.append(field)
-        self._data[field._name] = field
+        self._dict[field._name] = field
 
     def get(self, name):
         '''Gets a value from a field.
@@ -43,8 +43,8 @@ class PageData:
                 otherwise: the field's value
         '''
         rc = None
-        if name in self._data:
-            rc = self._data[name]._value
+        if name in self._dict:
+            rc = self._dict[name]._value
         else:
             self._session.error('PageData.put: Unknown field: ' + name)
         return rc
@@ -54,8 +54,8 @@ class PageData:
         @param key: the name of the field
         @param value: the new value
         '''
-        if name in self._data:
-            self._data[name]._value = value
+        if name in self._dict:
+            self._dict[name]._value = value
         else:
             self._session.error('PageData.put: Unknown field: ' + name)
             
@@ -64,11 +64,13 @@ class PageData:
         @param name: the field's name
         @param errorKey: the key of the error message
         @param value: the new value
+        @return: True
         '''
-        if name in self._data:
-            self._data[name]._errorKey = errorKey
+        if name in self._dict:
+            self._dict[name]._errorKey = errorKey
         else:
             self._session.error('PageData.putError: Unknown field: ' + name)
+        return True
        
     def getFromHTTP(self, environ):
         '''Gets the field values from the HTTP data, e.g. request.GET.
@@ -94,7 +96,7 @@ class PageData:
             version = cookie['V_' + name]
             values = cookie[key]
         currentVersion = self.getDataVersion()
-        if values != '' and version == currentVersion:
+        if values != None and values != '' and version == currentVersion:
             values = values.split(SEPARATOR)
             for ix in xrange(len(values)):
                 field = self._list[ix]
@@ -102,8 +104,7 @@ class PageData:
                 if field._type == 'd':
                     val = int(val)
                 field._value = val
-
-        
+  
     def putToCookie(self):
         '''Puts the data to the Cookies
         '''
@@ -118,7 +119,7 @@ class PageData:
         PageData._cookie['V_' + self._cookieName] = self.getDataVersion()
         
     
-    def replaceValues(self, body):
+    def replaceValues(self, body, errorPrefix, errorSuffix):
         '''Replaces the placeholders for field values and field errors
         by their values.
         @param body: the string which will be changed
@@ -130,7 +131,11 @@ class PageData:
             if field._errorKey == None:
                 value = ''
             else:
-                value = self._session.getConfig(field._errorKey)
+                key = field._errorKey
+                value = '' if errorPrefix == None else errorPrefix
+                value += self._session.getConfig(key)
+                if errorPrefix != None:
+                    value += errorSuffix
             body = body.replace('{{err_' + field._name + '}}', value)
         return body
             
@@ -143,7 +148,19 @@ class PageData:
         for field in self._list:
             rc += field._type 
         return rc
-            
+
+    def importData(self, name, fieldValues, cookieData):
+        '''Builds a PageData instance for a given page.
+        @param name: the name of the container, e.g. the page name
+        @param fieldValues: the GET or POST dictionary with the current field values
+        @param cookieData: the cookie data from the client
+        '''
+        self.getFromCookie(name, cookieData)
+        if fieldValues != None:
+            self.getFromHTTP(fieldValues)
+
+        
+        
 class FieldData:
     '''Stores a field of a page.
     '''

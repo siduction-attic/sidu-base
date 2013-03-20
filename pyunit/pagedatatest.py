@@ -12,8 +12,8 @@ class TestPage(unittest.TestCase):
 
 
     def setUp(self):
-        self._session = Aux.getSession()
-        self._data = PageData(self._session)
+        self._session = Aux.getSession(homeDir = Aux.buildDummyHome())
+        self._pageData = PageData(self._session)
 
 
     def tearDown(self):
@@ -21,7 +21,7 @@ class TestPage(unittest.TestCase):
 
 
     def testBasic(self):
-        data = self._data
+        data = self._pageData
         self.assertTrue(None == data._cookieName)
         data.add(FieldData('f1'))
         data.add(FieldData('f2', 'abc'))
@@ -34,16 +34,16 @@ class TestPage(unittest.TestCase):
         self.assertEquals('xxx', data.get('f2'))
         
         data.putError('i3', 'error.format')
-        self.assertEquals('error.format', data._data['i3']._errorKey)
+        self.assertEquals('error.format', data._dict['i3']._errorKey)
         
     def testBasicError(self):
-        data = self._data
+        data = self._pageData
         self.assertEquals(None, data.get('unknown_field'))
         data.put('unknown_field', 4712)
         data.putError('unknown_field', 'E99')
         
     def testFromHtml(self):
-        data = self._data
+        data = self._pageData
         data.add(FieldData('x1'))
         data.add(FieldData('x2'))
         env = { 'x1' : 'xyz', 'x2' : ''}
@@ -52,7 +52,7 @@ class TestPage(unittest.TestCase):
         self.assertEquals('', data.get('x2'))
 
     def testCookie(self):
-        data = self._data
+        data = self._pageData
         data.add(FieldData('d1'))
         data.add(FieldData('d2', 33, 'd'))
         data.getFromCookie('tpage', {})
@@ -78,7 +78,16 @@ class TestPage(unittest.TestCase):
         data.add(FieldData('d3'))
         self.assertTrue('xxx33 err: E1', 
             data.replaceValues(
-                '{{val_d1}}{{val_d2}}{{val_d3}} err: {{err_d1}}{{err_d2}}'))
+                '{{val_d1}}{{val_d2}}{{val_d3}} err: {{err_d1}}{{err_d2}}',
+                None, None))
+        self.assertTrue('xxx33 err: !!!E1$$', 
+            data.replaceValues(
+                '{{val_d1}}{{val_d2}}{{val_d3}} err: {{err_d1}}{{err_d2}}',
+                "!!!", "$$"))
+        
+        
+    def testImportData(self):
+        self._pageData.importData('test', {}, {})
         
 if __name__ == "__main__":
     #import sys;sys.argv = ['', 'Test.testName']

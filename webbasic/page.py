@@ -30,8 +30,11 @@ class Page(object):
         '''
         self._name = name
         self._session = session
-        self._data = PageData(session)
+        self._pageData = PageData(session)
         self._snippets = None
+        self._globalPage = None
+        self._errorPrefix = None
+        self._errorSuffix = None
         if readSnippets:
             self._snippets = HTMLSnippets(session)
             self._snippets.read(name)
@@ -56,8 +59,24 @@ class Page(object):
         @param defaultValue: the value for the first time
         @param dataType: the field's data type
         '''
-        self._data.add(FieldData(name, defaultValue, dataType))
+        self._pageData.add(FieldData(name, defaultValue, dataType))
           
+    def getField(self, name):
+        '''Returns a value from a (virtual) field.
+        Delegation to PageData.get()
+        @param name: the field's name
+        '''
+        rc = self._pageData.get(name)
+        return rc
+
+    def putField(self, name, value):
+        '''Puts a value to a (virtual) field.
+        Delegation to PageData.put()
+        @param name: the field's name
+        @param value: the value to set
+        '''
+        self._pageData.put(name, value)
+
     def buildHtml(self, htmlMenu):
         '''Builds the HTML text of the page.
         @param htmlMenu: the HTML code for the menu
@@ -102,17 +121,85 @@ class Page(object):
                 break
         return rc
     
+    def fillOpts(self, field, texts, values, currentIndex, source):
+        '''Builds the body of an <select> element.
+        The placeholder will be replaced by the values.
+        @param field: the name of the field (without page name)
+        @param ixCurrent: the index of the selected entry
+        @param source: the HTML code containing the field to change
+        @return: the source with expanded placeholder for the field
+        '''
+        opts = None
+        for ix in xrange(len(texts)):
+            if opts == None:
+                opts = ''
+            else :
+                opts += '\n'
+            opts += '<option selected="selected"' if ix == currentIndex else '<option'
+            if values != None and ix < len(values):
+                opts += ' value="' + values[ix] + '"'
+            opts += '>' + texts[ix] + '</option>'
+        name = '{{body_' + field + '}}'
+        source = source.replace(name, opts)
+        return source
+            
+    def getOptValues(self, field):
+        '''Gets the texts and (if available) the values of a selection field.
+        @param field: the name of the field (without page name)
+        @return: a tuple (texts, values)
+        '''       
+        key = self._name + '.opts_' + field
+        values = self._session.getConfig(key)
+        texts = values[1:].split(values[0:1])
+        key = self._name + '.vals_' + field
+        values = self._session.getConfigOrNoneWithoutLanguage(key)
+        if values != None:
+            values = values[1:].split(values[0:1])
+        return (texts, values)
+    
+    def indexOfFieldValues(self, field, value):
+        '''Returns the index of a value in the option value list.
+        @param field: the fieldname (without page)
+        @param value: the value to find
+        @return: None: not found<br>
+                otherwise: the index of the value in the value list
+        '''
+        key = self._name + '.vals_' + field
+        values = self._session.getConfigOrNoneWithoutLanguage(key)
+        rc = None
+        if values != None:
+            items = values[1:].split(values[0:1])
+            for ix in xrange(len(items)):
+                if items[ix] == value:
+                    rc = ix
+                    break
+            if rc == None:
+                self._session.error('{:s}: {:s} not found in {:s}'.format(
+                    field, value, values))
+        return rc
+        
+        
+    def fillOptionsSelectedByIndex(self, field, ixCurrent, source):
+        '''Builds the body of an <select> element.
+        @param field: the name of the field (without page name)
+        @param ixCurrent: the index of the selected entry
+        @param source: the HTML code containing the field to change
+        @return: the source with expanded placeholder for the field
+        '''
+        texts, values = self.getOptValues(field)
+        source = self.fillOpts(field, texts, values, ixCurrent, source)
+        return source
+        
     def handle(self, htmlMenu, fieldValues, cookies):
         '''Generic handling of the page.
         @param fieldValues: the dictionary containing the field values (GET or POST)
         @param cookies: the cookie dictionary
         @return: a PageResult instance
         '''
+            
         self.defineFields()
-        
-        self._data.getFromCookie(self._name, cookies)
-        self._data.getFromHTTP(fieldValues)
-        
+        self._pageData.importData(self._name, fieldValues, cookies) 
+    
         # Checks wether a button has been pushed:
         button = self.findButton(fieldValues)
         rc = None
@@ -124,15 +211,23 @@ class Page(object):
             frame = Util.readFileAsString(fn)
             
             content = self.buildHtml(htmlMenu)
-            content = self._data.replaceValues(content)
+            content = self._pageData.replaceValues(content, self._errorPrefix,
+                    self._errorSuffix)
             content = self._session.replaceVars(content)
+            title = self._session.getConfig(self._name + '.title')
             env = { 'CONTENT' : content, 
                 'MENU' : htmlMenu,
                 'META_DYNAMIC' : self._session._metaDynamic,
-                'STATIC_URL' : ''
+                'STATIC_URL' : '',
+                '!title' : title
                 }
             frame = self._session.replaceVars(frame, env)
             rc = PageResult(frame)
             
-        self._data.putToCookie()
+        self._pageData.putToCookie()
+        globalPage = self._globalPage
+        if globalPage != None:
+            globalPage._pageData.putToCookie()
         return rc
+    
+    
