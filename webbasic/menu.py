@@ -84,8 +84,9 @@ class Menu(object):
         if currentLink != None:
             currentLink = currentLink.lower()
             currentLink2 = currentLink + '#'
+        lang = session._language if session._language != None else 'en'
         fn = (session._homeDir + 'config/' + self._name + '_'
-              + session._language + '.conf')
+              + lang + '.conf')
         if not os.path.exists(fn):
             fn = session._homeDir + 'config/' + self._name + '_en.conf'
         if not os.path.exists(fn):

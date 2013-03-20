@@ -7,7 +7,6 @@ import os.path, re, logging
 
 from util.configurationbuilder import ConfigurationBuilder
 from util.sqlitedb import SqLiteDb
-from util.util import Util, say
 from webbasic.page import PageResult
 
 logger = logging.getLogger(__name__)
@@ -22,7 +21,8 @@ class SessionBase(object):
     def isHomeDir(path):
         if not path.endswith(os.sep):
             path += os.sep
-        rc = path if os.path.exists (path + 'config.db') else None
+        rc = path if os.path.exists (path + 'data/config.db') else None
+        # logger.debug('isHomeDir({:s}: {:s}'.format(path, '' if rc else rc))
         return rc
     
     @staticmethod
@@ -36,11 +36,18 @@ class SessionBase(object):
             subdir = SessionBase.isHomeDir('/tmp/' + application)
         if subdir == None:
             subdir = SessionBase.isHomeDir('/usr/share/' + application)
-        if subdir == None and request != None and 'SCRIPT_PATH' in request.META:
-            script =  request.META['SCRIPT_PATH']
+        script = ''
+        if request != None and hasattr(request, 'META'):
+            if 'SCRIPT_FILENAME' in request.META:
+                script = request.META['SCRIPT_FILENAME']
+            elif 'SCRIPT_PATH' in request.META:
+                script = request.META['SCRIPT_PATH']
+        if subdir == None and script != '':
             while subdir == None and len(script) > 1:
                 subdir = SessionBase.isHomeDir(script)
                 script = os.path.dirname(script)
+        logger.debug('findHomeDir({:s}): curDir={:s} script: {:s} rc: {:s}'.format(application, 
+            curDir, script, subdir))
         return subdir
     
     def __init__(self, request, languages, application, homeDir = None):
@@ -49,7 +56,7 @@ class SessionBase(object):
         @param request: the HTTP request info
         @param languages: the languages which are supported by the application
         @param application: None of the name of the application
-        @param homeDir: None or the base directory (containing config.db)
+        @param homeDir: None or the base directory (containing data/config.db)
         '''
         self._request = request
         self._application = application
@@ -72,13 +79,18 @@ class SessionBase(object):
         self._configDb = None
         self._configDbName = None
         if self._homeDir != None:
-            self._configDbName = self._homeDir + 'config.db'
+            self._configDbName = self._homeDir + 'data/config.db'
             self._configInfo = ConfigurationBuilder.getTableInfo()
             if os.path.exists(self._configDbName):
                 self._configDb = SqLiteDb(self._configDbName)
                 self._configDb.addTableInfo(self._configInfo)
         
         self._language = self.correctLanguage(self.getMetaVar('HTTP_ACCEPT_LANGUAGE'))
+        logger.debug('SessionBase(): lang: {:s} home: {:s} db: {:s}'.format(
+            self._language if self._language else '',
+            self._homeDir if self._homeDir else '',
+            self._configDbName if self._configDbName else ''))
+
 
     def correctLanguage(self, language):
         '''Search for a matching language.

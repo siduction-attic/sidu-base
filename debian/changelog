@@ -1,4 +1,4 @@
-sidu-base (0.1.6) UNRELEASED; urgency=low
+sidu-base (0.1.7) UNRELEASED; urgency=low
 
   * test for supported languages
   * reading snippets in the constructor of Page
@@ -7,8 +7,11 @@ sidu-base (0.1.6) UNRELEASED; urgency=low
   * getConfigOrNone()
   * smart detection of the home directory
   * field specific error handling
+  * fix: _language may be None
+  * config.db will be expected in data/
+  * meaningful logging
 
- -- J. Hamatoma <hama@siduction.net>  Wed, 20 Mar 2013 08:27:36 +0100
+ -- J. Hamatoma <hama@siduction.net>  Wed, 20 Mar 2013 15:26:18 +0100
 
 sidu-base (0.1.4) unstable; urgency=low
 
