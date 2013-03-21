@@ -1,6 +1,6 @@
 #! /bin/bash
 DIR_COVER=/tmp/cover-sidu-base
-BROWSER=/usr/bin/opera
+BROWSER=/usr/bin/iceweasel
 
 if [ ! -f /usr/bin/nosetests ] ; then
 	echo "missing packet python-nose"

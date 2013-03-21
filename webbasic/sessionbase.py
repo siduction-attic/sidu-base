@@ -243,7 +243,10 @@ class SessionBase(object):
         @param msg: the message. Only relevant if key == None
         '''
         if key != None:
-            msg = self.getConfig(key)
+            if self._configDb == None:
+                msg = key
+            else:
+                msg = self.getConfig(key)
         logger.error(msg)
         self._errorMessages.append(msg)
    

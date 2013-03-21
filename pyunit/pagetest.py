@@ -33,43 +33,42 @@ class TestPage(unittest.TestCase):
     _deleteConfig = True
 
     def setUp(self):
-        home = Aux.buildDummyHome()
+        self._application = 'testpageappl'
+        home = Aux.buildDummyHome(self._application)
         self.buildConfig()
-        self._session = Aux.getSession('testappl', None, home)
-        self._session._homeDir = home
-        Aux.buildPageFrame()
-        self._template = Aux.buildPageTemplate('mpage')
+        self._session = Aux.getSession(self._application, None, home)
+        Aux.buildPageFrame(self._application)
+        self._template = Aux.buildPageTemplate(self._application, 'mpage')
         self._page = MiniPage(self._session)
         self._page.defineFields()
 
     def buildConfig(self):
-        fnDb = Util.getTempFile('config.db', 'testappl')
+        fnDb = Util.getTempFile('config.db', self._application, 'data')
         if TestPage._deleteConfig:
             TestPage._deleteConfig = False
             if os.path.exists(fnDb):
                 os.unlink(fnDb)
+        fnConfig = Util.getTempFile('config.conf', self._application)
+        fnConfigDe = Util.getTempFile('config_de.conf', self._application)
+        fnConfigEn = Util.getTempFile('config_en.conf', self._application)
         if not os.path.exists(fnDb) or os.path.getsize(fnDb) == 0:
             config = ConfigurationBuilder(None)
-            fnConfig = Util.getTempFile('config.conf', 'testappl')
             Util.writeFile(fnConfig, '''
 .home.dir=/home/ws/py/disk_help/website
 mpage.vals_s1=,de,en,it
 '''             )
-            fnConfigDe = Util.getTempFile('config_de.conf', 'testappl')
             Util.writeFile(fnConfigDe, '''
 mpage.opts_s1=;Deutsch;Englisch;Italienisch
 mpage.opts_s2=,Ja,Nein
 '''             )
-            fnConfigEn = Util.getTempFile('config_en.conf', 'testappl')
             Util.writeFile(fnConfigEn, '''
 mpage.opts_s1=;German;English;Italian
 mpage.opts_s2=Yes:No
 '''             )
-            config.buildSqLiteDb(fnDb, ((fnConfig, None), 
-                (fnConfigDe, 'de'), (fnConfigEn, 'en')))
+        filesAndLanguages = ((fnConfig, None),
+            (fnConfigDe, 'de'), (fnConfigEn, 'en'))
         
-        self._request = Aux.getRequest()
-        self._session = Aux.getSession('testappl', self._request)
+        self._session = Aux.getSession(self._application, None, None, filesAndLanguages)
         
     def tearDown(self):
         pass

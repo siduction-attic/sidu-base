@@ -6,7 +6,7 @@ Created on 13.03.2013
 import unittest, os
 from util.util import Util, say
 from util.sqldb import TableInfo
-from util.sqlitedb import SqLiteDb
+from util.sqlitedb import SqLiteDb, ResultSet
 
 
 class TestSqListeDb(unittest.TestCase):
@@ -62,9 +62,13 @@ class TestSqListeDb(unittest.TestCase):
         self._db.flush()
         
     def test35Insert(self):
-        record = { 'id' : 1, 'name' : 'Miller'}
-        self._db.insert(record, self._tableInfo)
+        self._db.insert({ 'id' : 1, 'name' : 'Miller'}, self._tableInfo)
+        self._db.insert({ 'id' : 2, 'name' : 'Adam'}, self._tableInfo)
+        self._db.insert({ 'id' : 3, 'name' : 'Bobby'}, self._tableInfo)
+        self._db.insert({ 'id' : 4, 'name' : 'Charly'}, self._tableInfo)
+        self._db.insert({ 'id' : 5, 'name' : 'Delta'}, self._tableInfo)
         try:
+            record = { 'id' : 0, 'name' : 'Dummy'}
             self._db.insert(record, self._tableInfoError)
             self.fail('insert with unknown table')
         except AssertionError as e1:
@@ -120,12 +124,88 @@ class TestSqListeDb(unittest.TestCase):
         except:
             pass
 
-    def test50Close(self):
+    def test50FreeCursor(self):
+        cursor = self._db.getFreeCursor()
+        self.assertTrue(cursor != None)
+        self.assertEqual(1, len(self._db._freeCursors))
+        self._db.closeFreeCursor(cursor)
+        self.assertEqual(0, len(self._db._freeCursors))
+        cursor = self._db.getFreeCursor()
+        self._db.close()
+        
+    def test60ResultSet(self):
+        sql = 'select name from person where id > 1 order by name'
+        rs = ResultSet(self._db, sql, None, 2)
+        rec = rs.next()
+        self.assertTrue(None != rec)
+        self.assertEquals({'name' : 'Adam'}, rec)
+        rec = rs.next()
+        self.assertTrue(None != rec)
+        self.assertEquals({'name' : 'Bobby'}, rec)
+        rec = rs.next()
+        self.assertTrue(None != rec)
+        self.assertEquals({'name' : 'Charly'}, rec)
+        rec = rs.next()
+        self.assertTrue(None != rec)
+        self.assertEquals({'name' : 'Delta'}, rec)
+        rec = rs.next()
+        self.assertTrue(None == rec)
+        self._db.close()
+
+    def test61ResultSet2(self):
+        sql = 'select name from person where id > 2 order by name'
+        rs = ResultSet(self._db, sql, None, 2)
+        rec = rs.next()
+        self.assertTrue(None != rec)
+        self.assertEquals({'name' : 'Bobby'}, rec)
+        rec = rs.next()
+        self.assertTrue(None != rec)
+        self.assertEquals({'name' : 'Charly'}, rec)
+        rec = rs.next()
+        self.assertTrue(None != rec)
+        self.assertEquals({'name' : 'Delta'}, rec)
+        rec = rs.next()
+        self.assertTrue(None == rec)
+        rs.close()
+        self._db.close()
+        
+    def test62ResultSetError(self):
+        sql = 'select name from unknown where id > 2 order by name'
+        try:
+            say('expected: wrong sql')
+            rs = ResultSet(self._db, sql, None, 2)
+            rs.next()
+            self.fail('wrong sql')
+        except AssertionError as e1:
+            raise e1
+        except:
+            pass
+ 
+    def test63ResultSetVals(self):
+        sql = 'select name from person where id > :1 order by name'
+        rs = ResultSet(self._db, sql, [2])
+        rec = rs.next()
+        self.assertTrue(None != rec)
+        self.assertEquals({'name' : 'Bobby'}, rec)
+        rec = rs.next()
+        self.assertTrue(None != rec)
+        self.assertEquals({'name' : 'Charly'}, rec)
+        rec = rs.next()
+        self.assertTrue(None != rec)
+        self.assertEquals({'name' : 'Delta'}, rec)
+        rec = rs.next()
+        self.assertTrue(None == rec)
+        rs.close()
+        self._db.close()
+           
+
+    def test90Close(self):
         self._db.close()
         self.assertTrue(self._db._cursor == None)
     
-    def test55DropTable(self):
+    def test95DropTable(self):
         try:
+            say('drop an unknown table:')
             self._db.dropTable(self._tableInfoError)
             self.fail('not exception on a unknown table')
         except AssertionError as e1:
@@ -141,6 +221,8 @@ class TestSqListeDb(unittest.TestCase):
             raise e1
         except:
             pass
+        
+        
 if __name__ == "__main__":
     #import sys;sys.argv = ['', 'Test.testName']
     unittest.main()

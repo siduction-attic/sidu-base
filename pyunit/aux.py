@@ -34,8 +34,10 @@ class Aux(object):
         return rc
 
     @staticmethod
-    def getSession(application = None, request = None, homeDir = None):
+    def getSession(application = None, request = None, homeDir = None, 
+            filesAndLanguages = None):
         request = Aux.getRequest() if request == None else request
+        Aux.buildConfigDb(application, filesAndLanguages)
         session = SessionBase(request, ['de', 'en', 'pt-br'], application, homeDir)
         return session
     
@@ -57,35 +59,39 @@ class Aux(object):
         return fn
      
     @staticmethod
-    def buildConfigDb():
-        fn = Aux.getConfigFilename(None)
-        if not os.path.exists(fn):
-            Util.writeFile(fn, '''
+    def buildConfigDb(application = None, filesAndLanguages = None):
+        if application == None:
+            application = 'testappl'
+        if filesAndLanguages == None:
+            fn = Aux.getConfigFilename(None)
+            if not os.path.exists(fn):
+                Util.writeFile(fn, '''
 # Test config file
 test.language=de
 data.string.long=123456789 123456789 123456789 123456789 123456789 123456789
 data.int=34777
 data.bool=True
 '''
-                )
-        fnDe = Aux.getConfigFilename('de')
-        if not os.path.exists(fnDe):
-            Util.writeFile(fnDe, '''
+                    )
+            fnDe = Aux.getConfigFilename('de')
+            if not os.path.exists(fnDe):
+                Util.writeFile(fnDe, '''
 # Test config file for German
 title=Modultest
 '''
                 )
-        fnEn = Aux.getConfigFilename('en')
-        if not os.path.exists(fnEn):
-            Util.writeFile(fnEn, '''
+            fnEn = Aux.getConfigFilename('en')
+            if not os.path.exists(fnEn):
+                Util.writeFile(fnEn, '''
 # Test config file for English
 title=Module Test
 '''
                 )
+            filesAndLanguages = ((fn, None), (fnDe, 'de'), (fnEn, 'en'))
         builder = ConfigurationBuilder()
-        fnDb = Util.getTempFile('config.db', 'testappl')
-        builder.buildSqLiteDb(fnDb, ((fn, None), (fnDe, 'de'), 
-                (fnEn, 'en')))
+        Util.getTempDir(application + os.sep + 'data', True)
+        fnDb = Util.getTempFile('config.db', application, 'data')
+        builder.buildSqLiteDb(fnDb, filesAndLanguages)
 
     @staticmethod
     def getMetaData(additionalVars):
@@ -99,8 +105,9 @@ title=Module Test
         return vvars
       
     @staticmethod 
-    def buildPageTemplate(pageName):
-        fn = Util.getTempFile(pageName + '.snippets', 'testappl/templates')
+    def buildPageTemplate(application, pageName):
+        fn = Util.getTempFile(pageName + '.snippets', 
+            application + os.sep + 'templates')
         if not os.path.exists(fn):
             Util.writeFile(fn, '''
 MAIN:
@@ -112,8 +119,9 @@ MAIN:
         return fn
          
     @staticmethod 
-    def buildPageFrame():
-        fn = Util.getTempFile('pageframe.html', 'testappl/templates')
+    def buildPageFrame(application = None):
+        fn = Util.getTempFile('pageframe.html', 
+            application + os.sep + 'templates')
         if not os.path.exists(fn):
             Util.writeFile(fn, '''
 <html>

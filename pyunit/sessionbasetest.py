@@ -14,7 +14,7 @@ class TestSessionBase(unittest.TestCase):
     _deleteConfig = True
 
     def setUp(self):
-        fnDb = Util.getTempFile('config.db', 'testappl')
+        fnDb = Util.getTempFile('config.db', 'testappl', 'data')
         if TestSessionBase._deleteConfig:
             if os.path.exists(fnDb):
                 os.unlink(fnDb)
@@ -37,7 +37,7 @@ home.en_only=only English
             config.buildSqLiteDb(fnDb, ((fnConfig, None), 
                 (fnConfigDe, 'de'), (fnConfigEn, 'en')))
         self._request = Aux.getRequest()
-        self._session = Aux.getSession('testappl', self._request, '/tmp/testappl')
+        self._session = Aux.getSession('testappl', self._request)
             
     def tearDown(self):
         if self._session._configDb != None:
@@ -45,7 +45,7 @@ home.en_only=only English
 
     def test01IsHomeDir(self):
         self.assertEqual(None, SessionBase.isHomeDir('/dummyDir'))
-        fn = Util.getTempFile('config.db', 'sessionbasetest')
+        fn = Util.getTempFile('config.db', 'sessionbasetest', 'data')
         if not os.path.exists(fn):
             Util.writeFile(fn, '')
         self.assertEqual('/tmp/sessionbasetest/', 
@@ -53,7 +53,7 @@ home.en_only=only English
     
     def test05FindHomeDir(self):
         application = 'testappl'
-        fn = Util.getTempFile('config.db', application)
+        fn = Util.getTempFile('config.db', application, 'data')
         if not os.path.exists(fn):
             Util.writeFile(fn, '')
         self.assertEquals('/usr/share/sidu-manual/',
@@ -64,7 +64,11 @@ home.en_only=only English
         request.META['SCRIPT_PATH'] = '/tmp/testappl/dummy1/dummy2.txt'
         self.assertEquals('/tmp/testappl/',
             SessionBase.findHomeDir('xxx', request))
-            
+        del request.META['SCRIPT_PATH']
+        request.META['SCRIPT_FILENAME'] = '/tmp/testappl/dummy1/dummy2.txt'
+        self.assertEquals('/tmp/testappl/',
+            SessionBase.findHomeDir('xxx', request))
+         
     def testLanguage(self):
         self.assertEquals('de', self._session._language)
         
@@ -121,6 +125,11 @@ home.en_only=only English
         self._session.log('a test log message')
         self._session.error('a test error message')
         self._session.trace('a test trace message')
+        session = SessionBase(self._request, ['en'], None, '/tmp/test')   
+        self.assertTrue(None != session)
+        session._configDb = None
+        session.error('unknown.key')
+
         
     def testPlaceholder(self):
         aDict = { "var" : "value" }

@@ -76,18 +76,20 @@ class Util:
         if node != None:
             rc += os.sep + node
             if not os.path.exists(rc):
-                os.mkdir(rc)
+                os.makedirs(rc)
         if endsWithSeparator and not rc.endswith(os.sep):
             rc += os.sep
         return rc
     
     @staticmethod
-    def getTempFile(node, subdir = None):
+    def getTempFile(node, subdir = None, subdir2 = None):
         '''Returns a file name in a temporary directory.
         @param node: name of the file without path
         @param subdir: None of the subdirectory where the file is laying
         @return: the name of a file in the temporary directory
         '''
+        if subdir2 != None:
+            subdir += os.sep + subdir2
         rc = Util.getTempDir(subdir, True) + node
         Util.deleteIfOlder(rc)
         return rc

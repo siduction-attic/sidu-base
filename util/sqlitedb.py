@@ -4,7 +4,7 @@ Created on 31.01.2013
 @author: hm
 '''
 from sqldb import SqlDb
-import sqlite3, logging
+import sqlite3, logging, operator
 
 class SqLiteDb(SqlDb):
     def __init__(self, filename):
@@ -17,6 +17,7 @@ class SqLiteDb(SqlDb):
         self._cursor = None
         self._insertCount = 0
         self._maxCommit = 50
+        self._freeCursors = []
  
     def dropTable(self, tableInfo):
         '''Deletes a table from the database.
@@ -60,6 +61,25 @@ class SqLiteDb(SqlDb):
             self._cursor = self._conn.cursor()
         return self._cursor
         
+    def getFreeCursor(self):
+        '''Returns a free cursor.
+        ''' 
+        if self._conn is None:
+            self._conn = sqlite3.connect(self._dbName)
+
+        cursor = self._conn.cursor()
+        self._freeCursors.append(cursor)
+        return cursor
+    
+    def closeFreeCursor(self, cursor):
+        '''Frees the resources of a cursor (required by getFreeCursor()).
+        @param cursor: cursor to free
+        '''
+        ix = operator.indexOf(self._freeCursors, cursor)
+        if ix >= 0:
+            self._freeCursors[ix].close()
+            del self._freeCursors[ix]
+            
     def commit(self, force = False):
         'Performs a commit.'
         self._insertCount += 1
@@ -68,6 +88,11 @@ class SqLiteDb(SqlDb):
             self._conn.commit()
  
     def close(self):
+        if self._freeCursors:
+            for cursor in self._freeCursors:
+                cursor.close()
+            self._freeCursors = None
+        
         'Frees the resources.'
         if self._conn != None:
             self.commit(True)
@@ -155,5 +180,70 @@ class SqLiteDb(SqlDb):
                 logging.error('selectByValues(%s, %s): %s' % (tableInfo._tablename, 
                     repr(values), repr(e)))
                 raise(e)
-            
         return record
+
+
+class ResultSet:
+    '''Implements an iterator over a SQL result set.
+    '''
+    def __init__(self, db, sql, vals = None, resultSetSize = 100):
+        '''Constructor.
+        @param db: the database
+        @param sql: the query
+        @param vals: None of a list of values used for the placeholders :?
+        @param rowSize: the maximal number of rows in one result page
+        '''
+        self._sql = sql
+        self._vals = vals
+        self._db = db
+        self._cursor = None
+        self._rows = None
+        self._rowIndex = -1
+        self._resultSetSize = resultSetSize 
+        
+    def close(self):
+        '''Frees the resources and avoids a non empty result from next().
+        '''
+        if self._cursor != None:
+            self._db.closeFreeCursor(self._cursor)
+            self._cursor = None
+        self._db = None
+        self._rows = None
+        
+    def next(self):
+        '''Returns None or the next record of the ResultSet.
+        @return None: no more records available.
+                otherwise: the next record of the query
+        '''
+        record = None
+        if self._db != None:
+            if self._cursor == None:
+                try:
+                    self._cursor = self._db.getFreeCursor()
+                    if self._vals == None:
+                        self._cursor.execute(self._sql)
+                    else:
+                        self._cursor.execute(self._sql, self._vals)
+                except Exception as e:
+                    logging.error('ResultSet.next({:s}, {:s}): {:s}'.format(
+                        self._sql, repr(self._vals), repr(e)))
+                    raise(e)
+            if self._rows == None or self._ixRow >= self._resultSetSize:
+                self._rows = self._cursor.fetchmany(self._resultSetSize)
+                if len(self._rows) == 0:
+                    self.close() 
+                else:
+                    self._ixRow = 0
+            if self._rows != None:
+                if self._ixRow >= len(self._rows):
+                    self.close()
+                else:
+                    record = {}
+                    row = self._rows[self._ixRow]
+                    self._ixRow += 1
+                    for ii in xrange(len(row)):
+                        key = self._cursor.description[ii][0]
+                        record[key] = row[ii];
+        return record
+        
+        
