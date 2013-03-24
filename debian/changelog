@@ -1,5 +1,6 @@
-sidu-base (0.1.10) UNRELEASED; urgency=low
+sidu-base (0.1.10) unstable; urgency=low
 
+  [ J. Hamatoma ]
   * better test coverage
   * ResultSet (sql query)
   * independent cursors
@@ -12,7 +13,10 @@ sidu-base (0.1.10) UNRELEASED; urgency=low
   * fix: config values: fallback English if value not in selected language available
   * fix: MenuChecker.buildTable(): UTF-8 encoding problem
 
- -- J. Hamatoma <hama@siduction.net>  Sun, 24 Mar 2013 15:56:14 +0100
+  [ Alf Gaida ]
+  * rebuild closes #1129
+
+ -- Alf Gaida <agaida@siduction.org>  Sun, 24 Mar 2013 18:24:19 +0100
 
 sidu-base (0.1.7) unstable; urgency=low
 
