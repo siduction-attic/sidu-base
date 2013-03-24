@@ -150,7 +150,7 @@ class MenuChecker:
                 line = lines2[ix]
                 cols2 = self._rexpr.split(line, 3)
                 if len(cols1) >= 4 and len(cols2) >= 4:
-                    html += ('<tr><td>{:s}</td><td>{:s}</td><td>{:s}</td><td>{:s}</td>\n'
+                    html += (u'<tr><td>{:s}</td><td>{:s}</td><td>{:s}</td><td>{:s}</td>\n'
                         .format(cols1[2], cols1[3], cols2[3], cols2[2]))
                     html += '</tr>'
             html += '</table>\n'

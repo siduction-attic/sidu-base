@@ -1,4 +1,4 @@
-sidu-base (0.1.9) UNRELEASED; urgency=low
+sidu-base (0.1.10) UNRELEASED; urgency=low
 
   * better test coverage
   * ResultSet (sql query)
@@ -10,8 +10,9 @@ sidu-base (0.1.9) UNRELEASED; urgency=low
   * Util.readFileAsList()
   * fix: using <xml> marker in configuration files
   * fix: config values: fallback English if value not in selected language available
+  * fix: MenuChecker.buildTable(): UTF-8 encoding problem
 
- -- J. Hamatoma <hama@siduction.net>  Sun, 24 Mar 2013 11:21:29 +0100
+ -- J. Hamatoma <hama@siduction.net>  Sun, 24 Mar 2013 15:56:14 +0100
 
 sidu-base (0.1.7) unstable; urgency=low
 
