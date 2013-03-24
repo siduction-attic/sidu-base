@@ -75,8 +75,8 @@ class Menu(object):
         self._expanded = expanded
         self._topLevelItems = []
         self._snippets = None
-        fn = 'etc/{:s}/expert'.format(session._application)
-        self._extendedMenu = os.path.exists(fn) 
+        self._extendedMenu = (session._globalPage != None 
+            and session._globalPage.getField('expert') == 'T')
         
     def read(self):
         '''Reads the menu definitions into internal structures.
@@ -104,8 +104,10 @@ class Menu(object):
                 rexpr = re.compile(r'\s+')
                 for line in fp:
                     lineNo += 1
-                    if (line.startswith('*') 
-                            or (self._extendedMenu and line.startswith('+'))):
+                    valid = line.startswith('*')
+                    if line.startswith('+'):
+                        valid = self._extendedMenu
+                    if valid:
                         fields = rexpr.split(line, 3)
                         level = len(fields[0]) - 1
                         mId = fields[1]

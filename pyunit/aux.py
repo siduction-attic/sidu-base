@@ -139,9 +139,14 @@ MAIN:
             
     @staticmethod
     def compareText(source1, source2):
-        list1 = re.split("\n", source1)
-        list2 = re.split("\n", source2)
-        rc = Aux.compareLines(list1, list2)
+        if source1 == None:
+            rc = 'arg1 == None'
+        elif source2 == None:
+            rc = 'arg2 == None'
+        else:
+            list1 = re.split("\n", source1)
+            list2 = re.split("\n", source2)
+            rc = Aux.compareLines(list1, list2)
         return rc
     
     @staticmethod    
@@ -163,7 +168,7 @@ MAIN:
                         break
                 reason = 'case different' if line2.lower() == line1.lower() else 'different' 
                 diff2 = diff + 5 if maxIx <= diff + 5 else maxIx
-                rc = ('line: {:d} col: {:d}: {:s} "{:s}" / "{:s}":\n{:s}\n{:s}'
+                rc = ('line: {:d} col: {:d}: {:s} "{:s}..." / "{:s}...":\n{:s}\n{:s}'
                         .format(lineNo, diff, reason, 
                             line1[diff:diff2], line2[diff:diff2], line1, line2))
                 break

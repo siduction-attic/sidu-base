@@ -26,6 +26,7 @@ class GlobalBasePage(Page):
         self.addField('session.key')
         self.addField('language')
         self.addField('browser.lang')
+        self.addField('expert')
         self.defineFields()
         
         self._pageData.importData(self._name, None, cookies)

@@ -51,6 +51,25 @@ class Util:
         return rc
     
     @staticmethod
+    def readFileAsList(path, removeEndOfLine = False):
+        '''Reads a file into a line list.
+        @param path: the file's name (with path)
+        @param removeEndOfLine: True: the '\n' will be removed
+        @return: None: file not readable.<br>
+                otherwise: the file's content as list
+        '''
+        rc = None
+        fp = codecs.open(path, "r", "UTF-8")
+        if fp != None:
+            rc = []
+            for line in fp:
+                if removeEndOfLine:
+                    line = line.rstrip()
+                rc.append(line)
+        fp.close()
+        return rc
+    
+    @staticmethod
     def mkDir(name):
         '''Ensures that a subdirectory exists.
         If not it will be created.
@@ -105,3 +124,16 @@ class Util:
             now = time.time()
             if maxAge < now - mdate:
                 os.unlink(filename)
+
+    @staticmethod
+    def ensureMissing(filename):
+        '''Deletes a file if it exists.
+        @param filename:
+        @return: True: the file has been deleted.<br>
+                False: Deletion was not necessary
+        '''
+        exists = os.path.exists(filename)
+        if exists:
+            os.unlink(filename)
+        return exists
+                

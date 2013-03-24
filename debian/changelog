@@ -1,12 +1,17 @@
-sidu-base (0.1.8) UNRELEASED; urgency=low
+sidu-base (0.1.9) UNRELEASED; urgency=low
 
   * better test coverage
   * ResultSet (sql query)
   * independent cursors
   * new param subdir2 in getTempFile()
   * expert mode for menus (starting with '+' instead of '*')
+  * expert page, field 'expert' in GlobalPage
+  * handling of checkboxes
+  * Util.readFileAsList()
+  * fix: using <xml> marker in configuration files
+  * fix: config values: fallback English if value not in selected language available
 
- -- J. Hamatoma <hama@siduction.net>  Thu, 21 Mar 2013 11:41:04 +0100
+ -- J. Hamatoma <hama@siduction.net>  Sun, 24 Mar 2013 11:21:29 +0100
 
 sidu-base (0.1.7) unstable; urgency=low
 

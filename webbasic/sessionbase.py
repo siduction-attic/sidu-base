@@ -57,6 +57,7 @@ class SessionBase(object):
         @param languages: the languages which are supported by the application
         @param application: None of the name of the application
         @param homeDir: None or the base directory (containing data/config.db)
+        @param globalPage: the page holding global (= page independent) fields
         '''
         self._request = request
         self._application = application
@@ -65,6 +66,7 @@ class SessionBase(object):
         self._supportedLanguages = languages
         self._logMessages = []
         self._errorMessages = []
+        self._globalPage = None
         
         self.handleMetaVar()
         if application == None:
@@ -161,7 +163,7 @@ class SessionBase(object):
         application = request.META['SERVER_NAME']
         return application
 
-    def getConfigOrNone(self, key):
+    def getConfigOrNone(self, key, language = None):
         '''Returns a value from the configuration db.
         The value can be language dependent.
         @param key: the key of the wanted value
@@ -170,10 +172,10 @@ class SessionBase(object):
         @return: None: the key is not stored in the configuration db
                 otherwise: the value from the database
         '''
-        language = self._language
+        lang = language if language != None else self._language
         record = self._configDb.selectByValues(self._configInfo,
-            (('key', key), ('language', language)), False)
-        if record == None and language != 'en':
+            (('key', key), ('language', lang)), False)
+        if record == None and lang != 'en' and language == None:
             record = self._configDb.selectByValues(self._configInfo,
                 (('key', key), ('language', 'en')), False)
         if record == None:

@@ -1,6 +1,6 @@
 # Project: https://github.com/republib/republib/wiki
 # Licence: Public domain: http://www.wtfpl.net
-import os, sys, time
+import os, sys, time, shutil
 
 from unittest import TestCase, main
 from util.config import Config
@@ -105,7 +105,7 @@ value.conf1=True
     def testGetTempFile(self):
         subdir = self._subdir
         base = Util.getTempDir(subdir, True)
-        os.rmdir(base)
+        shutil.rmtree(base, True)
         name = Util.getTempFile('test', subdir)
         self.assertTrue(name.startswith(base))
         os.rmdir(base)
@@ -120,8 +120,28 @@ value.conf1=True
         Util.deleteIfOlder(fn, 1)
         self.assertFalse(os.path.exists(fn))
         
+    def testReadFileAsList(self):
+        fn = Util.getTempFile('file1.txt', self._subdir)
+        Util.writeFile(fn, '''Line 1
+This is line2
+and line3'''         )
+        lines = Util.readFileAsList(fn, True)
+        self.assertEqual('Line 1', lines[0])
+        self.assertEqual('This is line2', lines[1])
+        self.assertEqual('and line3', lines[2])
         
-         
+        lines = Util.readFileAsList(fn, False)
+        self.assertEqual('Line 1\n', lines[0])
+        self.assertEqual('This is line2\n', lines[1])
+        self.assertEqual('and line3', lines[2])
+
+    def testEnsureMissing(self):
+        fn = Util.getTempFile('ensure_test.dat')
+        Util.writeFile(fn, '')
+        self.assertTrue(Util.ensureMissing(fn))
+        self.assertFalse(Util.ensureMissing(fn))
+        self.assertFalse(os.path.exists(fn))
+          
 if __name__ == "__main__":
     import sys;sys.argv = ['', 'Test.testName']
     main()

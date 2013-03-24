@@ -88,7 +88,7 @@ class ConfigurationBuilder(object):
                     record['kind'] = kind
                     record['key'] = matcher.group(1)
                     value = matcher.group(3)
-                    record['value'] = value if kind == 'text' else escape(value)
+                    record['value'] = value if kind == 'xml' else escape(value)
                     db.insert(record, tableInfo)  
         fp.close()
         db.flush()

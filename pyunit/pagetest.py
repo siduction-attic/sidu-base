@@ -13,7 +13,6 @@ from util.configurationbuilder import ConfigurationBuilder
 class MiniPage(Page):
     def __init__(self, session):
         Page.__init__(self, 'mpage', session)
-
         
     def defineFields(self):
         self.addField('f1', 'xxx')
@@ -21,6 +20,7 @@ class MiniPage(Page):
         self.addField('f3')
         self.addField('s1')
         self.addField('s2')
+        self.addField('c1', 'F', 'b')
     
     def handleButton(self, button):
         pass
@@ -190,6 +190,21 @@ Y'''        )
         self.assertEquals(None,
             self._page.indexOfFieldValues('s1', 'NotExistingItem'))
    
+    def testFillCheckBox(self):
+        templ = '<input type="checkbox" {{chk_c1}} name="c1" value="T" />'
+        self._page.putField('c1', 'F')
+        body = self._page.fillCheckBox('c1', templ)
+        self.assertEqual(
+            '<input type="checkbox"  name="c1" value="T" />',
+            body)   
+        
+        self._page.putField('c1', 'T')
+        body = self._page.fillCheckBox('c1', templ)
+        self.assertEqual(
+            '<input type="checkbox" checked="checked" name="c1" value="T" />',
+            body)   
+
+        
  
 if __name__ == "__main__":
     #import sys;sys.argv = ['', 'Test.testName']

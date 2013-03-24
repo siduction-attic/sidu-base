@@ -159,6 +159,24 @@ class PageData:
         if fieldValues != None:
             self.getFromHTTP(fieldValues)
 
+    def correctCheckBoxes(self, fieldValues):
+        '''Corrects the value of the checkboxes.
+        
+        A checkboxes has a silly behaviour: If it is not checked the field
+        does not appear in the fieldvalues.
+        Without special handling the field cannot reset, because the value
+        is defined by the cookie value.
+        Solution: If the field is not in the fieldValues, the value is set
+        to 'F
+        @param fieldValues: the field values given from HttpRequest
+        '''
+        # at least there must be one field, e.g. a button:
+        if len(fieldValues) > 0:
+            # for all checkboxes:
+            for field in self._list:
+                if field._type == 'b':
+                    if field._name not in fieldValues:
+                        field._value = 'F'
         
         
 class FieldData:
@@ -175,5 +193,6 @@ class FieldData:
         self._value = defaultValue
         self._type = dataType
         self._errorKey = None
+        self._defaultValue = defaultValue
     
     

@@ -62,7 +62,8 @@ ID:
 *   help help Hilfe
 **  -    help#about Ueber uns
 **  -    help#authors Autoren
-*   Bye  bye  Auf Wiedersehen   
+*   Bye  bye  Auf Wiedersehen
++   -    expert Expert  
 '''             )   
 
     def buildMenuDefError(self):
@@ -75,7 +76,6 @@ ID:
 **** - home4 Home4
 * - home5 Home5
 *** - home6 Home6
-
 '''             )   
 
     def testBasic(self):

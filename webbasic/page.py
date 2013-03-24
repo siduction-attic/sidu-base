@@ -85,7 +85,7 @@ class Page(object):
         body = self._snippets.get('MAIN')
         if hasattr(self, 'changeContent'):
             body = self.changeContent(body)
-            
+        body = self._session.replaceVars(body)    
         return body
             
     def errorPage(self, key):
@@ -189,7 +189,7 @@ class Page(object):
         texts, values = self.getOptValues(field)
         source = self.fillOpts(field, texts, values, ixCurrent, source)
         return source
-        
+            
     def handle(self, htmlMenu, fieldValues, cookies):
         '''Generic handling of the page.
         @param fieldValues: the dictionary containing the field values (GET or POST)
@@ -198,8 +198,10 @@ class Page(object):
         '''
             
         self.defineFields()
-        self._pageData.importData(self._name, fieldValues, cookies) 
-    
+        self._pageData.importData(self._name, fieldValues, cookies)
+
+        self._pageData.correctCheckBoxes(fieldValues);
+
         # Checks wether a button has been pushed:
         button = self.findButton(fieldValues)
         rc = None
@@ -230,4 +232,14 @@ class Page(object):
             globalPage._pageData.putToCookie()
         return rc
     
+    def fillCheckBox(self, name, body):
+        '''Handles the state of a checkbox.
+        @param field: the field's name
+        @param body: the html code containing the checkbox
+        @return: the body with replaced placeholder for the field 
+        '''
+        value = self.getField(name)
+        checked = '' if value != 'T' else 'checked="checked"'
+        body = body.replace('{{chk_' + name + '}}', checked)
+        return body
     

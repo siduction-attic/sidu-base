@@ -32,7 +32,8 @@ class TestSqListeDb(unittest.TestCase):
 
 
     def test01Basic(self):
-        os.unlink(self._dbName)
+        if os.path.exists(self._dbName): 
+            os.unlink(self._dbName)
         self.setUp()
         self.assertTrue(None != self._db.getCursor())
  

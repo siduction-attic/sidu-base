@@ -84,8 +84,7 @@ class TestPage(unittest.TestCase):
             data.replaceValues(
                 '{{val_d1}}{{val_d2}}{{val_d3}} err: {{err_d1}}{{err_d2}}',
                 "!!!", "$$"))
-        
-        
+     
     def testImportData(self):
         self._pageData.importData('test', {}, {})
         
