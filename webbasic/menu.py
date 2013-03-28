@@ -136,17 +136,19 @@ class Menu(object):
                             for ii in xrange(level + 1, maxLevel):
                                 menuStack[ii] = None
                             if (currentLink != None 
-                                    and (currentLink == link.lower()
-                                         or link.lower().startswith(currentLink2))):
+                                    and (currentLink == link.lower())):
                                 for ii in xrange(level+1):
                                     menuStack[ii]._isActive = True
                         lastLevel = level
                     
-    def buildOneLevel(self, level, items, parentIsActive):
+    def buildOneLevel(self, level, items, parentIsActive, menuId):
         '''Builds the html construct of a menu item for one level.
         @param level: the indention level: 0..N
         @param items: the items representing the menu at this level
         @param parentIsActive: True: the parent is marked as current menu item
+        @param menuId: a list containing the "chapter numeration" of the item.
+                    Length of the list is level+1, the menuId[level] is the
+                    current number of the item in this level
         @return: the HTML code of the menu item
         '''
         rc = ''
@@ -155,19 +157,31 @@ class Menu(object):
             snippet = 'LEVEL_' + str(level)
             template = self._snippets.get(snippet)
             index = 0
+            if len(menuId) <= level:
+                menuId.append('')
             for item in items:
                 index += 1
-                name = 'ENTRY_' + str(level)
+                menuId[level] = str(index)
+                if '_'.join(menuId) == "6_3_5":
+                    pass
+                snippet = ('ENTRY_' if item._subMenus == None 
+                    or len(item._subMenus) == 0 else 'ENTRY_SUBMENU_')
+                name = snippet + str(level)
                 templateEntry = self._snippets.get(name)
                 templateEntry = templateEntry.replace('{{link}}', item._link)
                 templateEntry = templateEntry.replace('{{title}}', item._title)
                 templateEntry = templateEntry.replace('{{link}}', item._link)
                 templateEntry = templateEntry.replace('{{index}}', str(index))
+                templateEntry = templateEntry.replace('{{level}}', str(level))
+                templateEntry = templateEntry.replace('{{menuid}}', 
+                        '_'.join(menuId))
                 
                 classCurrent = '' 
                 if item._isActive:
                     classCurrent = self._snippets.get('CLASS_CURRENT').rstrip()
-                templateEntry = templateEntry.replace('{{class_current}}', 
+                    if not classCurrent.startswith(' '):
+                        classCurrent = ' ' + classCurrent
+                templateEntry = templateEntry.replace('{{current_item}}', 
                     classCurrent)
                 
                 submenus = ''
@@ -175,8 +189,9 @@ class Menu(object):
                     or (item._isActive or self._expanded) 
                         and item._subMenus != None
                         and len(item._subMenus) > 0):
+                    menuId2 = menuId
                     submenus = self.buildOneLevel(level + 1, item._subMenus, 
-                            item._isActive)
+                            item._isActive, menuId2)
                 templateEntry = templateEntry.replace('###SUBMENUS###', submenus)
                 
                 templateId = ''
@@ -186,6 +201,8 @@ class Menu(object):
                 
                 entries += templateEntry.replace('{{id}}', templateId)
             rc = template.replace('###ENTRIES###', entries) 
+            if len(menuId) > level:
+                del menuId[level]
         return rc
 
     def buildHtml(self, snippets): 
@@ -194,5 +211,5 @@ class Menu(object):
         @return: the HTML code of the menu
         '''
         self._snippets = snippets
-        rc = self.buildOneLevel(0, self._topLevelItems, False)
+        rc = self.buildOneLevel(0, self._topLevelItems, False, [])
         return rc

@@ -1,3 +1,10 @@
+sidu-base (0.2.1) UNRELEASED; urgency=low
+
+  * menu: different templates with/without submenus
+  * menu: makro {{menuid}} for menu item specific identificators
+
+ -- J. Hamatoma <hama@siduction.net>  Thu, 28 Mar 2013 21:32:52 +0100
+
 sidu-base (0.1.10) unstable; urgency=low
 
   [ J. Hamatoma ]
