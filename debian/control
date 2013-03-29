@@ -14,7 +14,7 @@ Vcs-Browser: http://git.siduction.org/?p=code/sidu-base.git
 Package: sidu-base
 Architecture: all
 Depends: ${misc:Depends},
- python (>= 2.7),
+ python (>= 2.6),
  python-support (>= 0.90),   
 Description: Toolkit for Django (Python) based GUI applications 
  The approach: a easy and quick possability to create browser based

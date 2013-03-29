@@ -67,7 +67,12 @@ class SessionBase(object):
         self._logMessages = []
         self._errorMessages = []
         self._globalPage = None
-        
+        self._userAgent = ''
+        if request != None and 'HTTP_USER_AGENT' in request.META:
+            self._userAgent = request.META['HTTP_USER_AGENT']
+        self._expandNeedsRightMove = not re.search(
+            'iceweasel|firefox|opera', 
+            self._userAgent, re.IGNORECASE);
         self.handleMetaVar()
         if application == None:
             application = self.getApplicationName(request)
@@ -264,6 +269,8 @@ class SessionBase(object):
             rc = specialVars[name]
         elif name == '!language':
             rc = self._language
+        elif name == '.intro_menu' and self._expandNeedsRightMove:
+            rc = rc = self.getConfigOrNone('.intro_menu2')
         else:
             rc = self.getConfigOrNone(name)
         return rc
