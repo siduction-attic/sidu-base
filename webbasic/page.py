@@ -115,10 +115,11 @@ class Page(object):
             otherwise: the name of the pushed button
         '''
         rc = None
-        for key in fields:
-            if key.startswith('button_'):
-                rc = key
-                break
+        if fields != None:
+            for key in fields:
+                if key.startswith('button_'):
+                    rc = key
+                    break
         return rc
     
     def fillOpts(self, field, texts, values, currentIndex, source):

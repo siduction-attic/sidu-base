@@ -171,7 +171,7 @@ class PageData:
         @param fieldValues: the field values given from HttpRequest
         '''
         # at least there must be one field, e.g. a button:
-        if len(fieldValues) > 0:
+        if fieldValues != None and len(fieldValues) > 0:
             # for all checkboxes:
             for field in self._list:
                 if field._type == 'b':

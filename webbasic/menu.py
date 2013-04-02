@@ -5,14 +5,13 @@ Created on 03.03.2013
 '''
 
 import os.path, re, codecs
-from webbasic.htmlsnippets import HTMLSnippets
 
 
 class MenuItem:
     '''Manages a menu item.
     '''
     
-    def __init__(self, level, id, title, link):
+    def __init__(self, level, title, link):
         '''Constructor.
         @param level: the indention level: 0..N
         @param id: the value of the 'id' tag
@@ -20,7 +19,6 @@ class MenuItem:
         @param link: the URI of the menu item
         '''
         self._level = level;
-        self._id = id;
         self._title = title;
         self._link = link;
         # None or array of MenuItems
@@ -46,7 +44,7 @@ class MenuItem:
         rc = None
         if self._link == link:
             rc = self
-        else:
+        elif self._subMenus != None:
             for item in self._subMenus:
                 rc = item.findLink(link)
                 if rc != None:
@@ -57,20 +55,22 @@ class Menu(object):
     '''
     Manages a menu.
     The format of the menu definition file:
-    *    sm1    welcome    siduction-Handbuch
-    **    sm1a    welcome#welcome-gen    siduction-Handbuch &#8658;
-    ***    -    credits#cred-team    Das siduction-Team
+    *    welcome    siduction-Handbuch
+    **   welcome#welcome-gen    siduction-Handbuch &#8658;
+    ***  credits#cred-team    Das siduction-Team
     '''
 
-    def __init__(self, session, name, expanded):
+    def __init__(self, session, name, expanded, fields = None):
         '''
         Constructor.
         @param session: the session info
         @param name:     the name of the menu. This implies the filename
         @param expanded: true: all members of the menu tree are visible<br>
                         false: only the current members and its siblings are visible.
+        @param fields:  None or a list containing the field values (of the checkboxes)
         '''
         self._name = name
+        self._fields = fields
         self._session = session
         self._expanded = expanded
         self._topLevelItems = []
@@ -85,7 +85,6 @@ class Menu(object):
         currentLink = session._pageAndBookmark
         if currentLink != None:
             currentLink = currentLink.lower()
-            currentLink2 = currentLink + '#'
         lang = session._language if session._language != None else 'en'
         fn = (session._homeDir + 'config/' + self._name + '_'
               + lang + '.conf')
@@ -108,15 +107,14 @@ class Menu(object):
                     if line.startswith('+'):
                         valid = self._extendedMenu
                     if valid:
-                        fields = rexpr.split(line, 3)
+                        fields = rexpr.split(line, 2)
                         level = len(fields[0]) - 1
-                        mId = fields[1]
-                        link = fields[2]
-                        ix = link.find('#')
+                        link = fields[1]
+                        #ix = link.find('#')
                         # abc#xxx -> abc?label=xxxx#xxx
                         #if ix > 0:
                         #    link =  link[0:ix] + '?label=' + link[ix+1:] + link[ix:]
-                        title = fields[3].rstrip().replace('&#8658;', '').rstrip()
+                        title = fields[2].rstrip().replace('&#8658;', '').rstrip()
                         
                         if level >= maxLevel:
                             self._session.error(
@@ -127,7 +125,7 @@ class Menu(object):
                                 '{:s}-{:d}: indent level gap found'
                                     .format(fn, lineNo))
                         else:
-                            item = MenuItem(level, mId, title, link)
+                            item = MenuItem(level, title, link)
                             menuStack[level] = item
                             if level == 0:
                                 self._topLevelItems.append(item)
@@ -162,8 +160,6 @@ class Menu(object):
             for item in items:
                 index += 1
                 menuId[level] = str(index)
-                if '_'.join(menuId) == "6_3_5":
-                    pass
                 snippet = ('ENTRY_' if item._subMenus == None 
                     or len(item._subMenus) == 0 else 'ENTRY_SUBMENU_')
                 name = snippet + str(level)
@@ -173,9 +169,12 @@ class Menu(object):
                 templateEntry = templateEntry.replace('{{link}}', item._link)
                 templateEntry = templateEntry.replace('{{index}}', str(index))
                 templateEntry = templateEntry.replace('{{level}}', str(level))
-                templateEntry = templateEntry.replace('{{menuid}}', 
-                        '_'.join(menuId))
-                
+                mId = '_'.join(menuId)
+                menuLabel = self._templateLabel.replace('{{menuid}}', mId)
+                templateEntry = templateEntry.replace('{{menulabel}}', menuLabel)
+                checked = ('checked="checked"' 
+                    if self._fields != None and menuLabel in self._fields else '')
+                templateEntry = templateEntry.replace('{{checked}}', checked)
                 classCurrent = '' 
                 if item._isActive:
                     classCurrent = self._snippets.get('CLASS_CURRENT').rstrip()
@@ -193,13 +192,7 @@ class Menu(object):
                     submenus = self.buildOneLevel(level + 1, item._subMenus, 
                             item._isActive, menuId2)
                 templateEntry = templateEntry.replace('###SUBMENUS###', submenus)
-                
-                templateId = ''
-                if item._id != '-':
-                    templateId = self._snippets.get('ID').rstrip()
-                    templateId = templateId.replace('{{id}}', item._id)
-                
-                entries += templateEntry.replace('{{id}}', templateId)
+                entries += templateEntry
             rc = template.replace('###ENTRIES###', entries) 
             if len(menuId) > level:
                 del menuId[level]
@@ -211,5 +204,6 @@ class Menu(object):
         @return: the HTML code of the menu
         '''
         self._snippets = snippets
+        self._templateLabel = snippets.get('MENU_LABEL').strip()
         rc = self.buildOneLevel(0, self._topLevelItems, False, [])
         return rc
