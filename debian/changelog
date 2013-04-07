@@ -1,12 +1,16 @@
-sidu-base (0.2.3) UNRELEASED; urgency=low
+sidu-base (0.2.3) unstable; urgency=low
 
+  [ J. Hamatoma ]
   * special menu expand description text for some browsers
   * dependency changed for usage in debian "Squeeze"
   * menu description: no id column
   * menu: new {{checked}}, snippet for the label
   * None checks (search menu)
 
- -- J. Hamatoma <hama@siduction.net>  Wed, 03 Apr 2013 00:44:32 +0200
+  [ Alf Gaida ]
+  * rebuild refs #1125 #1126
+
+ -- Alf Gaida <agaida@siduction.org>  Sun, 07 Apr 2013 13:32:45 +0200
 
 sidu-base (0.2.1) unstable; urgency=low
 
