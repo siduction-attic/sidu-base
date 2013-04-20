@@ -3,12 +3,18 @@ Created on 09.03.2013
 
 @author: hm
 '''
-import os.path
+import xml.sax.saxutils
 
 from util.util import Util
 from pagedata import PageData, FieldData
 from webbasic.htmlsnippets import HTMLSnippets
 
+class PageException(Exception):
+    def __init__(self, page, message):
+        if page != None:
+            message = page._name + ': ' + message
+        super(PageException, self).__init__(message)
+        
 class PageResult:
     '''Stores the "result" of a page: a HTML code or a redirection URL.
     '''
@@ -87,7 +93,58 @@ class Page(object):
             body = self.changeContent(body)
         body = self._session.replaceVars(body)    
         return body
-            
+    
+    def buildTable(self, builder, info):
+        '''Builds a table which is a piece of text containing rows.
+        A row is a piece of text containing columns.
+        A column is a piece of text containing values.
+        
+        @param builder: an instance with the method buildPartOfTable(info, what, ix)
+                        ix is the row index (0..N-1) in the case of what == 'cols'
+                        info: see below
+                        Description of what:
+                        'Table': None or html template of table with '{{ROWS}}'
+                        'Row:' None or a template with '{{ROWS}}'
+                        'Col': None or a template with '{{COL}}'
+                        'rows': number of rows. Data type: int
+                        'cols': list of column values (data type: Object)
+                        If one of the templates is None a standard 
+                        HTML template will be used
+        @param info:    will be given to the builder. Can be used
+                        to build more than one table with one
+                        builder
+        @return:    the text of the HTML table
+        '''            
+        table = builder.buildPartOfTable(info, 'Table')
+        if table == None:
+            table = '<table>{{ROWS}}</table>'
+        elif table.find('{{ROWS}}') < 0:
+            raise PageException(self, 'missing {{ROWS} in ' + table)
+        rowCount = builder.buildPartOfTable(info, 'rows')
+        if type(rowCount) != int:
+            raise PageException(self, "wrong type for row count: {:s} / {:s}"
+                    .format(str(rowCount), repr(type(rowCount))))
+        rows = ''
+        colTemplate =  builder.buildPartOfTable(info, 'Col')
+        if colTemplate == None:
+            colTemplate = '<td>{{COL}}</td>'
+        elif colTemplate.find('{{COL}}') < 0:
+            raise PageException(self, 'missing {{COL} in ' + colTemplate)
+        rowTemplate =  builder.buildPartOfTable(info, 'Row')
+        if rowTemplate == None:
+            rowTemplate = '<tr>{{COLS}}</tr>'
+        elif rowTemplate.find('{{COLS}}') < 0:
+            raise PageException(self, 'missing {{COLS} in ' + rowTemplate)
+        for ixRow in xrange(rowCount):
+            cols = builder.buildPartOfTable(info, 'cols', ixRow)
+            content = ''
+            for col in cols:
+                val = xml.sax.saxutils.escape(col) if type(col) is str else str(col)
+                content += colTemplate.replace('{{COL}}', val)
+            rows += rowTemplate.replace('{{COLS}}', content)
+        table = table.replace('{{ROWS}}', rows)
+        return table
+        
     def errorPage(self, key):
         '''Returns the content of an error message page.
         @param key: the key of the error message

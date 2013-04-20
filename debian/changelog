@@ -1,3 +1,13 @@
+sidu-base (0.2.4) UNRELEASED; urgency=low
+
+  * Aux: more helper methods for tests
+  * Util: getTempDir(): new signature (base, subdir, endswith) instead of (base, endswith)
+  * SessionBase: placehoder ${varname} in configuration will be resolved
+  * added: SessionBase.addConfig()
+  * added: PageException, Page.buildTable()
+
+ -- J. Hamatoma <hama@siduction.net>  Sun, 21 Apr 2013 00:36:45 +0200
+
 sidu-base (0.2.3) unstable; urgency=low
 
   [ J. Hamatoma ]

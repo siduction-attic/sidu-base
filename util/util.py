@@ -1,10 +1,12 @@
-import sys, os.path, stat, time, codecs
+import sys, os.path, time, codecs, tempfile
 
-def exceptionString(excInfo, additionalInfo = None):
+def exceptionString(excInfo = None, additionalInfo = None):
     '''Extracts the info as string from an exception info.
     @param excInfo:    the info given by sys.exc_info
     @return the info string
     '''
+    if excInfo == None:
+        excInfo = sys.exc_info()
     exc = excInfo[1]
     rc = str(exc)
         
@@ -44,10 +46,15 @@ class Util:
                 otherwise: the file's content
         '''
         rc = None
-        fp = codecs.open(path, "r", "UTF-8")
+        fp = None
+        try:
+            fp = codecs.open(path, "r", "UTF-8")
+            if fp != None:
+                rc = fp.read()
+        except Exception:
+            pass
         if fp != None:
-            rc = fp.read()
-        fp.close()
+            fp.close()
         return rc
     
     @staticmethod
@@ -79,23 +86,24 @@ class Util:
             os.makedirs(name)
     
     @staticmethod
-    def getTempDir(node = None, endsWithSeparator=False):
+    def getTempDir(base = None, subdir = None, endsWithSeparator=False):
         '''Returns a temporary directory.
-        @param node: None of the subdirectory in the standard temporary dir
+        @param base: None or the parent of <code>node>/code>
+        @param node: None of the subdirectory in the temporary directory
         @param endsWithSeparator: True: the result ends with the separator
         @return: the name of an existing temporary directory
         '''
-        rc = None
-        if 'TEMP' in os.environ:
-            rc = os.environ['TEMP']
-        if (rc == None or not os.path.exists(rc)) and 'TMP' in os.environ:
-            rc = os.environ['TMP']
-        if rc == None or not os.path.exists(rc):
-            rc = '/tmp' if os.sep == '/' else 'c:\\temp'
-        if node != None:
-            rc += os.sep + node
-            if not os.path.exists(rc):
-                os.makedirs(rc)
+        rc = tempfile.gettempdir()
+        # for compatibility only:
+        if type(subdir) == bool:
+            endsWithSeparator = subdir
+            subdir = None
+        if base != None:
+            rc += os.sep + base
+        if subdir != None:
+            rc += os.sep + subdir
+        if not os.path.exists(rc):
+            os.makedirs(rc)
         if endsWithSeparator and not rc.endswith(os.sep):
             rc += os.sep
         return rc
@@ -122,7 +130,7 @@ class Util:
         if os.path.exists(filename):
             mdate = os.stat(filename).st_mtime
             now = time.time()
-            if maxAge < now - mdate:
+            if now - mdate >= maxAge:
                 os.unlink(filename)
 
     @staticmethod

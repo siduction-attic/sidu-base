@@ -66,6 +66,7 @@ class SessionBase(object):
         self._supportedLanguages = languages
         self._logMessages = []
         self._errorMessages = []
+        self._configAdditional = None
         self._globalPage = None
         self._userAgent = ''
         if request != None and 'HTTP_USER_AGENT' in request.META:
@@ -99,6 +100,15 @@ class SessionBase(object):
             self._configDbName if self._configDbName else ''))
 
 
+    def addConfig(self, key, value):
+        '''Adds a (key, value) pair to the configuration.
+        @param key: the key to store
+        @param value: the value to store
+        '''
+        if self._configAdditional == None:
+            self._configAdditional = {}
+        self._configAdditional[key] = value;
+        
     def correctLanguage(self, language):
         '''Search for a matching language.
         @param language: a string starting with the language (ISO, e.g. en-US
@@ -187,6 +197,9 @@ class SessionBase(object):
             rc = None
         else:  
             rc = record['value']
+        if (rc == None and self._configAdditional != None 
+                and key in self._configAdditional):
+            rc = self._configAdditional[key]
         return rc
  
     def getConfig(self, key):
@@ -209,8 +222,26 @@ class SessionBase(object):
                 otherwise: the value from the database
         '''
         record = self._configDb.selectByKey(self._configInfo, 'key', key)
-        value = None if record == None else record['value']
-        return value
+        rc = None if record == None else record['value']
+        if (rc == None and self._configAdditional != None 
+                and key in self._configAdditional):
+            rc = self._configAdditional[key]
+        end = -1 if rc == None else 0
+        while end >= 0:
+            start = rc.find('${', end)
+            if start < 0:
+                end = -1
+            else:
+                end = rc.find('}', start + 2)
+                if end > 0:
+                    name = rc[start + 2:end]
+                    value = self.getConfigOrNoneWithoutLanguage(name)
+                    if value != None:
+                        head = '' if start == 0 else rc[0:start]
+                        rc = head + value + rc[end+1:]
+                        # try it again:
+                        end = start
+        return rc
 
     def getConfigWithoutLanguage(self, key):
         '''Returns a value from the configuration db.
@@ -270,7 +301,7 @@ class SessionBase(object):
         elif name == '!language':
             rc = self._language
         elif name == '.intro_menu' and self._expandNeedsRightMove:
-            rc = rc = self.getConfigOrNone('.intro_menu2')
+            rc = self.getConfigOrNone('.intro_menu2')
         else:
             rc = self.getConfigOrNone(name)
         return rc

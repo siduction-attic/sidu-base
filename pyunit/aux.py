@@ -9,6 +9,7 @@ import re, os.path
 from webbasic.sessionbase import SessionBase
 from util.util import Util
 from util.configurationbuilder import ConfigurationBuilder
+from webbasic.page import Page
 
 class Aux(object):
     '''
@@ -38,6 +39,16 @@ class Aux(object):
             filesAndLanguages = None):
         request = Aux.getRequest() if request == None else request
         Aux.buildConfigDb(application, filesAndLanguages)
+        session = SessionBase(request, ['de', 'en', 'pt-br'], application, homeDir)
+        return session
+
+    @staticmethod
+    def getSessionWithStdConfig(application = None, request = None, 
+            filesAndLanguages = None):
+        request = Aux.getRequest() if request == None else request
+        homeDir = os.path.realpath(".")
+        if os.path.exists(homeDir + "/../data/config.db"):
+            homeDir = os.path.dirname(homeDir)
         session = SessionBase(request, ['de', 'en', 'pt-br'], application, homeDir)
         return session
     
@@ -173,7 +184,22 @@ MAIN:
                             line1[diff:diff2], line2[diff:diff2], line1, line2))
                 break
         return rc
-                   
+
+    @staticmethod    
+    def buildPage(name = None, session = None):
+        '''Builds a page and returns a page
+        @param session: None or the session info
+        @return: a page
+        '''
+        if name == None:
+            name = 'Page'
+        if session == None:
+            session = Aux.getSession('testappl')
+        page = Page(name, session)
+        return page
+        
+
+                  
 class DummyRequest:
     def __init__(self):
         self.META = { 
@@ -182,7 +208,8 @@ class DummyRequest:
             "SERVER_NAME" : "localhost",
             "SERVER_PORT" : "8000",
             "PATH_INFO" : "/home/dummy",
-            "REMOTE_ADDR" : "127.0.0.1"
+            "REMOTE_ADDR" : "127.0.0.1",
+            "HTTP_USER_AGENT" : "testbrowser 1.0"
             }
 
     

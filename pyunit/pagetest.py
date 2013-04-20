@@ -5,10 +5,11 @@ Created on 11.03.2013
 '''
 import unittest, os.path
 
-from webbasic.page import Page, PageResult
+from webbasic.page import Page, PageResult, PageException
 from aux import Aux
 from util.util import Util, say
 from util.configurationbuilder import ConfigurationBuilder
+from symbol import except_clause
 
 class MiniPage(Page):
     def __init__(self, session):
@@ -204,8 +205,87 @@ Y'''        )
             '<input type="checkbox" checked="checked" name="c1" value="T" />',
             body)   
 
-        
+    def buildErrorTable(self, info, what, ixRow = None):
+        if not hasattr(self, '_errorTrace'):
+            self._errorTrace = ''
+        if what == info:
+            self._errorTrace += " " + info
+        if what == 'cols':
+            if ixRow == 0:
+                rc = (1, 'adam')
+            else:
+                rc = (2, 'bea')
+        elif what == 'rows':
+            rc = "a" if info == 'rows' else 1
+        elif what == 'Table':
+            rc = "{{rows}}" if info == 'Table' else "{{ROWS}}"
+        elif what == 'Row':
+            rc = "{cols}" if info == 'Row' else '{{COLS}}'
+        elif what == 'Col':
+            rc = "{col}" if info == 'Col' else '{{COL}} '
+        else:
+            rc = None
+        return rc
+
+    def buildPartOfTable(self, info, what, ixRow = None):
+        if info.startswith('error_'):
+            return self.buildErrorTable(info[6:], what, ixRow)
+        if what == 'cols':
+            if ixRow == 0:
+                rc = (1, 'adam')
+            else:
+                rc = (2, 'bea')
+        elif what == 'rows':
+            rc = 1 if info == 'std' else 2
+        elif what == 'Table':
+            rc = None if info == 'std' else '''Table of result:
+Id: Name:
+{{ROWS}}'''
+        elif what == 'Row':
+            rc = None if info == 'std' else '{{COLS}}\n'
+        elif what == 'Col':
+            rc = None if info == 'std' else '{{COL}} '
+        else:
+            rc = None
+        return rc
+    
+    def testBuildTable(self):
+        self.assertMultiLineEqual('<table><tr><td>1</td><td>adam</td></tr></table>',
+            self._page.buildTable(self, 'std'))
+        self.assertEquals('''Table of result:
+Id: Name:
+1 adam 
+2 bea 
+''',        self._page.buildTable(self, 'Special'))
  
+    def testBuildTableErrors(self):
+        try:
+            self._page.buildTable(self, 'error_rows')
+            self.fail("missing PageException")
+        except PageException as exc:
+            self.assertEquals("mpage: wrong type for row count: a / <type 'str'>", 
+                exc.message)
+            
+        try:
+            self._page.buildTable(self, 'error_Table')
+            self.fail("missing PageException")
+        except PageException as exc:
+            self.assertEquals("mpage: missing {{ROWS} in {{rows}}", exc.message)
+            
+        try:
+            self._page.buildTable(self, 'error_Row')
+            self.fail("missing PageException")
+        except PageException as exc:
+            self.assertEquals("mpage: missing {{COLS} in {cols}", exc.message)
+            
+        try:
+            self._page.buildTable(self, 'error_Col')
+            self.fail("missing PageException")
+        except PageException as exc:
+            self.assertEquals("mpage: missing {{COL} in {col}", exc.message)
+                       
+        self.assertEquals("1 adam ", self._page.buildTable(self, 'error_none'))
+        
 if __name__ == "__main__":
     #import sys;sys.argv = ['', 'Test.testName']
     unittest.main()

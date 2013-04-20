@@ -24,6 +24,10 @@ class TestSessionBase(unittest.TestCase):
             fnConfig = Util.getTempFile('config.conf', 'testappl')
             Util.writeFile(fnConfig, '''
 .home.dir=/home/ws/py/disk_help/website
+.tempdir=/var/cache/sidu-base
+.dir2=${.tempdir}/any
+.exec=ls ${.tempdir}
+.
 '''             )
             fnConfigDe = Util.getTempFile('config_de.conf', 'testappl')
             Util.writeFile(fnConfigDe, '''
@@ -56,8 +60,8 @@ home.en_only=only English
         fn = Util.getTempFile('config.db', application, 'data')
         if not os.path.exists(fn):
             Util.writeFile(fn, '')
-        self.assertEquals('/usr/share/sidu-manual/',
-            SessionBase.findHomeDir('sidu-manual', None))
+        #self.assertEquals('/usr/share/sidu-manual/',
+        #    SessionBase.findHomeDir('sidu-manual', None))
         self.assertEquals('/tmp/testappl/',
             SessionBase.findHomeDir(application, None))
         request = Aux.getRequest()
@@ -139,7 +143,10 @@ home.en_only=only English
             self._session.valueOfPlaceholder('home.title', aDict))
         self.assertEquals("de",
             self._session.valueOfPlaceholder('!language', aDict))
-     
+        self._session.addConfig(".intro_menu2", "Intro")
+        self.assertEquals("Intro",
+            self._session.valueOfPlaceholder('.intro_menu', aDict))
+
     def testReplaceVars(self):
         aDict = { "a" : 'A', 'b' : 'B' }
         
@@ -179,6 +186,23 @@ home.en_only=only English
         rc = self._session.redirect('xyz', 'ThatsMe')
         self.assertEqual('ThatsMe', rc._caller)
         self.assertEqual('xyz', rc._url)
+        
+    def testConfigReplacement(self):
+        session = self._session
+        self.assertEqual("/var/cache/sidu-base", 
+            session.getConfigOrNoneWithoutLanguage('.tempdir'))
+        self.assertEqual("/var/cache/sidu-base/any", 
+            session.getConfigOrNoneWithoutLanguage('.dir2'))
+        self.assertEqual("ls /var/cache/sidu-base", 
+            session.getConfigOrNoneWithoutLanguage('.exec'))
+    
+    def testAdditionConfig(self):
+        session = self._session
+        session.addConfig('TestVar', '123')
+        self.assertEqual("123", 
+            session.getConfigOrNoneWithoutLanguage('TestVar'))
+        self.assertEqual("123", 
+            session.getConfigOrNone('TestVar'))
         
 if __name__ == "__main__":
     #import sys;sys.argv = ['', 'Test.testSessionBase']
