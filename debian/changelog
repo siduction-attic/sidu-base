@@ -1,12 +1,19 @@
-sidu-base (0.2.4) UNRELEASED; urgency=low
+sidu-base (0.2.6) UNRELEASED; urgency=low
 
   * Aux: more helper methods for tests
   * Util: getTempDir(): new signature (base, subdir, endswith) instead of (base, endswith)
   * SessionBase: placehoder ${varname} in configuration will be resolved
   * added: SessionBase.addConfig()
   * added: PageException, Page.buildTable()
+  * added: Aux: writeFile()
+  * added: Util: encodeFilename(), decodeFilename()
+  * added: Page: fillStaticSelected(), fillDynamicSelected(), autoSplit(),
+  * added: Page: humanReadableSize(), replaceGlobalField()
+  * added: Page: autoJoinArgs(), gotoWait()
+  * added: SessionBase: session id usable for parts of filenames
+  * coverage ok: page + waitpage
 
- -- J. Hamatoma <hama@siduction.net>  Sun, 21 Apr 2013 00:36:45 +0200
+ -- J. Hamatoma <hama@siduction.net>  Thu, 06 Jun 2013 00:27:07 +0200
 
 sidu-base (0.2.3) unstable; urgency=low
 

@@ -11,6 +11,11 @@ SEPARATOR = '~|^'
 
 class PageData:
     '''Stores the page specific data, e.g. the field values of a form.
+    One cookie stores two (key,value) pairs:
+    ("D_<page_name>", data)
+    ("V_<page_name>", dataTypes) 
+    <data> and <versions> are constructed strings separated by "~|^"
+    dataType: "s": string "d": integer "p": password "b": boolean
     '''
     
     # static member! There is only one cookie for all pages!
@@ -167,7 +172,7 @@ class PageData:
         Without special handling the field cannot reset, because the value
         is defined by the cookie value.
         Solution: If the field is not in the fieldValues, the value is set
-        to 'F
+        to 'F'
         @param fieldValues: the field values given from HttpRequest
         '''
         # at least there must be one field, e.g. a button:
@@ -186,7 +191,7 @@ class FieldData:
         '''Constructor.
         @param name: the field name
         @param defaultValue: the start value
-        @param dataType: "s": string "d": integer "p": password
+        @param dataType: "s": string "d": integer "p": password "b": boolean
         '''
         self._no = None
         self._name = name

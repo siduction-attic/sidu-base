@@ -9,7 +9,6 @@ from webbasic.page import Page, PageResult, PageException
 from aux import Aux
 from util.util import Util, say
 from util.configurationbuilder import ConfigurationBuilder
-from symbol import except_clause
 
 class MiniPage(Page):
     def __init__(self, session):
@@ -22,6 +21,9 @@ class MiniPage(Page):
         self.addField('s1')
         self.addField('s2')
         self.addField('c1', 'F', 'b')
+        self.addField('color', 'green', 'b')
+        self.addField('os', 'linux')
+        self.addField('disk', '-')
     
     def handleButton(self, button):
         pass
@@ -53,14 +55,19 @@ class TestPage(unittest.TestCase):
         fnConfigDe = Util.getTempFile('config_de.conf', self._application)
         fnConfigEn = Util.getTempFile('config_en.conf', self._application)
         if not os.path.exists(fnDb) or os.path.getsize(fnDb) == 0:
-            config = ConfigurationBuilder(None)
+            ConfigurationBuilder(None)
             Util.writeFile(fnConfig, '''
 .home.dir=/home/ws/py/disk_help/website
 mpage.vals_s1=,de,en,it
+mpage.vals_color=;red;green;blue
+mpage.opts_os=;windows;linux
+mpage.empty=
 '''             )
             Util.writeFile(fnConfigDe, '''
 mpage.opts_s1=;Deutsch;Englisch;Italienisch
 mpage.opts_s2=,Ja,Nein
+mpage.opts_color=;rot;gr&uuml;n;blau
+mpage.opts_color=;red;green;blue
 '''             )
             Util.writeFile(fnConfigEn, '''
 mpage.opts_s1=;German;English;Italian
@@ -144,6 +151,23 @@ mpage.opts_s2=Yes:No
 <option>DEF</option>'''
             )
         self.assertEquals(None, diff)
+
+    def testFillOpts2(self):
+        texts = ['abc', 'def']
+        values = [ 'A', 'B']
+        html = self._page.fillOpts('s1', texts, values, "B", '\n{{body_s1}}\n')
+        diff = Aux.compareText(html, '''
+<option value="A">abc</option>
+<option selected="selected" value="B">def</option>
+'''         )
+        self.assertEquals(None, diff)
+        html = self._page.fillOpts('s1', texts, None, "def", '\n{{body_s1}}\n')
+        diff = Aux.compareText(html, '''
+<option>abc</option>
+<option selected="selected">def</option>
+'''         )
+        self.assertEquals(None, diff)
+
         
     def testGetOptValues(self):
         self.buildConfig()
@@ -159,38 +183,11 @@ mpage.opts_s2=Yes:No
         self.assertEqual('Ja', texts[0])
         self.assertEqual('Nein', texts[1])
         self.assertEqual(None, values)
- 
-    def testFillOptionsSelectedByIndex(self):
-        self.buildConfig()
-        html = self._page.fillOptionsSelectedByIndex('s1', 1, 'X\n{{body_s1}}\nY')
-        diff = Aux.compareText(html, '''X
-<option value="de">Deutsch</option>
-<option selected="selected" value="en">Englisch</option>
-<option value="it">Italienisch</option>
-Y'''        )
-        self.assertEquals(None, diff)
-
-        html = self._page.fillOptionsSelectedByIndex('s2', 0, 'X\n{{body_s2}}\nY')
-        diff = Aux.compareText(html, '''X
-<option selected="selected">Ja</option>
-<option>Nein</option>
-Y'''        )
-        self.assertEquals(None, diff)
         
-    def testIndexOfFieldValues(self):
-        self.assertEquals(None,
-            self._page.indexOfFieldValues('UnknownField', None))
-        self.assertEquals(0,
-            self._page.indexOfFieldValues('s1', 'de'))
-        self.assertEquals(1,
-            self._page.indexOfFieldValues('s1', 'en'))
-        self.assertEquals(2,
-            self._page.indexOfFieldValues('s1', 'it'))
-        self.assertEquals(None,
-            self._page.indexOfFieldValues('s2', 'Ja'))
-        self.assertEquals(None,
-            self._page.indexOfFieldValues('s1', 'NotExistingItem'))
-   
+        (texts, values) = self._page.getOptValues("os")
+        self.assertEqual(None, values)
+        self.assertEqual(["windows", "linux"], texts)
+ 
     def testFillCheckBox(self):
         templ = '<input type="checkbox" {{chk_c1}} name="c1" value="T" />'
         self._page.putField('c1', 'F')
@@ -285,7 +282,62 @@ Id: Name:
             self.assertEquals("mpage: missing {{COL} in {col}", exc.message)
                        
         self.assertEquals("1 adam ", self._page.buildTable(self, 'error_none'))
+
+    def testFillStaticSelected(self):
+        body = self._page.fillStaticSelected("color", "{{body_color}}")
+        self.assertMultiLineEqual('''<option value="red">rot</option>
+<option selected="selected" value="green">gr&amp</option>
+<option value="blue">uuml</option>
+<option>n</option>
+<option>blau</option>''', body)
         
+    def testFillDynamicSelection(self):
+        disks = ["sda1", "sda2"]
+        diskValues = ["/dev/sda1", "/dev/sda2"]
+        body = self._page.fillDynamicSelected("disk", disks, diskValues, "{{body_disk}}")
+        self.assertMultiLineEqual('''<option value="/dev/sda1">sda1</option>
+<option value="/dev/sda2">sda2</option>''', body)
+        body = self._page.fillDynamicSelected("disk", disks, None, "{{body_disk}}")
+        self.assertMultiLineEqual('''<option>sda1</option>
+<option>sda2</option>''', body)
+        
+    def testAutosplit(self):
+        colors = self._page.autoSplit(";red;green;blue")
+        self.assertEquals(["red", "green", "blue"], colors)
+        try:
+            self._page.autoSplit("")
+            self.fail("no exception")
+        except PageException as e:
+            self.assertTrue(e.message.startswith("mpage"))
+        try:
+            self._page.autoSplit(None)
+            self.fail("no exception")
+        except PageException as e:
+            self.assertTrue(e.message.find("autosplit") > 0)
+        
+
+    def testHumanReadableSize(self):
+        self.assertEquals("0By", self._page.humanReadableSize(0))
+        self.assertEquals("9999By", self._page.humanReadableSize(10*1000-1))
+        self.assertEquals("10KB", self._page.humanReadableSize(10*1000))
+        self.assertEquals("9999KB", self._page.humanReadableSize(10*1000*1000-1))
+        self.assertEquals("10MB", self._page.humanReadableSize(10*1000*1000))
+        self.assertEquals("9999MB", self._page.humanReadableSize(10*1000*1000*1000-1))
+        self.assertEquals("10GB", self._page.humanReadableSize(10*1000*1000*1000))
+       
+    def testAutoJoinArgs(self):
+        self.assertEquals(";1;2", self._page.autoJoinArgs(["1", "2"]))
+        self.assertEquals("|;semi|colon", self._page.autoJoinArgs([";semi", "colon"]))
+        self.assertEquals("^;+^|", self._page.autoJoinArgs([";+", "|"]))
+        self.assertEquals("~;+~|+^", self._page.autoJoinArgs([";+", "|+^"]))
+
+    def testAutoJoinArgsException(self):
+        try:
+            self._page.autoJoinArgs([";+", "|+^+~"])
+            self.fail("no exception")
+        except Exception as e:
+            pass
+
 if __name__ == "__main__":
     #import sys;sys.argv = ['', 'Test.testName']
     unittest.main()

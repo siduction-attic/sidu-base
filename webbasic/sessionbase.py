@@ -3,10 +3,11 @@ Created on 03.02.2013
 
 @author: hm
 '''
-import os.path, re, logging
+import os.path, re, logging, math, time
 
 from util.configurationbuilder import ConfigurationBuilder
 from util.sqlitedb import SqLiteDb
+from util.util import Util
 from webbasic.page import PageResult
 
 logger = logging.getLogger(__name__)
@@ -57,8 +58,8 @@ class SessionBase(object):
         @param languages: the languages which are supported by the application
         @param application: None of the name of the application
         @param homeDir: None or the base directory (containing data/config.db)
-        @param globalPage: the page holding global (= page independent) fields
         '''
+        self._id = Util.encodeFilenameChar(int(math.fmod(time.time()*0x100, 0x100000000)))
         self._request = request
         self._application = application
         self._pageAndBookmark = None
@@ -67,7 +68,6 @@ class SessionBase(object):
         self._logMessages = []
         self._errorMessages = []
         self._configAdditional = None
-        self._globalPage = None
         self._userAgent = ''
         if request != None and 'HTTP_USER_AGENT' in request.META:
             self._userAgent = request.META['HTTP_USER_AGENT']

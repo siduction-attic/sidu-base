@@ -6,6 +6,7 @@ Created on 20.04.2013
 import unittest, os.path, sys, shutil, time
 
 from util.util import say, sayError, Util, exceptionString
+from util.util import FILENAMECHARS, INVERS_FILENAMECHARS
 from util.config import Config
 
 class Test(unittest.TestCase):
@@ -221,7 +222,60 @@ and line3'''         )
         self.assertTrue(Util.ensureMissing(fn))
         self.assertFalse(Util.ensureMissing(fn))
         self.assertFalse(os.path.exists(fn))
-       
+        
+    def testEncodeFilenameChar(self):
+        fn = Util.encodeFilenameChar(0x12345678)
+        self.assertEqual("PjsD%", fn)
+        fn = Util.encodeFilenameChar(0x82345678)
+        self.assertEqual("WOqQZ", fn)
+        
+    def testDecodeFilenameChar(self):
+        val = 7
+        r = 0x12345678
+        for ii in xrange(29):
+            val = val*2 + 7
+            fn = Util.encodeFilenameChar(val)
+            val2 = Util.decodeFilenameChar(fn)
+            fn2 = Util.encodeFilenameChar(val2)
+            self.assertEqual(val2, val)
+            self.assertEqual(fn, fn2)
+            
+            r = r * 7 % 0x10000000
+            fn = Util.encodeFilenameChar(r)
+            val2 = Util.decodeFilenameChar(fn)
+            fn2 = Util.encodeFilenameChar(val2)
+            self.assertEqual(val2, r)
+            self.assertEqual(fn, fn2)
+            
+        val1 = Util.decodeFilenameChar("1234567")
+        val2 = Util.decodeFilenameChar("12/3\\45<6>7")
+        self.assertEquals(val1, val2)
+    
+    def testData(self):
+        # Each char unique?
+        for ix in xrange(len(FILENAMECHARS) - 1):
+            self.assertEqual(-1, FILENAMECHARS[ix+1:].find(FILENAMECHARS[ix]))
+
+        # Each entry of FILENAMECHARS in INVERS_FILENAMECHARS:    
+        for ix in xrange(len(FILENAMECHARS)):
+            ii = ord(FILENAMECHARS[ix]) - 33
+            self.assertEqual(INVERS_FILENAMECHARS[ii], ix)
+
+        # Each entry of INVERS_FILENAMECHARS in FILENAMECHARS:
+        for ix in xrange(len(INVERS_FILENAMECHARS)):
+            ii = INVERS_FILENAMECHARS[ix]
+            if ii >= 0:
+                if FILENAMECHARS[ii] != chr(33+ix):
+                    self.assertEquals(FILENAMECHARS[ii], chr(33+ix))
+
+    def testBuildInvers(self):
+        x = list(FILENAMECHARS)
+        x.sort()
+        chars = "".join(x)
+        (chars, invers) = Util.buildInvers(chars, 33)
+        self.assertTrue(chars != None)
+        self.assertTrue(invers != None)
+        
 if __name__ == "__main__":
     #import sys;sys.argv = ['', 'Test.testName']
     unittest.main()

@@ -73,4 +73,5 @@ class GlobalBasePage(Page):
         key = self.getSessionKey()
         rc = Util.getTempFile(prefix + key, self._session._application)
         return rc
-            
+
+        

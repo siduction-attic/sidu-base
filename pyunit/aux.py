@@ -198,6 +198,16 @@ MAIN:
         page = Page(name, session)
         return page
         
+    @staticmethod    
+    def writeFile(name, content = None):
+        '''Writes a string into a file.
+        @param name        the filename
+        @param content    the file's content. If None the file will be empty
+        '''
+        with open(name, "w") as fp:
+            if content != None:
+                fp.write(content)
+        fp.close
 
                   
 class DummyRequest:

@@ -50,7 +50,7 @@ class Page(object):
         If not an error message must be displayed.
         '''
         self._session.error('missing defineFields(): ' + self._name)
-        
+    
     def handleButton(self, button):
         '''This method must be overwritten:
         If not an error message must be displayed.
@@ -63,7 +63,7 @@ class Page(object):
         Delegation to PageData.add()
         @param name: the field's name
         @param defaultValue: the value for the first time
-        @param dataType: the field's data type
+        @param dataType: "s": string "d": integer "p": password "b": boolean
         '''
         self._pageData.add(FieldData(name, defaultValue, dataType))
           
@@ -179,21 +179,28 @@ class Page(object):
                     break
         return rc
     
-    def fillOpts(self, field, texts, values, currentIndex, source):
+    def fillOpts(self, field, texts, values, selection, source):
         '''Builds the body of an <select> element.
         The placeholder will be replaced by the values.
         @param field: the name of the field (without page name)
-        @param ixCurrent: the index of the selected entry
+        @param selection: if type(selection) == int: index of the selected. 
+                        Otherwise: value of the selected option
         @param source: the HTML code containing the field to change
         @return: the source with expanded placeholder for the field
         '''
-        opts = None
+        opts = ""
+        if type(selection) != int:
+            try:
+                if values != None:
+                    selection = values.index(selection)
+                else:
+                    selection = texts.index(selection)
+            except ValueError:
+                selection = -1
         for ix in xrange(len(texts)):
-            if opts == None:
-                opts = ''
-            else :
+            if opts != "":
                 opts += '\n'
-            opts += '<option selected="selected"' if ix == currentIndex else '<option'
+            opts += '<option selected="selected"' if ix == selection else '<option'
             if values != None and ix < len(values):
                 opts += ' value="' + values[ix] + '"'
             opts += '>' + texts[ix] + '</option>'
@@ -207,47 +214,39 @@ class Page(object):
         @return: a tuple (texts, values)
         '''       
         key = self._name + '.opts_' + field
-        values = self._session.getConfig(key)
-        texts = values[1:].split(values[0:1])
+        values = self._session.getConfigOrNone(key)
+        if values == None:
+            values = self._session.getConfigOrNoneWithoutLanguage(key)
+        texts = values[1:].split(values[0]) if values != None else []
         key = self._name + '.vals_' + field
         values = self._session.getConfigOrNoneWithoutLanguage(key)
         if values != None:
-            values = values[1:].split(values[0:1])
+            values = values[1:].split(values[0])
         return (texts, values)
     
-    def indexOfFieldValues(self, field, value):
-        '''Returns the index of a value in the option value list.
-        @param field: the fieldname (without page)
-        @param value: the value to find
-        @return: None: not found<br>
-                otherwise: the index of the value in the value list
+    def fillStaticSelected(self, field, body):
+        '''Fills a selection field with fix options stored in configuration.
+        @param field: name of the selection field
+        @param body: the html text with the field definition
+        @return: the body with the supplemented field
         '''
-        key = self._name + '.vals_' + field
-        values = self._session.getConfigOrNoneWithoutLanguage(key)
-        rc = None
-        if values != None:
-            items = values[1:].split(values[0:1])
-            for ix in xrange(len(items)):
-                if items[ix] == value:
-                    rc = ix
-                    break
-            if rc == None:
-                self._session.error('{:s}: {:s} not found in {:s}'.format(
-                    field, value, values))
-        return rc
-        
-        
-    def fillOptionsSelectedByIndex(self, field, ixCurrent, source):
-        '''Builds the body of an <select> element.
-        @param field: the name of the field (without page name)
-        @param ixCurrent: the index of the selected entry
-        @param source: the HTML code containing the field to change
-        @return: the source with expanded placeholder for the field
+        (texts, values) = self.getOptValues(field)
+        selection = self.getField(field)
+        body = self.fillOpts(field, texts, values, selection, body)
+        return body
+                
+    def fillDynamicSelected(self, field, texts, values, body):
+        '''Fills a selection field with fix options stored in configuration.
+        @param field: name of the selection field
+        @param texts: list of texts of the field option
+        @param value: None or list of values of the field option
+        @param body: the html text with the field definition
+        @return: the body with the supplemented field
         '''
-        texts, values = self.getOptValues(field)
-        source = self.fillOpts(field, texts, values, ixCurrent, source)
-        return source
-            
+        selection = self.getField(field)
+        body = self.fillOpts(field, texts, values, selection, body)
+        return body
+                
     def handle(self, htmlMenu, fieldValues, cookies):
         '''Generic handling of the page.
         @param fieldValues: the dictionary containing the field values (GET or POST)
@@ -300,4 +299,101 @@ class Page(object):
         checked = '' if value != 'T' else 'checked="checked"'
         body = body.replace('{{chk_' + name + '}}', checked)
         return body
+   
+    def autoSplit(self, listAsString):
+        '''Splits a string into a list with an automatic separator:
+        @param listAsString: the list as string. The first char is the separator
+        @return the list built from the string
+        '''
+        if listAsString == None or listAsString == "":
+            raise PageException(self, "autosplit(''): too short")
+        sep = listAsString[0]
+        rc = listAsString[1:].split(sep)
+        return rc
     
+    def humanReadableSize(self, size):
+        '''Builds a human readable size with max. 3 digits and a matching unit.
+        @param size: the size in kByte (type: int)
+        @return: a string with the size and unit, e.g. 213 MByte
+        '''
+        if size < 10*1000:
+            size = '{:d}By'.format(size)
+        elif size < 10*1000*1000:
+            size = '{:d}KB'.format(size / 1000)
+        elif size < 10*1000*1000*1000:
+            size = '{:d}MB'.format(size / 1000 / 1000)
+        else:
+            size = '{:d}GB'.format(size / 1000 / 1000 / 1000)
+        return size
+
+    def replaceGlobalField(self, field, defaultKey, args, placeholder, body):
+        '''Replace a placeholder in a template with a global field.
+        If the key does not exist a default key will be taken.
+        @param key:        the field of the global page
+        @param defaultKey: this key will be taken if the key has no value
+        @param args:       None or a autoseparated list like ";yes;no"), 
+                           In the text gotten by key/defaultKey must exist
+                           placeholders like {{1}}.... this placeholders
+                           will be replaced by the related entry of the list.
+        @param placeholder:    a string placed in the body.
+        @param body:        the HTML template with the placeholder
+        @return:     the body with replaced placeholder
+        '''
+        key = self._globalPage.getField(field)
+        if key == None or key == "":
+            key = defaultKey
+        text = self._session.getConfigOrNone(key)
+        if text != None and args != None:
+            args = self.autoSplit(args)
+            for ix in xrange(len(args)):
+                posVar = "{:s}{:d}{:s}".format("{{", ix+1, "}}")
+                text = text.replace(posVar, args[ix])
+        if text != None:
+            body = body.replace(placeholder, text)
+        return body
+    
+    def autoJoinArgs(self, args):
+        rc = ";".join(args)
+        if rc.count(";") == len(args) - 1:
+            rc = ";" + rc
+        else:
+            rc = "|".join(args)
+            if rc.count("|") == len(args) - 1:
+                rc = "|" + rc
+            else:
+                rc = "^".join(args)
+                if rc.count("^") == len(args) - 1:
+                    rc = "^" + rc
+                else:
+                    rc = "~".join(args)
+                    if rc.count("~") == len(args) - 1:
+                        rc = "~" + rc
+                    else:
+                        raise Exception("No separator possible: ;|^~")
+        return rc
+    def gotoWait(self, follower, fileStop, fileProgress, 
+            keyIntro, argsIntro, keyDescr, argsDescr):
+        '''Prepares the start of the wait page.
+        @param session:    session info
+        @param follower:    the name of the page (relative url) after the wait page
+        @param fileStop:    if this file exists the wait page will be stopped
+        @param fileProgress: None of the file containing a progress value
+        @param keyIntro:    None or the key of the introduction text
+        @param argsIntro:   None or a list of values for the placeholders in intro
+        @param keyDescr:    None or the key of the description text
+        @param argsIntro:   None or a list of values for the placeholders in descr
+        @return:            a PageResult instance with a redirection to wait
+        '''
+        self._globalPage.putField("wait.intro.key", keyIntro)
+        if argsIntro != None:
+            argsIntro = ";" + ";".join(argsIntro)
+        self._globalPage.putField("wait.intro.args", argsIntro)
+        self._globalPage.putField("wait.descr.key", keyDescr)
+        if argsDescr != None:
+            argsDescr = ";" + ";".join(argsDescr)
+        self._globalPage.putField("wait.descr.args", argsDescr)
+        self._globalPage.putField("wait.file.stop", fileStop)
+        self._globalPage.putField("wait.file.progress", fileProgress)
+        self._globalPage.putField("wait.page", follower)
+        rc = self._session.redirect("wait", "gotoWait-" + self._name)
+        return rc
