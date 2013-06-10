@@ -1,0 +1,49 @@
+#! /bin/bash
+
+set -e
+DIR=/var/cache/sidu-base
+TASKS=$DIR/shellserver-tasks
+PUBLIC=$DIR/public
+if [ ! -d $TASKS ] ; then 
+	mkdir -p $TASKS
+fi
+if [ ! -d $PUBLIC ] ; then 
+	mkdir -p $PUBLIC
+fi
+chmod uog+rwx $DIR $TASKS $PUBLIC
+F1=/etc/init.d/sidu-base.dpkg-dist
+F2=/etc/init.d/sidu-base
+if [ -f $F1 -a ! -f $F2 ] ; then
+	mv $F1 $F2
+fi
+
+CONFIG=/etc/sidu-base/shellserver.conf
+if ! grep -q "^CONSOLE=" $CONFIG ; then
+	CONSOLE=
+	if which konsole ; then
+		CONSOLE=konsole
+	elif which lxterminal ; then
+		CONSOLE=lxterminal
+	elif which xfce4-terminal ; then
+		CONSOLE=xfce4-terminal
+	elif which xterm ; then
+		CONSOLE=xterm
+	else
+		CONSOLE=x-terminal-emulator
+	fi
+	test -n "$CONSOLE" && sed -i -e "s/^#CONSOLE=.*/CONSOLE=$CONSOLE/;" $CONFIG
+fi
+function MkLink2(){
+	if [ ! -L $2 ] ; then
+		ln -sf $1 $2
+	fi
+}
+MkLink2 $PUBLIC /usr/share/sidu-base
+
+if grep -q ":1000:" /etc/passwd ; then
+	home=$(grep ":1000:" /etc/passwd | head -n 1 | cut -d: -f6)
+	sed -i -e "s%^START_GUI_HOME2=.*%START_GUI_HOME2=$home%;" $CONFIG
+fi
+
+#DEBHELPER#
+exit 0

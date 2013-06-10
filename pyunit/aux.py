@@ -209,6 +209,29 @@ MAIN:
                 fp.write(content)
         fp.close
 
+    @staticmethod    
+    def isRunningProgram(name):
+        '''Checks whether a given program is running.
+        @param name: the name of the program to test
+        @return: True: the program is running.
+                 False: otherwise
+        '''
+        rc = False
+        dirs = os.listdir("/proc")
+        rexprDir = re.compile(r'\d+$')
+        rexprName = re.compile(r'Name:\s+(.*)')
+        for node in dirs:
+            stat = "/proc/" + node + "/status"
+            if rexprDir.match(node) and os.path.exists(stat):
+                with open(stat, "r") as fp:
+                    line = fp.readline()
+                    matcher = rexprName.match(line)
+                    if matcher != None and matcher.group(1) == name:
+                        rc = True
+                        break
+                fp.close
+        return rc
+                
                   
 class DummyRequest:
     def __init__(self):

@@ -25,8 +25,10 @@ class ShellClient(object):
         '''Constructor.
         @param session:    the session info
         '''
-        # the directory containing the task files, e.g. /tmp/sidu-shellserver-tasks/
-        self._dirTask = session.getConfigWithoutLanguage(".task.dir") 
+        # the directory containing the task files, e.g. /tmp/sidu-base/tasks/
+        self._dirTask = session.getConfigOrNoneWithoutLanguage(".task.dir")
+        if self._dirTask == None:
+            self._dirTask = "/var/cache/sidu-base/shellserver-tasks" 
         # session info
         self._session = session
         # current number for unique filenames

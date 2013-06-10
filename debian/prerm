@@ -1,0 +1,10 @@
+#!/bin/sh
+set -e
+
+#DEBHELPER#
+
+if [ -L /usr/share/siguibui/public ] ; then
+	rm /usr/share/siguibui/public
+fi
+
+exit 0

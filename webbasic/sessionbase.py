@@ -362,3 +362,4 @@ class SessionBase(object):
         rc = PageResult(None, relativeUrl, caller)
         return rc
         
+        

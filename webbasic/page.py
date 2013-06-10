@@ -44,7 +44,8 @@ class Page(object):
         if readSnippets:
             self._snippets = HTMLSnippets(session)
             self._snippets.read(name)
-        
+        self._dynMeta = ""
+
     def defineFields(self):
         '''This method must be overwritten:
         If not an error message must be displayed.
@@ -274,9 +275,10 @@ class Page(object):
                     self._errorSuffix)
             content = self._session.replaceVars(content)
             title = self._session.getConfig(self._name + '.title')
+            frame = self.modifyDocument(frame)
             env = { 'CONTENT' : content, 
                 'MENU' : htmlMenu,
-                'META_DYNAMIC' : self._session._metaDynamic,
+                'META_DYNAMIC' : self._dynMeta,
                 'STATIC_URL' : '',
                 '!title' : title
                 }
@@ -397,3 +399,10 @@ class Page(object):
         self._globalPage.putField("wait.page", follower)
         rc = self._session.redirect("wait", "gotoWait-" + self._name)
         return rc
+
+    def setRefresh(self, sec = 3):
+        '''Takes care that the page will be refreshed in a given time.
+        @param sec    the time until the refresh will be done in seconds
+        '''
+        self._dynMeta = '<meta http-equiv="refresh" content="{:d}" />'.format(sec)
+        

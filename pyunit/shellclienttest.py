@@ -49,6 +49,10 @@ abc''',     content)
         self.assertTrue(os.path.exists(answer))
         os.unlink(answer)
         
+    def testRemote(self):
+        if Aux.isRunningProgram("shellserver.sh"):
+            pass
+        pass
 if __name__ == "__main__":
     #import sys;sys.argv = ['', 'Test.testName']
     unittest.main()
