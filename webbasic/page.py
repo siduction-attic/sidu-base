@@ -275,7 +275,6 @@ class Page(object):
                     self._errorSuffix)
             content = self._session.replaceVars(content)
             title = self._session.getConfig(self._name + '.title')
-            frame = self.modifyDocument(frame)
             env = { 'CONTENT' : content, 
                 'MENU' : htmlMenu,
                 'META_DYNAMIC' : self._dynMeta,
