@@ -1,4 +1,4 @@
-sidu-base (0.3.1) UNRELEASED; urgency=low
+sidu-base (0.3.2) UNRELEASED; urgency=low
 
   * Aux: more helper methods for tests
   * Util: getTempDir(): new signature (base, subdir, endswith) instead of (base, endswith)
@@ -15,8 +15,9 @@ sidu-base (0.3.1) UNRELEASED; urgency=low
   * integration of the shellserver
   * backend basic tasks
   * added: Page.setRefresh()
+  * possible separation of field page and configuration page for selection fields
 
- -- J. Hamatoma <hama@siduction.net>  Wed, 12 Jun 2013 21:28:47 +0200
+ -- J. Hamatoma <hama@siduction.net>  Fri, 14 Jun 2013 00:41:20 +0200
 
 sidu-base (0.2.3) unstable; urgency=low
 

@@ -225,23 +225,29 @@ class Page(object):
             values = values[1:].split(values[0])
         return (texts, values)
     
-    def fillStaticSelected(self, field, body):
+    def fillStaticSelected(self, field, body, pageOfField = None):
         '''Fills a selection field with fix options stored in configuration.
         @param field: name of the selection field
         @param body: the html text with the field definition
+        @param pageOfField: the page containing the field.
+                            If None pageOfField = self
         @return: the body with the supplemented field
         '''
+        if pageOfField == None:
+            pageOfField = self
         (texts, values) = self.getOptValues(field)
-        selection = self.getField(field)
+        selection = pageOfField.getField(field)
         body = self.fillOpts(field, texts, values, selection, body)
         return body
                 
-    def fillDynamicSelected(self, field, texts, values, body):
+    def fillDynamicSelected(self, field, texts, values, body, pageOfField = None):
         '''Fills a selection field with fix options stored in configuration.
         @param field: name of the selection field
         @param texts: list of texts of the field option
         @param value: None or list of values of the field option
         @param body: the html text with the field definition
+        @param pageOfField: the page containing the field.
+                            If None pageOfField = self
         @return: the body with the supplemented field
         '''
         selection = self.getField(field)
