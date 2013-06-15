@@ -1,4 +1,5 @@
 *.pyc
+.coverage
 .settings
 sqlite.db
 
@@ -6,6 +7,9 @@ sqlite.db
 debian/files
 debian/sidu-base.debhelper.log
 debian/sidu-base.substvars
+debian/sidu-base.postinst.debhelper
+debian/sidu-base.postrm.debhelper
+debian/sidu-base.prerm.debhelper
 debian/sidu-base/
 debian/source/
-.coverage
+
