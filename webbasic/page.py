@@ -46,6 +46,13 @@ class Page(object):
             self._snippets.read(name)
         self._dynMeta = ""
 
+    def afterInit(self):
+        '''Will be called after all initializations are done.
+        Note: self._globalPage will be set after the constructor.
+        This method can be overridden.
+        '''
+        pass
+    
     def defineFields(self):
         '''This method must be overwritten:
         If not an error message must be displayed.
@@ -105,7 +112,7 @@ class Page(object):
                         info: see below
                         Description of what:
                         'Table': None or html template of table with '{{ROWS}}'
-                        'Row:' None or a template with '{{ROWS}}'
+                        'Row:' None or a template with '{{COLS}}'
                         'Col': None or a template with '{{COL}}'
                         'rows': number of rows. Data type: int
                         'cols': list of column values (data type: Object)
@@ -140,7 +147,13 @@ class Page(object):
             cols = builder.buildPartOfTable(info, 'cols', ixRow)
             content = ''
             for col in cols:
-                val = xml.sax.saxutils.escape(col) if type(col) is str else str(col)
+                if not (type(col) is str or type(col) is unicode):
+                    val = str(col)
+                else:
+                    if col.startswith("<xml>"):
+                        val = col[5:]
+                    else:
+                        val = xml.sax.saxutils.escape(col) 
                 content += colTemplate.replace('{{COL}}', val)
             rows += rowTemplate.replace('{{COLS}}', content)
         table = table.replace('{{ROWS}}', rows)
@@ -263,6 +276,7 @@ class Page(object):
             
         self.defineFields()
         self._pageData.importData(self._name, fieldValues, cookies)
+        self.afterInit()
 
         self._pageData.correctCheckBoxes(fieldValues);
 

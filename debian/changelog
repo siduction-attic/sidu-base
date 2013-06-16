@@ -1,4 +1,4 @@
-sidu-base (0.3.2) UNRELEASED; urgency=low
+sidu-base (0.3.3) UNRELEASED; urgency=low
 
   * Aux: more helper methods for tests
   * Util: getTempDir(): new signature (base, subdir, endswith) instead of (base, endswith)
@@ -16,8 +16,10 @@ sidu-base (0.3.2) UNRELEASED; urgency=low
   * backend basic tasks
   * added: Page.setRefresh()
   * possible separation of field page and configuration page for selection fields
+  * new: Page.afterInit()
+  * fix in Page.buildTable(): unicode like string, avoiding escaping with prefix "<xml>"
 
- -- J. Hamatoma <hama@siduction.net>  Fri, 14 Jun 2013 00:41:20 +0200
+ -- J. Hamatoma <hama@siduction.net>  Sun, 16 Jun 2013 17:06:56 +0200
 
 sidu-base (0.2.3) unstable; urgency=low
 
