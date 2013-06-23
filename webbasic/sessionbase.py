@@ -9,6 +9,7 @@ from util.configurationbuilder import ConfigurationBuilder
 from util.sqlitedb import SqLiteDb
 from util.util import Util
 from webbasic.page import PageResult
+from basic.shellclient import ShellClient
 
 logger = logging.getLogger(__name__)
 
@@ -98,7 +99,7 @@ class SessionBase(object):
             self._language if self._language else '',
             self._homeDir if self._homeDir else '',
             self._configDbName if self._configDbName else ''))
-
+        self._shellClient = ShellClient(self)
 
     def addConfig(self, key, value):
         '''Adds a (key, value) pair to the configuration.

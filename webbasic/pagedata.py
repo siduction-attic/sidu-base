@@ -3,10 +3,6 @@ Created on 10.03.2013
 
 @author: hm
 '''
-import re
-from Cookie import SimpleCookie
-from gi.overrides.keysyms import currency
-
 SEPARATOR = '~|^'
 
 class PageData:
@@ -68,7 +64,6 @@ class PageData:
         '''Puts an error message (exactly its key) to a field.
         @param name: the field's name
         @param errorKey: the key of the error message
-        @param value: the new value
         @return: True
         '''
         if name in self._dict:
@@ -103,7 +98,8 @@ class PageData:
         currentVersion = self.getDataVersion()
         if values != None and values != '' and version == currentVersion:
             values = values.split(SEPARATOR)
-            for ix in xrange(len(values)):
+            count = min(len(values), len(self._list))
+            for ix in xrange(count):
                 field = self._list[ix]
                 val = values[ix]
                 if field._type == 'd':

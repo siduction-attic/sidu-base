@@ -3,7 +3,11 @@ Created on 28.04.2013
 
 @author: hm
 '''
-import time, os.path, time, math
+import os.path, time, math
+
+SVOPT_BACKGROUND = "background"
+SVOPT_SOURCE = "source"
+SVOPT_DEFAULT = "std"
 
 class ShellClient(object):
     '''
@@ -85,10 +89,10 @@ class ShellClient(object):
             subdir = "/" + subdir
             
         while True:
-            base = self._session.getConfigWithoutLanguage(".dir.temp")
+            base = self._session.getConfigWithoutLanguage(".dir.tasks")
             time1 = int(time.time()) % 0x100
             time2 = int(math.fmod(time.time(), 1) * 0x10000)
-            fn = "{:s}/{:s}{:s}{:s}.{:02x}{:04x}{:s}".format(
+            fn = "{:s}{:s}{:s}{:s}.{:02x}{:04x}{:s}".format(
                 base, subdir, prefix, self._session._id, time1, time2, suffix)
             if not os.path.exists(fn):
                 break

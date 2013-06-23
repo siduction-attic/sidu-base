@@ -4,7 +4,7 @@ Created on 01.05.2013
 @author: hm
 '''
 
-import re
+import re, os.path
 from webbasic.page import Page
 
 class WaitPage(Page):
@@ -21,6 +21,18 @@ class WaitPage(Page):
         Page.__init__(self, 'wait', session)
         
         
+    def afterInit(self):
+        '''Will be called after all initializations are done.
+        Note: self._globalPage will be set after the constructor.
+        This method can be overridden.
+        '''
+        fileStop = self._globalPage.getField('wait.file.stop')
+        if os.path.exists(fileStop):
+            follower = self._globalPage.getField('wait.page')
+            self._redirect = self._session.redirect(follower, "wait-" + follower)
+        else:
+            self.setRefresh(3)
+
     def defineFields(self):
         '''Must be overwritten!
         '''
@@ -39,7 +51,7 @@ class WaitPage(Page):
         body = self.replaceGlobalField("wait.descr.key", "wait.descr", 
             argsDescr, "{{description}}", body)
         fnProgress = self._globalPage.getField("wait.file.progress")
-        if fnProgress != None:
+        if fnProgress != None and fnProgress != "":
             progressBody = self._snippets["PROGRESS_BODY"]
             (percentage, task, no, count) = self.readProgress(fnProgress)
             progressBody = progressBody.replace("{{percentage}}", str(percentage))

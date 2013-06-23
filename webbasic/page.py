@@ -41,10 +41,12 @@ class Page(object):
         self._globalPage = None
         self._errorPrefix = None
         self._errorSuffix = None
+        self._redirect = None
         if readSnippets:
             self._snippets = HTMLSnippets(session)
             self._snippets.read(name)
         self._dynMeta = ""
+        
 
     def afterInit(self):
         '''Will be called after all initializations are done.
@@ -91,6 +93,14 @@ class Page(object):
         '''
         self._pageData.put(name, value)
 
+    def putError(self, name, errorKey):
+        '''Puts an error message (exactly its key) to a field.
+        @param name: the field's name
+        @param errorKey: the key of the error message
+        @return: True
+        '''
+        return self._pageData.putError(name, errorKey)
+    
     def buildHtml(self, htmlMenu):
         '''Builds the HTML text of the page.
         @param htmlMenu: the HTML code for the menu
@@ -266,7 +276,25 @@ class Page(object):
         selection = self.getField(field)
         body = self.fillOpts(field, texts, values, selection, body)
         return body
-                
+     
+    def findIndexOfOptions(self, field):
+        '''Returns the index of current value of a selection field
+        in the text or value list.
+        @param field: name of the field to test
+        @return: -1: not found
+                otherwise: the index of the value/text
+        '''
+        ix = -1
+        current = self.getField(field)
+        (texts, values) = self.getOptValues(field)
+        if values == None:
+            values = texts
+        for ii in xrange(len(texts)):
+            if texts[ii] == current or values[ii]:
+                ix = ii
+                break
+        return ix
+    
     def handle(self, htmlMenu, fieldValues, cookies):
         '''Generic handling of the page.
         @param fieldValues: the dictionary containing the field values (GET or POST)
@@ -277,14 +305,16 @@ class Page(object):
         self.defineFields()
         self._pageData.importData(self._name, fieldValues, cookies)
         self.afterInit()
-
-        self._pageData.correctCheckBoxes(fieldValues);
-
-        # Checks wether a button has been pushed:
-        button = self.findButton(fieldValues)
-        rc = None
-        if button != None:
-            rc = self.handleButton(button)
+        if self._redirect != None:
+            rc = self._redirect
+        else:
+            self._pageData.correctCheckBoxes(fieldValues);
+    
+            # Checks wether a button has been pushed:
+            button = self.findButton(fieldValues)
+            rc = None
+            if button != None:
+                rc = self.handleButton(button)
         
         if rc == None:
             fn = self._session.getTemplateDir() + 'pageframe.html'
@@ -393,7 +423,7 @@ class Page(object):
                         raise Exception("No separator possible: ;|^~")
         return rc
     def gotoWait(self, follower, fileStop, fileProgress, 
-            keyIntro, argsIntro, keyDescr, argsDescr):
+            keyIntro, argsIntro, keyDescr = None, argsDescr = None):
         '''Prepares the start of the wait page.
         @param session:    session info
         @param follower:    the name of the page (relative url) after the wait page
@@ -418,6 +448,18 @@ class Page(object):
         self._globalPage.putField("wait.page", follower)
         rc = self._session.redirect("wait", "gotoWait-" + self._name)
         return rc
+
+    def execute(self, answer, options, command, params, timeout = 3600):
+        '''Executes a command. Delegates to the object _session._shellClient
+         @param answer:     the name of the answer file
+         @param options:    the options for the shell server
+         @param command:   the command to execute, e.g. SVOPT_DEFAULT
+         @param params:   NULL or a string or an array of strings
+         @param timeout:    the maximum count of seconds
+         @return: true: answer file exists. false: timeout reached
+        '''
+        return self._session._shellClient.execute(answer, options, command, 
+            params, timeout)
 
     def setRefresh(self, sec = 3):
         '''Takes care that the page will be refreshed in a given time.
