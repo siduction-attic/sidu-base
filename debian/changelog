@@ -1,13 +1,13 @@
-sidu-base (0.3.5) UNRELEASED; urgency=low
+sidu-base (0.3.6) UNRELEASED; urgency=low
 
   * new: Page.afterInit()
   * Page.buildTable(): unicode like string
   * Page.buildTable(): avoiding meta character escaping with prefix "<xml>"
   * correction in shellclient
   * convenience functions: Page.findIndexOfOptions() Page.execute()
-  * 
+  * new: self._urlStatic
 
- -- J. Hamatoma <hama@siduction.net>  Sun, 23 Jun 2013 16:46:47 +0200
+ -- J. Hamatoma <hama@siduction.net>  Sun, 30 Jun 2013 11:14:46 +0200
 
 sidu-base (0.3.3) unstable; urgency=low
 

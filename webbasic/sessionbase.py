@@ -70,6 +70,7 @@ class SessionBase(object):
         self._errorMessages = []
         self._configAdditional = None
         self._userAgent = ''
+        self._urlStatic = "../static/"
         if request != None and 'HTTP_USER_AGENT' in request.META:
             self._userAgent = request.META['HTTP_USER_AGENT']
         self._expandNeedsRightMove = not re.search(
