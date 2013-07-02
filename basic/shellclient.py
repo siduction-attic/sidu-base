@@ -97,3 +97,12 @@ class ShellClient(object):
             if not os.path.exists(fn):
                 break
         return fn
+
+    def escShell(self, text):
+        '''Makes a string "shell proof".
+        @param text: the text to encode
+        @return: the text with escaped meta characters
+        ''' 
+        rc = text.replace("$", r'\$')
+        return rc
+

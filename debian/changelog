@@ -1,4 +1,4 @@
-sidu-base (0.3.6) UNRELEASED; urgency=low
+sidu-base (0.3.7) UNRELEASED; urgency=low
 
   * new: Page.afterInit()
   * Page.buildTable(): unicode like string
@@ -6,8 +6,9 @@ sidu-base (0.3.6) UNRELEASED; urgency=low
   * correction in shellclient
   * convenience functions: Page.findIndexOfOptions() Page.execute()
   * new: self._urlStatic
+  * new: shellclient.escShell()
 
- -- J. Hamatoma <hama@siduction.net>  Sun, 30 Jun 2013 11:14:46 +0200
+ -- J. Hamatoma <hama@siduction.net>  Wed, 03 Jul 2013 00:16:15 +0200
 
 sidu-base (0.3.3) unstable; urgency=low
 
