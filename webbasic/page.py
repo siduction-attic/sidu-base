@@ -68,13 +68,20 @@ class Page(object):
         '''
         self._session.error('missing handleButton(): ' + self._name)
         
-    def addField(self, name, defaultValue = None, dataType = 's'):
+    def addField(self, name, defaultValue = None, defaultIndex = None, dataType = 's'):
         '''Adds a field definition.
         Delegation to PageData.add()
         @param name: the field's name
         @param defaultValue: the value for the first time
         @param dataType: "s": string "d": integer "p": password "b": boolean
+        @param defaultIndex: only on selection fields: the default index 
         '''
+        if defaultIndex != None:
+            (texts, values) = self.getOptValues(name)
+            if values == None:
+                values = texts
+            if defaultIndex < len(values):
+                defaultValue = values[defaultIndex]
         self._pageData.add(FieldData(name, defaultValue, dataType))
           
     def getField(self, name):
@@ -290,7 +297,7 @@ class Page(object):
         if values == None:
             values = texts
         for ii in xrange(len(texts)):
-            if texts[ii] == current or values[ii]:
+            if texts[ii] == current or current == values[ii]:
                 ix = ii
                 break
         return ix
@@ -403,6 +410,14 @@ class Page(object):
             body = body.replace(placeholder, text)
         return body
     
+    def storeAsGlobal(self, fieldLocal, fieldGlobal):
+        '''Stores a local field in the global field.
+        @param fieldLocal: the field to store
+        @param fieldGlobal: the field in the global page
+        '''
+        value = self.getField(fieldLocal)
+        self._globalPage.putField(fieldGlobal, value)
+
     def autoJoinArgs(self, args):
         rc = ";".join(args)
         if rc.count(";") == len(args) - 1:
@@ -438,11 +453,11 @@ class Page(object):
         self._globalPage.putField("wait.intro.key", keyIntro)
         if argsIntro != None:
             argsIntro = ";" + ";".join(argsIntro)
-        self._globalPage.putField("wait.intro.args", argsIntro)
+        self._globalPage.putField("wait.intro.arg", argsIntro)
         self._globalPage.putField("wait.descr.key", keyDescr)
         if argsDescr != None:
             argsDescr = ";" + ";".join(argsDescr)
-        self._globalPage.putField("wait.descr.args", argsDescr)
+        self._globalPage.putField("wait.descr.arg", argsDescr)
         self._globalPage.putField("wait.file.stop", fileStop)
         self._globalPage.putField("wait.file.progress", fileProgress)
         self._globalPage.putField("wait.page", follower)

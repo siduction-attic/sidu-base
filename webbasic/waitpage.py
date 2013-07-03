@@ -44,20 +44,30 @@ class WaitPage(Page):
         @param body: the HTML code of the page
         @return: the modified body
         '''
-        argsIntro = self._globalPage.getField('wait.intro.args')
-        argsDescr = self._globalPage.getField('wait.descr.args')
+        argsIntro = self._globalPage.getField("wait.intro.arg")
+        if argsIntro == "":
+            argsIntro = None
+        argsDescr = self._globalPage.getField("wait.descr.arg")
+        if argsDescr == "":
+            argsDescr = None
         body = self.replaceGlobalField("wait.intro.key", "wait.intro", 
             argsIntro, "{{intro}}", body)
         body = self.replaceGlobalField("wait.descr.key", "wait.descr", 
             argsDescr, "{{description}}", body)
         fnProgress = self._globalPage.getField("wait.file.progress")
         if fnProgress != None and fnProgress != "":
-            progressBody = self._snippets["PROGRESS_BODY"]
+            progressBody = self._snippets.get("PROGRESS")
             (percentage, task, no, count) = self.readProgress(fnProgress)
+            if task == None:
+                task = ""
+            taskBody = "" if task == "" else self._snippets.get("PROGRESS_STATE")
+            progressBody = progressBody.replace("{{PROGRESS_STATE}}", taskBody)
             progressBody = progressBody.replace("{{percentage}}", str(percentage))
             progressBody = progressBody.replace("{{task}}", task)
             progressBody = progressBody.replace("{{no}}", str(no))
             progressBody = progressBody.replace("{{count}}", str(count))
+            demo = ""
+            progressBody = progressBody.replace("{{DEMO_TEXT}}", demo)
             body = body.replace("{{PROGRESS}}", progressBody)
         return body
     
@@ -89,23 +99,24 @@ class WaitPage(Page):
         '''
         task = None
         percentage = currNoOfTask = countOfTasks = None
-        with open(filename, "r") as fp:
-            line = fp.readline()
-            if line != None:
-                matcher = re.match(r'PERC=(\d+)', line)
-                if matcher != None:
-                    percentage = int(matcher.group(1))
-            line = fp.readline()
-            if line != None:
-                if line.startswith("CURRENT="):
-                    task = line[8:-1]
-            line = fp.readline()
-            if line != None:
-                matcher = re.match(r'COMPLETE=completed (\d+) of (\d+)', line)
-                if matcher != None:
-                    currNoOfTask = int(matcher.group(1))
-                    countOfTasks = int(matcher.group(2))
-        fp.close() 
+        if os.path.exists(filename):
+            with open(filename, "r") as fp:
+                line = fp.readline()
+                if line != None:
+                    matcher = re.match(r'PERC=(\d+)', line)
+                    if matcher != None:
+                        percentage = int(matcher.group(1))
+                line = fp.readline()
+                if line != None:
+                    if line.startswith("CURRENT="):
+                        task = line[8:-1]
+                line = fp.readline()
+                if line != None:
+                    matcher = re.match(r'COMPLETE=completed (\d+) of (\d+)', line)
+                    if matcher != None:
+                        currNoOfTask = int(matcher.group(1))
+                        countOfTasks = int(matcher.group(2))
+            fp.close() 
         msg = ""
         if task == None:
             msg += " taskname"

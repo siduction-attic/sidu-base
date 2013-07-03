@@ -16,12 +16,12 @@ class MiniPage(Page):
         
     def defineFields(self):
         self.addField('f1', 'xxx')
-        self.addField('d2', 4711, 'd')
+        self.addField('d2', 4711, None, 'd')
         self.addField('f3')
         self.addField('s1')
         self.addField('s2')
-        self.addField('c1', 'F', 'b')
-        self.addField('color', 'green', 'b')
+        self.addField('c1', 'F', None, 'b')
+        self.addField('color', 'green', None, 'b')
         self.addField('os', 'linux')
         self.addField('disk', '-')
     

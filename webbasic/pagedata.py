@@ -11,7 +11,7 @@ class PageData:
     ("D_<page_name>", data)
     ("V_<page_name>", dataTypes) 
     <data> and <versions> are constructed strings separated by "~|^"
-    dataType: "s": string "d": integer "p": password "b": boolean
+    dataType: "s": string "d": integer "p": password "b": boolean "v": vocabulary
     '''
     
     # static member! There is only one cookie for all pages!
@@ -48,6 +48,8 @@ class PageData:
             rc = self._dict[name]._value
         else:
             self._session.error('PageData.put: Unknown field: ' + name)
+        if rc == "" and self._dict[name]._type == 'v':
+            rc = self._dict[name]._defaultValue
         return rc
     
     def put(self, name, value):
@@ -182,12 +184,16 @@ class PageData:
         
 class FieldData:
     '''Stores a field of a page.
+        @param name: the field's name
+        @param defaultValue: the value for the first time
+        @param dataType: "s": string "d": integer "p": password "b": boolean 'v': vocabulary
     '''
     def __init__(self, name, defaultValue = None, dataType = "s"):
         '''Constructor.
         @param name: the field name
         @param defaultValue: the start value
-        @param dataType: "s": string "d": integer "p": password "b": boolean
+        @param dataType: "s": string "d": integer "p": password 
+                        "b": boolean "v": vocabulary
         '''
         self._no = None
         self._name = name
