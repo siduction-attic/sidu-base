@@ -4,6 +4,7 @@ Created on 09.03.2013
 @author: hm
 '''
 import xml.sax.saxutils
+import os, operator
 
 from util.util import Util
 from pagedata import PageData, FieldData
@@ -384,7 +385,8 @@ class Page(object):
             size = '{:d}GB'.format(size / 1000 / 1000 / 1000)
         return size
 
-    def replaceGlobalField(self, field, defaultKey, args, placeholder, body):
+    def replaceGlobalField(self, field, defaultKey, args, snippet,
+            placeholder, body):
         '''Replace a placeholder in a template with a global field.
         If the key does not exist a default key will be taken.
         @param key:        the field of the global page
@@ -393,6 +395,7 @@ class Page(object):
                            In the text gotten by key/defaultKey must exist
                            placeholders like {{1}}.... this placeholders
                            will be replaced by the related entry of the list.
+        @param snippet:    None or the snippet with the placeholder
         @param placeholder:    a string placed in the body.
         @param body:        the HTML template with the placeholder
         @return:     the body with replaced placeholder
@@ -401,6 +404,9 @@ class Page(object):
         if key == None or key == "":
             key = defaultKey
         text = self._session.getConfigOrNone(key)
+        if snippet != None:
+            content = "" if text == None else  self._snippets.get(snippet)
+            body = body.replace("{{" + snippet + "}}", content)
         if text != None and args != None:
             args = self.autoSplit(args)
             for ix in xrange(len(args)):
@@ -438,7 +444,8 @@ class Page(object):
                         raise Exception("No separator possible: ;|^~")
         return rc
     def gotoWait(self, follower, fileStop, fileProgress, 
-            keyIntro, argsIntro, keyDescr = None, argsDescr = None):
+            keyIntro, argsIntro, keyDescr = None, argsDescr = None,
+            translation = None):
         '''Prepares the start of the wait page.
         @param session:    session info
         @param follower:    the name of the page (relative url) after the wait page
@@ -448,6 +455,8 @@ class Page(object):
         @param argsIntro:   None or a list of values for the placeholders in intro
         @param keyDescr:    None or the key of the description text
         @param argsIntro:   None or a list of values for the placeholders in descr
+        @param translation  None or a key (exactlier: a key prefix) for 
+                            translations in the progress message
         @return:            a PageResult instance with a redirection to wait
         '''
         self._globalPage.putField("wait.intro.key", keyIntro)
@@ -461,6 +470,8 @@ class Page(object):
         self._globalPage.putField("wait.file.stop", fileStop)
         self._globalPage.putField("wait.file.progress", fileProgress)
         self._globalPage.putField("wait.page", follower)
+        self._globalPage.putField("wait.translation", translation)
+        
         rc = self._session.redirect("wait", "gotoWait-" + self._name)
         return rc
 
@@ -481,4 +492,90 @@ class Page(object):
         @param sec    the time until the refresh will be done in seconds
         '''
         self._dynMeta = '<meta http-equiv="refresh" content="{:d}" />'.format(sec)
+  
+    def getButton(self, key):
+        '''Returns the HTML code for a navigation key.
+        Handles button.next and button.prev.
+        @param key: 'prev' or 'next'
+        @return: the html code for the button
+        '''
+        htmlKey = '.gui.button.' + key
+        html = self._session.getConfigWithoutLanguage(htmlKey)
+        textKey = '.gui.text.' + key
+        text = self._session.getConfig(textKey)
+        html = html.replace('{{' + textKey + '}}', text)
+        return html
         
+    def buildNavigationButtons(self, page, source):
+        '''Replaces the placeholders for the navigation buttons.
+        @param page: name of the current page
+        @param source: the text with the placeholders
+        @return: the source with replaced placeholders
+        '''
+        pages = self._session.getConfigWithoutLanguage('.gui.pages')
+        pages = pages[1:].split(pages[0:1])
+        ix = -1 if page not in pages else  pages.index(page)
+        html = '' if ix <= 0 else self.getButton('prev')
+        source = source.replace('{{.gui.button.prev}}', html)    
+        html = '' if ix < 0 or ix == len(pages) - 1 else self.getButton('next')
+        source = source.replace('{{.gui.button.next}}', html)
+        return source    
+        
+    def buildInfo(self, source):
+        '''Replaces the placeholder {{INFO}} with the log and error messages.
+        @param source: the text with the placeholder
+        @return: the source with replaced placeholder
+        '''
+        html = None
+        for msg in self._session._errorMessages:
+            if html == None:
+                html = '<p class="error">' + msg
+            else:
+                html += '<br/>' + msg
+        if html != None:
+            html += '</p>'
+        html2 = None
+        for msg in self._session._logMessages:
+            if html2 == None:
+                html2 = '<p class="log">' + msg
+            else:
+                html2 += '<br/>' + msg
+        if html2 != None:
+            html2 += '</p>'
+        if html == None:
+            html = html2
+        elif html2 != None:
+            html += html2
+        if html == None:
+            html = ''
+        source = source.replace('{{INFO}}', html)
+        return source
+
+    def replaceInPageFrame(self, source):
+        '''Replace placeholders existing in the page frame (all pages).
+        @param page: name of the current page
+        @param source: the text with the placeholdes
+        @return: the source with replaced placeholders
+        '''
+        source = self.buildInfo(source)
+        source = self.buildNavigationButtons(self._name, source)
+        source = source.replace('{{!form.url}}', self._name)
+        return source
+        
+    def neighbourOf(self, page, prev):
+        '''Returns the neighbour page.
+        @param page: current page
+        @param prev: True: the result is the prevous page<br>
+                    False: the result is the next page
+        @result: None: no neighbour found<br>
+                otherwise: the name of the neighbour page
+        '''
+        pages = self._session.getConfigWithoutLanguage('.gui.pages')
+        pages = pages[1:].split(pages[0])
+        ix = operator.indexOf(pages, page)
+        if prev:
+            rc = None if ix <= 0 else pages[ix - 1]
+        else:
+            rc = None if ix >= len(pages) - 1 else pages[ix + 1]
+        return rc
+      

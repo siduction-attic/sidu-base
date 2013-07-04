@@ -1,4 +1,4 @@
-sidu-base (0.3.8) UNRELEASED; urgency=low
+sidu-base (0.3.9) UNRELEASED; urgency=low
 
   * new: Page.afterInit()
   * Page.buildTable(): unicode like string
@@ -10,8 +10,11 @@ sidu-base (0.3.8) UNRELEASED; urgency=low
   * new: param defaultIndex in Page.addField()
   * new: field datatype "v" (vocabulary)
   * improvements in waitpage
+  * new in Page: buildInfo(), replaceInPageFrame(), neighbourOf()
+  * ... buildNavigationButtons(), getButton()
+  * WaitPage: translations of progress messages, correct design
 
- -- J. Hamatoma <hama@siduction.net>  Thu, 04 Jul 2013 00:10:13 +0200
+ -- J. Hamatoma <hama@siduction.net>  Thu, 04 Jul 2013 23:42:20 +0200
 
 sidu-base (0.3.3) unstable; urgency=low
 

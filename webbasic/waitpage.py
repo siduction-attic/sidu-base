@@ -27,7 +27,7 @@ class WaitPage(Page):
         This method can be overridden.
         '''
         fileStop = self._globalPage.getField('wait.file.stop')
-        if os.path.exists(fileStop):
+        if fileStop != None and os.path.exists(fileStop):
             follower = self._globalPage.getField('wait.page')
             self._redirect = self._session.redirect(follower, "wait-" + follower)
         else:
@@ -39,6 +39,22 @@ class WaitPage(Page):
         # hidden fields:
         pass
         
+    def translateTask(self, keyPrefix, message):
+        '''Translate the English message into the current.
+        @param message: the English message to translate
+        @return: message: no translation available.
+                otherwise: the translation
+        '''
+        keyPrefix += "."
+        count = self._session.getConfigOrNone(keyPrefix + "count")
+        if count != None and count != "":
+            for no in xrange(int(count)):
+                msg = self._session.getConfigOrNone(keyPrefix + str(no+1))
+                if msg != None and msg.startswith(message):
+                    message = msg[len(message) + 1:]
+                    break
+        return message
+        
     def changeContent(self, body):
         '''Changes the template in a customized way.
         @param body: the HTML code of the page
@@ -48,27 +64,30 @@ class WaitPage(Page):
         if argsIntro == "":
             argsIntro = None
         argsDescr = self._globalPage.getField("wait.descr.arg")
+        translationKey = self._globalPage.getField("wait.translation")
         if argsDescr == "":
             argsDescr = None
         body = self.replaceGlobalField("wait.intro.key", "wait.intro", 
-            argsIntro, "{{intro}}", body)
+            argsIntro, None, "{{intro}}", body)
         body = self.replaceGlobalField("wait.descr.key", "wait.descr", 
-            argsDescr, "{{description}}", body)
+            argsDescr, "DESCRIPTION", "{{txt_description}}", body)
         fnProgress = self._globalPage.getField("wait.file.progress")
+        progressBody = ""
         if fnProgress != None and fnProgress != "":
             progressBody = self._snippets.get("PROGRESS")
             (percentage, task, no, count) = self.readProgress(fnProgress)
             if task == None:
                 task = ""
-            taskBody = "" if task == "" else self._snippets.get("PROGRESS_STATE")
-            progressBody = progressBody.replace("{{PROGRESS_STATE}}", taskBody)
+            if task != "":
+                task = self.translateTask(translationKey, task)
             progressBody = progressBody.replace("{{percentage}}", str(percentage))
+            progressBody = progressBody.replace("{{width}}", str(percentage))
             progressBody = progressBody.replace("{{task}}", task)
             progressBody = progressBody.replace("{{no}}", str(no))
             progressBody = progressBody.replace("{{count}}", str(count))
             demo = ""
             progressBody = progressBody.replace("{{DEMO_TEXT}}", demo)
-            body = body.replace("{{PROGRESS}}", progressBody)
+        body = body.replace("{{PROGRESS}}", progressBody)
         return body
     
     def handleButton(self, button):
