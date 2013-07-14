@@ -49,7 +49,7 @@ class ShellClient(object):
         '''
         self._fileNo += 1
         self._lastCommandFile = filename = self.buildFileName("prefix", 
-            "." + str(self._fileNo) + ".cmd", 
+            "." + unicode(self._fileNo) + ".cmd", 
             "shellserver")
         trueAnswer = answer if answer != None else self.buildFileName("answer_", ".txt")
         tmpName = filename + ".tmp"
@@ -62,7 +62,7 @@ class ShellClient(object):
             if type(params) == list:
                 cmd += "\n".join(params)
             else:
-                cmd += str(params);
+                cmd += unicode(params);
         with open(tmpName, "w") as fp:
             fp.write(cmd)
         fp.close()

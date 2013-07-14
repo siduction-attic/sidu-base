@@ -49,7 +49,7 @@ class WaitPage(Page):
         count = self._session.getConfigOrNone(keyPrefix + "count")
         if count != None and count != "":
             for no in xrange(int(count)):
-                msg = self._session.getConfigOrNone(keyPrefix + str(no+1))
+                msg = self._session.getConfigOrNone(keyPrefix + unicode(no+1))
                 if msg != None and msg.startswith(message):
                     message = msg[len(message) + 1:]
                     break
@@ -80,11 +80,11 @@ class WaitPage(Page):
                 task = ""
             if task != "":
                 task = self.translateTask(translationKey, task)
-            progressBody = progressBody.replace("{{percentage}}", str(percentage))
-            progressBody = progressBody.replace("{{width}}", str(percentage))
+            progressBody = progressBody.replace("{{percentage}}", unicode(percentage))
+            progressBody = progressBody.replace("{{width}}", unicode(percentage))
             progressBody = progressBody.replace("{{task}}", task)
-            progressBody = progressBody.replace("{{no}}", str(no))
-            progressBody = progressBody.replace("{{count}}", str(count))
+            progressBody = progressBody.replace("{{no}}", unicode(no))
+            progressBody = progressBody.replace("{{count}}", unicode(count))
             demo = ""
             progressBody = progressBody.replace("{{DEMO_TEXT}}", demo)
         body = body.replace("{{PROGRESS}}", progressBody)

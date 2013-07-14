@@ -260,7 +260,7 @@ Id: Name:
             self._page.buildTable(self, 'error_rows')
             self.fail("missing PageException")
         except PageException as exc:
-            self.assertEquals("mpage: wrong type for row count: a / <type 'str'>", 
+            self.assertEquals("mpage: wrong type for row count: a / <type 'unicode'>", 
                 exc.message)
             
         try:

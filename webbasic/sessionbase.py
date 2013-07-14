@@ -317,7 +317,7 @@ class SessionBase(object):
         end = 0
         rc = ''
         while True:
-            start = source.find('{{', end)
+            start = source.find("{{", end)
             if start < 0:
                 if end == 0:
                     rc = source
@@ -327,7 +327,7 @@ class SessionBase(object):
             else:
                 rc += source[end:start]
                 start += 2
-                end = source.find('}}', start)
+                end = source.find("}}", start)
                 if end < 0:
                     rc += source[start-2:]
                     break
@@ -350,7 +350,7 @@ class SessionBase(object):
         absUrl = 'http://' + self._request.META['SERVER_NAME'];
         if ('SERVER_PORT' in self._request.META 
                 and self._request.META['SERVER_PORT'] != 80):
-            absUrl += ':' + str(self._request.META['SERVER_PORT'])
+            absUrl += ':' + unicode(self._request.META['SERVER_PORT'])
         if not relativeUrl.startswith('/'):
             absUrl += '/'
         absUrl += relativeUrl

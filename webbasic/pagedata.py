@@ -113,7 +113,7 @@ class PageData:
         '''
         value = None
         for field in self._list:
-            val = str(field._value) if field._value != None else ''
+            val = unicode(field._value) if field._value != None else ''
             if value == None:
                 value = val
             else:
@@ -129,7 +129,7 @@ class PageData:
         @return: the body with expanded placeholders
         ''' 
         for field in self._list:
-            value = '' if field._value == None else str(field._value)
+            value = '' if field._value == None else unicode(field._value)
             body = body.replace('{{val_' + field._name + '}}', value)
             if field._errorKey == None:
                 value = ''

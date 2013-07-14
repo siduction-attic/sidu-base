@@ -4,7 +4,7 @@ Created on 09.03.2013
 @author: hm
 '''
 import xml.sax.saxutils
-import os, operator
+import operator
 
 from util.util import Util
 from pagedata import PageData, FieldData
@@ -74,7 +74,8 @@ class Page(object):
         Delegation to PageData.add()
         @param name: the field's name
         @param defaultValue: the value for the first time
-        @param dataType: "s": string "d": integer "p": password "b": boolean
+        @param dataType: "s": string "d": integer "p": password 
+                        "b": boolean "v": vocabulary
         @param defaultIndex: only on selection fields: the default index 
         '''
         if defaultIndex != None:
@@ -149,7 +150,7 @@ class Page(object):
         rowCount = builder.buildPartOfTable(info, 'rows')
         if type(rowCount) != int:
             raise PageException(self, "wrong type for row count: {:s} / {:s}"
-                    .format(str(rowCount), repr(type(rowCount))))
+                    .format(unicode(rowCount), repr(type(rowCount))))
         rows = ''
         colTemplate =  builder.buildPartOfTable(info, 'Col')
         if colTemplate == None:
@@ -165,8 +166,8 @@ class Page(object):
             cols = builder.buildPartOfTable(info, 'cols', ixRow)
             content = ''
             for col in cols:
-                if not (type(col) is str or type(col) is unicode):
-                    val = str(col)
+                if not (type(col) is unicode or type(col) is unicode):
+                    val = unicode(col)
                 else:
                     if col.startswith("<xml>"):
                         val = col[5:]
@@ -337,6 +338,7 @@ class Page(object):
                 'MENU' : htmlMenu,
                 'META_DYNAMIC' : self._dynMeta,
                 'STATIC_URL' : '',
+                'DYNAMIC_URL' : '',
                 '!title' : title
                 }
             frame = self._session.replaceVars(frame, env)

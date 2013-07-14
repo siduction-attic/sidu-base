@@ -17,7 +17,7 @@ def exceptionString(excInfo = None, additionalInfo = None):
     if excInfo == None:
         excInfo = sys.exc_info()
     exc = excInfo[1]
-    rc = str(exc)
+    rc = unicode(exc)
         
     if additionalInfo != None and rc.find(additionalInfo) < 0:
         rc += ': ' + additionalInfo
@@ -212,7 +212,7 @@ class Util:
         say('FILENAMECHARS = "' + chars + '"')
         out = "INVERS_FILENAMECHARS = ["
         for x in invers:
-            out2 = " " + str(x) + ","
+            out2 = " " + unicode(x) + ","
             if len(out) + len(out2) >= 80:
                 say(out)
                 out = "    "

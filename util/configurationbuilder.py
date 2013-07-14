@@ -181,7 +181,7 @@ def main(argv=None): # IGNORE:C0111
 
     program_name = os.path.basename(sys.argv[0])
     program_version = "v%s" % __version__
-    program_build_date = str(__updated__)
+    program_build_date = unicode(__updated__)
     program_version_message = '%%(prog)s %s (%s)' % (program_version, program_build_date)
     doc = __import__('__main__').__doc__
     program_shortdesc = doc.split("\n")[1] if doc else "Imports the configuration database"
@@ -197,7 +197,7 @@ def main(argv=None): # IGNORE:C0111
   or conditions of any kind, either express or implied.
 
 USAGE
-''' % (program_shortdesc, str(__date__))
+''' % (program_shortdesc, unicode(__date__))
     program_usage = 'configimport.py [<options>] textfile dbfile'
     program_epilog = '''Example:
 configimport.py --drop-tables -v config/sidu-base_de-ch.conf db/sqlite3.db
@@ -248,7 +248,7 @@ configimport.py --drop-tables -v config/sidu-base_de-ch.conf db/sqlite3.db
         if args.summary:
             showSummary(db)
         if args.verbose:
-            say("runtime: " + str(time.time() - start))  
+            say("runtime: " + unicode(time.time() - start))  
         return 0
     except KeyboardInterrupt:
         ### handle keyboard interrupt ###
