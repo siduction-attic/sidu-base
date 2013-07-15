@@ -121,6 +121,11 @@ class PageData:
         PageData._cookie['D_' + self._cookieName] = value
         PageData._cookie['V_' + self._cookieName] = self.getDataVersion()
         
+    def clearCookies(self):
+        '''Resets all values in the cookies.
+        '''
+        for entry in PageData._cookie:
+            PageData._cookie[entry] = ""
     
     def replaceValues(self, body, errorPrefix, errorSuffix):
         '''Replaces the placeholders for field values and field errors
