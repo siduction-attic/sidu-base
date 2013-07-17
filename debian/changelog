@@ -1,4 +1,6 @@
-sidu-base (0.3.11) UNRELEASED; urgency=low
+ -- J. Hamatoma <hama@siduction.net>  Tue, 16 Jul 2013 23:33:28 +0200
+
+sidu-base (0.4.1) unstable; urgency=low
 
   * new: Page.afterInit()
   * Page.buildTable(): unicode like string
@@ -16,7 +18,7 @@ sidu-base (0.3.11) UNRELEASED; urgency=low
   * unicode() instead of str()
   * new: PageData.clearCookies()
 
- -- J. Hamatoma <hama@siduction.net>  Mon, 15 Jul 2013 20:37:08 +0200
+ -- J. Hamatoma <hama@siduction.net>  Mon, 15 Jul 2013 22:37:38 +0200
 
 sidu-base (0.3.3) unstable; urgency=low
 
