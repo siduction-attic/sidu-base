@@ -4,6 +4,7 @@ Created on 10.03.2013
 @author: hm
 '''
 SEPARATOR = '~|^'
+PREFIX_ERROR_KEY = "\f"
 
 class PageData:
     '''Stores the page specific data, e.g. the field values of a form.
@@ -25,6 +26,7 @@ class PageData:
         # String --> FieldData
         self._dict = {}
         self._list = []
+        self._generalErrors = ""
         # the name of the page specific entry in the cookie:
         self._cookieName = None
         
@@ -64,14 +66,29 @@ class PageData:
             
     def putError(self, name, errorKey):
         '''Puts an error message (exactly its key) to a field.
-        @param name: the field's name
+        @param name: the field's name. If None a standard field will be taken
         @param errorKey: the key of the error message
         @return: True
         '''
-        if name in self._dict:
-            self._dict[name]._errorKey = errorKey
+        text = PREFIX_ERROR_KEY + self._session.getConfig(errorKey)
+        rc = self.putErrorText(name, text)
+        return rc
+       
+    def putErrorText(self, name, text):
+        '''Puts an error message (exactly its key) to a field.
+        @param name: the field's name. If None a standard field will be taken
+        @param text: the key of the error message
+        @return: True
+        '''
+        if name == None:
+            if self._generalErrors == None:
+                self._generalErrors = text
+            else:
+                self._generalErrors = "<br/>\n" + text
+        elif name in self._dict:
+            self._dict[name]._error = text
         else:
-            self._session.error('PageData.putError: Unknown field: ' + name)
+            self._session.error('PageData.putErrorText: Unknown field: ' + name)
         return True
        
     def getFromHTTP(self, environ):
@@ -131,20 +148,25 @@ class PageData:
         '''Replaces the placeholders for field values and field errors
         by their values.
         @param body: the string which will be changed
+        @param errorPrefix: None or a phrase put in front of the error message
+        @param errorSuffix: None or a phrase put behind the error message
         @return: the body with expanded placeholders
         ''' 
         for field in self._list:
             value = '' if field._value == None else unicode(field._value)
             body = body.replace('{{val_' + field._name + '}}', value)
-            if field._errorKey == None:
-                value = ''
+            if field._error == None:
+                value = ""
             else:
-                key = field._errorKey
+                text = field._error
                 value = '' if errorPrefix == None else errorPrefix
-                value += self._session.getConfig(key)
+                if text.startswith(PREFIX_ERROR_KEY):
+                    text = self._session.getConfig(text[1:])
+                value += text
                 if errorPrefix != None:
                     value += errorSuffix
             body = body.replace('{{err_' + field._name + '}}', value)
+        body = body.replace("{{error_message}}", self._generalErrors)
         return body
             
     def getDataVersion(self):
@@ -204,7 +226,8 @@ class FieldData:
         self._name = name
         self._value = defaultValue
         self._type = dataType
-        self._errorKey = None
+        # if starting with "\f" this is an error text, otherwise an error key
+        self._error = None
         self._defaultValue = defaultValue
     
     

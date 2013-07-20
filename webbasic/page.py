@@ -4,7 +4,7 @@ Created on 09.03.2013
 @author: hm
 '''
 import xml.sax.saxutils
-import operator
+import operator, re
 
 from util.util import Util
 from pagedata import PageData, FieldData
@@ -64,7 +64,7 @@ class Page(object):
     
     def handleButton(self, button):
         '''This method must be overwritten:
-        If not an error message must be displayed.
+        If not an error message will be displayed.
         @param button: the pushed button
         '''
         self._session.error('missing handleButton(): ' + self._name)
@@ -104,11 +104,19 @@ class Page(object):
 
     def putError(self, name, errorKey):
         '''Puts an error message (exactly its key) to a field.
-        @param name: the field's name
+        @param name: the field's name. If None a standard field will be taken
         @param errorKey: the key of the error message
         @return: True
         '''
         return self._pageData.putError(name, errorKey)
+    
+    def putErrorText(self, name, text):
+        '''Puts an error message (exactly its key) to a field.
+        @param name: the field's name. If None a standard field will be taken
+        @param text: the error text
+        @return: True
+        '''
+        return self._pageData.putErrorText(name, text)
     
     def buildHtml(self, htmlMenu):
         '''Builds the HTML text of the page.
@@ -361,15 +369,20 @@ class Page(object):
         body = body.replace('{{chk_' + name + '}}', checked)
         return body
    
-    def autoSplit(self, listAsString):
+    def autoSplit(self, listAsString, mayBeEmpty = False):
         '''Splits a string into a list with an automatic separator:
         @param listAsString: the list as string. The first char is the separator
+        @param mayBeEmpty:  True: an empty ListAsString returns []
+                            False: an empty ListAsString raise an exception
         @return the list built from the string
         '''
-        if listAsString == None or listAsString == "":
-            raise PageException(self, "autosplit(''): too short")
-        sep = listAsString[0]
-        rc = listAsString[1:].split(sep)
+        if mayBeEmpty and listAsString == "":
+            rc = []
+        else:
+            if listAsString == None or listAsString == "":
+                raise PageException(self, "autosplit(''): too short")
+            sep = listAsString[0]
+            rc = listAsString[1:].split(sep)
         return rc
     
     def humanReadableSize(self, size):
@@ -581,3 +594,40 @@ class Page(object):
             rc = None if ix >= len(pages) - 1 else pages[ix + 1]
         return rc
       
+    def isValidContent(self, field, firstChars, restChars, mandatory, 
+            useStandardErrorMessage = False):
+        '''Tests whether a field value contains valid character only.
+    
+        Tests whether the field is empty. If yes and mandatory an error occurres.
+        Tests whether the field matches a regular expression.
+        If no error the field will be stored into the user data.
+        
+        @param field        the name of the field to test
+        @param firstChars    the characters which can be the first character of the value
+        @param restChars    the characters which can be the not first characters of the value
+        @param mandatory    true: an empty field returns an error false: the field may be empty
+        '''
+        notOk = False
+        value = self.getField(field)
+        outputField = None if useStandardErrorMessage else field
+        if value == None or value == "":
+            if mandatory:
+                notOk = self.putError(outputField, ".empty_field")
+        else:
+            pattern = "[" + firstChars + "]"
+            found = re.match(pattern, value) != None
+            if not found:
+                text = (self._session.getConfig(".wrong_first")
+                   + ": " + value[0] + " " + self._session.getConfig(
+                       ".allowed") + " " + firstChars)
+                notOk = self.putErrorText(outputField, text);
+            else:
+                pattern = ".[{:s}]*([^{:s}]+)".format(restChars, restChars)
+                rexpr = re.match(pattern, value)
+                if rexpr != None:
+                    text = (self._session.getConfig(".wrong_next")
+                        + ": " + rexpr.group(1) + " " + self._session.getConfig(
+                        ".allowed") + " " + firstChars)
+                    notOk = self.putErrorText(outputField, text);
+        return not notOk
+    

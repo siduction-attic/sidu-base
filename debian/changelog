@@ -1,4 +1,12 @@
- -- J. Hamatoma <hama@siduction.net>  Tue, 16 Jul 2013 23:33:28 +0200
+sidu-base (0.4.2) UNRELEASED; urgency=low
+
+  * new: Page.isValidContent()
+  * new: error message for isValidContent() moved from sidu-installer2
+  * new: PageData.putError(): using the general error message {{error_message}}
+  * new: PageData.putErrorText()
+  * Page.autoSplit() can handle empty strings: param mayBeEmpty
+
+ -- J. Hamatoma <hama@siduction.net>  Sat, 20 Jul 2013 11:30:07 +0200
 
 sidu-base (0.4.1) unstable; urgency=low
 
