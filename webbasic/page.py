@@ -174,7 +174,7 @@ class Page(object):
             cols = builder.buildPartOfTable(info, 'cols', ixRow)
             content = ''
             for col in cols:
-                if not (type(col) is unicode or type(col) is unicode):
+                if not (type(col) is str or type(col) is unicode):
                     val = unicode(col)
                 else:
                     if col.startswith("<xml>"):
@@ -321,11 +321,11 @@ class Page(object):
             
         self.defineFields()
         self._pageData.importData(self._name, fieldValues, cookies)
+        self._pageData.correctCheckBoxes(fieldValues);
         self.afterInit()
         if self._redirect != None:
             rc = self._redirect
         else:
-            self._pageData.correctCheckBoxes(fieldValues);
     
             # Checks wether a button has been pushed:
             button = self.findButton(fieldValues)

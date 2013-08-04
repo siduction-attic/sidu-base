@@ -154,7 +154,11 @@ class PageData:
         ''' 
         for field in self._list:
             value = '' if field._value == None else unicode(field._value)
-            body = body.replace('{{val_' + field._name + '}}', value)
+            if (field._type != "b"):
+                body = body.replace('{{val_' + field._name + '}}', value)
+            else:
+                content = "" if field._value == "F" else 'checked="checked"'
+                body = body.replace("{{checked_" + field._name + "}}", content)
             if field._error == None:
                 value = ""
             else:
