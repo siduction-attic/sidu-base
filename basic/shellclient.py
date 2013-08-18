@@ -53,8 +53,7 @@ class ShellClient(object):
             "shellserver")
         trueAnswer = answer if answer != None else self.buildFileName("answer_", ".txt")
         tmpName = filename + ".tmp"
-        if os.path.exists(trueAnswer):
-            os.unlink(trueAnswer)
+        self._session.deleteFile(trueAnswer)
         if options == None:
             options = ""
         cmd = "\n".join((trueAnswer, options, command, ""))
@@ -71,10 +70,9 @@ class ShellClient(object):
             time.sleep(1)
             if os.path.exists(trueAnswer):
                 break
-        rc = os.path.exists(trueAnswer);
-        if rc and trueAnswer != answer:
-            os.unlink(trueAnswer)
-        return rc;
+        if trueAnswer != answer and trueAnswer.endswith(".answer"):
+            self._session.deleteFile(trueAnswer)
+        return os.path.exists(trueAnswer)
      
     def buildFileName(self, prefix = "f", suffix = ".answer", subdir = None):
         '''Builds the name of an answer file.

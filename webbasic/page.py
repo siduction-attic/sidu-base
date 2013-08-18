@@ -390,6 +390,9 @@ class Page(object):
         @param size: the size in kByte (type: int)
         @return: a string with the size and unit, e.g. 213 MByte
         '''
+        sign = "-" if size < 0 else ""
+        if sign == "-":
+            size = -size
         if size < 10*1000:
             size = '{:d}By'.format(size)
         elif size < 10*1000*1000:
@@ -398,7 +401,7 @@ class Page(object):
             size = '{:d}MB'.format(size / 1000 / 1000)
         else:
             size = '{:d}GB'.format(size / 1000 / 1000 / 1000)
-        return size
+        return sign + size
 
     def replaceGlobalField(self, field, defaultKey, args, snippet,
             placeholder, body):
@@ -527,7 +530,7 @@ class Page(object):
         @param source: the text with the placeholders
         @return: the source with replaced placeholders
         '''
-        pages = self._session.getConfigWithoutLanguage('.gui.pages')
+        pages = self.getPages()
         pages = pages[1:].split(pages[0:1])
         ix = -1 if page not in pages else  pages.index(page)
         html = '' if ix <= 0 else self.getButton('prev')
@@ -585,7 +588,7 @@ class Page(object):
         @result: None: no neighbour found<br>
                 otherwise: the name of the neighbour page
         '''
-        pages = self._session.getConfigWithoutLanguage('.gui.pages')
+        pages = self.getPages()
         pages = pages[1:].split(pages[0])
         ix = operator.indexOf(pages, page)
         if prev:
@@ -630,4 +633,34 @@ class Page(object):
                         ".allowed") + " " + firstChars)
                     notOk = self.putErrorText(outputField, text);
         return not notOk
-    
+
+    def getPages(self):
+        '''Gets the list of chained pages.
+        The listed pages are chained by "prev" and "next" buttons.
+        @return: a auto delimited list of pages, e.g. ";home;info"
+        '''
+        pages = self._globalPage.getField(".pages")
+        if pages == None or pages == "":
+            pages = self._session.getConfigWithoutLanguage(".gui.pages")
+        return pages
+
+    def addPage(self, page, predecessor):
+        '''Adds a page to the list of chained pages.
+        @param page: the new page
+        @param predecessor: the new page will be inserted in front of this page.
+                            If None the new page will be the first
+        '''
+        pages = self.getPages()
+        if predecessor == None:
+            pages = pages[0] + page + pages
+        else:
+            pages = pages.replace(predecessor, page + pages[0] + predecessor)
+        self._globalPage.putField(".pages", pages)
+        
+    def delPage(self, page):
+        '''Removes a page from the list of chained pages.
+        @param page: the page to delete
+        '''
+        pages = self.getPages()
+        pages = pages.replace(pages[0] + page, "")
+        self._globalPage.putField(".pages", pages)

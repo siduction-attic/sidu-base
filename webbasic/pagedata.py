@@ -3,8 +3,12 @@ Created on 10.03.2013
 
 @author: hm
 '''
+import logging
+
 SEPARATOR = '~|^'
 PREFIX_ERROR_KEY = "\f"
+
+logger = logging.getLogger(__name__)
 
 class PageData:
     '''Stores the page specific data, e.g. the field values of a form.

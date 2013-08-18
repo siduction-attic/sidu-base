@@ -137,6 +137,14 @@ class SessionBase(object):
                     rc = 'en'
         return rc 
          
+    def deleteFile(self, name):
+        '''Deletes a file if it exists.
+        @param name: the file's name
+        '''
+        if os.path.exists(name):
+            logger.debug("deleted: " + name)
+            os.unlink(name)
+        
     def handleMetaVar(self):
         value = self.getMetaVar('PATH_INFO')
         if value != None:

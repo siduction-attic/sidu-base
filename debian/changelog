@@ -1,3 +1,12 @@
+sidu-base (0.4.4) UNRELEASED; urgency=low
+
+  * shellserver: logging
+  * new: SessionBase.deleteFile()
+  * humanReadableSize(): negative values
+  * dynamic page lists: getPages(), addPage(), delPage()
+
+ -- J. Hamatoma <hama@siduction.net>  Sun, 18 Aug 2013 23:49:36 +0200
+
 sidu-base (0.4.3) unstable; urgency=low
 
   * new: Page.isValidContent()

@@ -32,6 +32,7 @@ function say(){
 SHELLSERVERHOME=$(dirname $0)
 test ${SHELLSERVERHOME=:0:1} != '/' && SHELLSERVERHOME=$(pwd)/$SHELLSERVERHOME
 test -n "$VERBOSE" && echo "SHELLSERVERHOME=$SHELLSERVERHOME"	
+test -n "$VERBOSE" && echo "TASK_DIR=$TASK_DIR"	
 
 function oneFile(){
 	FN=$1
