@@ -20,7 +20,7 @@ class MenuChecker:
         '''
         self._session = session
         self._baseDir = baseDir
-        self._rexpr = re.compile(r'\s')
+        self._rexpr = re.compile(r'\s+')
         
     def findLinks(self, lines, numbers):
         '''Returns a dictionary containing the links of the menu items.
@@ -33,9 +33,9 @@ class MenuChecker:
         ix = -1
         for line in lines:
             ix += 1
-            cols = self._rexpr.split(line, 3)
-            if len(cols) > 2:
-                link = cols[2]
+            cols = self._rexpr.split(line, 2)
+            if len(cols) > 1:
+                link = cols[1]
                 links[link] = numbers[ix]
         return links
     
@@ -87,22 +87,22 @@ class MenuChecker:
             count = min(len(lines1), len(lines2))
             for ix in xrange(count):
                 line = lines1[ix]
-                cols = self._rexpr.split(line, 4)
-                if len(cols) < 4:
+                cols = self._rexpr.split(line, 3)
+                if len(cols) < 3:
                     msg = self._session.getConfig('.error.menu.cols.missing')
                     msg = msg.format(file1, no1[ix], line)
                     message += template.replace('{{message}}', msg)
                     continue
-                (indent1, link1) = (cols[0], cols[2])
+                (indent1, link1) = (cols[0], cols[1])
                  
                 line = lines2[ix]
-                cols = self._rexpr.split(line, 4)
-                if len(cols) < 4:
+                cols = self._rexpr.split(line, 3)
+                if len(cols) < 3:
                     msg = self._session.getConfig('.error.menu.cols.missing')
                     msg = msg.format(file2, no2[ix], line)
                     message += template.replace('{{message}}', msg)
                     continue
-                (indent2, link2) = (cols[0], cols[2]) 
+                (indent2, link2) = (cols[0], cols[1]) 
                 
                 if link1 != link2:
                     if link1 not in links2:

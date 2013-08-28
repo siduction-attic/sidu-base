@@ -83,8 +83,6 @@ class ShellClient(object):
         fn = None
         if subdir == None:
             subdir = ""
-        else:
-            subdir = "/" + subdir
             
         while True:
             base = self._session.getConfigWithoutLanguage(".dir.tasks")

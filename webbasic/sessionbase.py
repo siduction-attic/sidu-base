@@ -210,6 +210,8 @@ class SessionBase(object):
         if (rc == None and self._configAdditional != None 
                 and key in self._configAdditional):
             rc = self._configAdditional[key]
+        if rc != None:
+            rc = self._replaceVar(rc, True)
         return rc
  
     def getConfig(self, key):
@@ -224,6 +226,27 @@ class SessionBase(object):
             rc = key
         return rc
    
+    def _replaceVar(self, text, withLanguage):
+        end = 0
+        while end >= 0:
+            start = text.find('${', end)
+            if start < 0:
+                end = -1
+            else:
+                end = text.find('}', start + 2)
+                if end > 0:
+                    name = text[start + 2:end]
+                    value = None
+                    if withLanguage:
+                        value = self.getConfigOrNone(name)
+                    if value == None:
+                        value = self.getConfigOrNoneWithoutLanguage(name)
+                    if value != None:
+                        head = '' if start == 0 else text[0:start]
+                        text = head + value + text[end+1:]
+                        # try it again:
+                        end = start
+        return text
     def getConfigOrNoneWithoutLanguage(self, key):
         '''Returns a value from the configuration db.
         The value is language independent.
@@ -236,21 +259,8 @@ class SessionBase(object):
         if (rc == None and self._configAdditional != None 
                 and key in self._configAdditional):
             rc = self._configAdditional[key]
-        end = -1 if rc == None else 0
-        while end >= 0:
-            start = rc.find('${', end)
-            if start < 0:
-                end = -1
-            else:
-                end = rc.find('}', start + 2)
-                if end > 0:
-                    name = rc[start + 2:end]
-                    value = self.getConfigOrNoneWithoutLanguage(name)
-                    if value != None:
-                        head = '' if start == 0 else rc[0:start]
-                        rc = head + value + rc[end+1:]
-                        # try it again:
-                        end = start
+        if rc != None:
+            rc = self._replaceVar(rc, False)
         return rc
 
     def getConfigWithoutLanguage(self, key):
@@ -372,4 +382,30 @@ class SessionBase(object):
         rc = PageResult(None, relativeUrl, caller)
         return rc
         
+    def nextPowerOf2(self, value):
+        '''Returns the maximum of a 2**n where value > 2**n
+        @return: max(2**n) where 2**n <= value
+        '''
+        if value == 0:
+            rc = 0
+        else:
+            n = 0
+            val = value
+            while val > 0:
+                n += 1
+                val /= 2
+            rc = 1
+            while n > 1:
+                rc *= 2
+                n -= 1
+            assert(rc <= value)
+            assert(rc*2 >= value)
+        return rc
+    def readFile(self, name):
+        rc = ""
+        with open(name, "r") as fp:
+            for line in fp:
+                rc += line
+        fp.close()
+        return rc
         

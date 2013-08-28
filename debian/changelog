@@ -1,11 +1,15 @@
-sidu-base (0.4.4) UNRELEASED; urgency=low
+sidu-base (0.4.5) unstable; urgency=low
 
   * shellserver: logging
   * new: SessionBase.deleteFile()
   * humanReadableSize(): negative values
   * dynamic page lists: getPages(), addPage(), delPage()
+  * fix: buildFileName(): concatenation of the path elements
+  * MenuCheck: the format has now 4 instead of 5 columns
+  * evaluation of config files: references to other vars
+  * new: nextPowerOf2()
 
- -- J. Hamatoma <hama@siduction.net>  Sun, 18 Aug 2013 23:49:36 +0200
+ -- J. Hamatoma <hama@siduction.net>  Wed, 28 Aug 2013 20:35:54 +0200
 
 sidu-base (0.4.3) unstable; urgency=low
 
