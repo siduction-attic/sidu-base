@@ -3,7 +3,7 @@ Created on 10.03.2013
 
 @author: hm
 '''
-import logging
+import logging, codecs, re
 
 SEPARATOR = '~|^'
 PREFIX_ERROR_KEY = "\f"
@@ -64,7 +64,8 @@ class PageData:
         @param value: the new value
         '''
         if name in self._dict:
-            self._dict[name]._value = value
+            field = self._dict[name]
+            field._value = value
         else:
             self._session.error('PageData.put: Unknown field: ' + name)
             
@@ -104,50 +105,39 @@ class PageData:
             if name in environ:
                 field._value = environ[name]
     
-    def getFromCookie(self, name, cookieData):
-        '''Gets the values from the client's cookie.
+    def getPageData(self, name):
+        '''Gets the values from the client's data store.
         @param name: the name of the cookie part. 
-        @param cookieData: the cookie dictionary
         '''
-        if PageData._cookie == None:
-            PageData._cookie = cookieData
-        cookie = PageData._cookie
         self._cookieName = name
-        values = ''
-        key = 'D_' + name
-        if key in cookie:
-            version = cookie['V_' + name]
-            values = cookie[key]
-        currentVersion = self.getDataVersion()
-        if values != None and values != '' and version == currentVersion:
-            values = values.split(SEPARATOR)
-            count = min(len(values), len(self._list))
-            for ix in xrange(count):
-                field = self._list[ix]
-                val = values[ix]
-                if field._type == 'd':
-                    val = int(val)
-                field._value = val
-  
-    def putToCookie(self):
-        '''Puts the data to the Cookies
+        starter = self._cookieName + "."
+        for line in self._session._userData:
+            if line.startswith(starter):
+                line = line[len(starter):-1]
+                (name, val) = line.split("=", 1)
+                if name in self._dict: 
+                    self._dict[name]._value = val
+                        
+    def exportData(self):
+        '''Puts the data to the session data store.
         '''
-        value = None
-        for field in self._list:
-            val = unicode(field._value) if field._value != None else ''
-            if value == None:
-                value = val
-            else:
-                value += SEPARATOR + val
-        PageData._cookie['D_' + self._cookieName] = value
-        PageData._cookie['V_' + self._cookieName] = self.getDataVersion()
+        # remove the lines with the old values:
+        starter = self._cookieName + "."
+        for ix in xrange(len(self._session._userData) - 1, 0, -1):
+            if self._session._userData[ix].startswith(starter):
+                del self._session._userData[ix]
+        for ix in xrange(len(self._list)):
+            field = self._list[ix]
+            line = "{:s}{:s}={:s}\n".format(starter, field._name, 
+                "" if field._value == None else field._value )
+            self._session._userData.append(line)
         
-    def clearCookies(self):
-        '''Resets all values in the cookies.
+    def clearFields(self):
+        '''Sets all field values to None.
         '''
-        for entry in PageData._cookie:
-            PageData._cookie[entry] = ""
-    
+        for field in self._list:
+            field._value = None
+
     def replaceValues(self, body, errorPrefix, errorSuffix):
         '''Replaces the placeholders for field values and field errors
         by their values.
@@ -187,13 +177,12 @@ class PageData:
             rc += field._type 
         return rc
 
-    def importData(self, name, fieldValues, cookieData):
+    def importData(self, name, fieldValues):
         '''Builds a PageData instance for a given page.
         @param name: the name of the container, e.g. the page name
         @param fieldValues: the GET or POST dictionary with the current field values
-        @param cookieData: the cookie data from the client
         '''
-        self.getFromCookie(name, cookieData)
+        self.getPageData(name)
         if fieldValues != None:
             self.getFromHTTP(fieldValues)
 

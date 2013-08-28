@@ -30,7 +30,7 @@ class ShellClient(object):
         @param session:    the session info
         '''
         # the directory containing the task files, e.g. /tmp/sidu-base/tasks/
-        self._dirTask = session.getConfigOrNoneWithoutLanguage(".task.dir")
+        self._dirTask = session.getConfigOrNoneWithoutLanguage(".dir.tasks")
         if self._dirTask == None:
             self._dirTask = "/var/cache/sidu-base/shellserver-tasks" 
         # session info
@@ -38,7 +38,8 @@ class ShellClient(object):
         # current number for unique filenames
         self._fileNo = 0
         
-    def execute(self, answer, options, command, params, timeout = 3600):
+    def execute(self, answer, options, command, params, timeout = 3600,
+                deleteAnswer = True):
         '''Executes a command.
          @param answer:     the name of the answer file
          @param options:    the options for the shell server
@@ -48,12 +49,12 @@ class ShellClient(object):
          @return: true: answer file exists. false: timeout reached
         '''
         self._fileNo += 1
-        self._lastCommandFile = filename = self.buildFileName("prefix", 
-            "." + unicode(self._fileNo) + ".cmd", 
-            "shellserver")
+        self._lastCommandFile = filename = self.buildFileName("", 
+            "." + str(self._fileNo) + ".cmd", None)
         trueAnswer = answer if answer != None else self.buildFileName("answer_", ".txt")
         tmpName = filename + ".tmp"
-        self._session.deleteFile(trueAnswer)
+        if deleteAnswer:
+            self._session.deleteFile(trueAnswer)
         if options == None:
             options = ""
         cmd = "\n".join((trueAnswer, options, command, ""))
@@ -83,11 +84,11 @@ class ShellClient(object):
         fn = None
         if subdir == None:
             subdir = ""
-        else:
-            subdir = "/" + subdir
             
         while True:
             base = self._session.getConfigWithoutLanguage(".dir.tasks")
+            if not base.endswith(os.sep):
+                base += os.sep
             time1 = int(time.time()) % 0x100
             time2 = int(math.fmod(time.time(), 1) * 0x10000)
             fn = "{:s}{:s}{:s}{:s}.{:02x}{:04x}{:s}".format(

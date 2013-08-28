@@ -217,6 +217,7 @@ class Page(object):
             for key in fields:
                 if key.startswith('button_'):
                     rc = key
+                    self._session.trace(key + " recognized")
                     break
         return rc
     
@@ -318,9 +319,10 @@ class Page(object):
         @param cookies: the cookie dictionary
         @return: a PageResult instance
         '''
-            
+        self._session.setId(cookies)
+        self._session.readUserData()
         self.defineFields()
-        self._pageData.importData(self._name, fieldValues, cookies)
+        self._pageData.importData(self._name, fieldValues)
         self._pageData.correctCheckBoxes(fieldValues);
         self.afterInit()
         if self._redirect != None:
@@ -352,10 +354,9 @@ class Page(object):
             frame = self._session.replaceVars(frame, env)
             rc = PageResult(frame)
             
-        self._pageData.putToCookie()
-        globalPage = self._globalPage
-        if globalPage != None:
-            globalPage._pageData.putToCookie()
+        self._pageData.exportData()
+        self._globalPage._pageData.exportData()
+        self._session.writeUserData()
         return rc
     
     def fillCheckBox(self, name, body):
@@ -480,11 +481,14 @@ class Page(object):
         self._globalPage.putField("wait.intro.key", keyIntro)
         if argsIntro != None:
             argsIntro = ";" + ";".join(argsIntro)
-        self._globalPage.putField("wait.intro.arg", argsIntro)
+        self._globalPage.putField("wait.intro.args", argsIntro)
         self._globalPage.putField("wait.descr.key", keyDescr)
         if argsDescr != None:
             argsDescr = ";" + ";".join(argsDescr)
-        self._globalPage.putField("wait.descr.arg", argsDescr)
+        self._globalPage.putField("wait.descr.args", argsDescr)
+        if not fileStop.endswith(".txt"):
+            self._session.deleteFile(fileStop)
+        self._session.deleteFile(self._globalPage.getField("wait.file.stop"))
         self._globalPage.putField("wait.file.stop", fileStop)
         self._globalPage.putField("wait.file.progress", fileProgress)
         self._globalPage.putField("wait.page", follower)
@@ -493,17 +497,19 @@ class Page(object):
         rc = self._session.redirect("wait", "gotoWait-" + self._name)
         return rc
 
-    def execute(self, answer, options, command, params, timeout = 3600):
+    def execute(self, answer, options, command, params, timeout = 3600, 
+                deleteAnswer = True):
         '''Executes a command. Delegates to the object _session._shellClient
          @param answer:     the name of the answer file
          @param options:    the options for the shell server
          @param command:   the command to execute, e.g. SVOPT_DEFAULT
          @param params:   NULL or a string or an array of strings
          @param timeout:    the maximum count of seconds
+         @param deleteAnswer True: the answer file will be deleted
          @return: true: answer file exists. false: timeout reached
         '''
         return self._session._shellClient.execute(answer, options, command, 
-            params, timeout)
+            params, timeout, deleteAnswer)
 
     def setRefresh(self, sec = 3):
         '''Takes care that the page will be refreshed in a given time.
@@ -652,7 +658,7 @@ class Page(object):
         '''
         pages = self.getPages()
         if predecessor == None:
-            pages = pages[0] + page + pages
+            pages += pages[0] + page
         else:
             pages = pages.replace(predecessor, page + pages[0] + predecessor)
         self._globalPage.putField(".pages", pages)

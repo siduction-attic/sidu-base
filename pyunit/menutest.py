@@ -15,6 +15,7 @@ class Test(unittest.TestCase):
 
     def setUp(self):
         self._session = Aux.getSession(homeDir = Aux.buildDummyHome())
+        self._session._globalPage = None
         self._menuName = 'tmenu'
         
 
@@ -115,7 +116,7 @@ M{{menuid}}
   <ul>
     <li class="file"><a href="welcome#welcome-gen">Grunds&auml;tzliches</a></li>
     
-    <li class="file"><a href="credits#cred-team">Das</a></li>
+    <li class="file"><a href="credits#cred-team">Das siduction-Team</a></li>
     
 
   </ul>
@@ -127,7 +128,7 @@ M{{menuid}}
  <li> <label for="M3_1" class="open"> </label>
      <input name="tree"  id="M3_1" type="checkbox" />
      <ul>
-       <li><a href="part-gparted">Partitionierung</a></li>
+       <li><a href="part-gparted">Partitionierung der Festplatte - traditionell, GPT und LVM</a></li>
 
      </ul>
 

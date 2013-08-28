@@ -16,25 +16,25 @@ class Test(unittest.TestCase):
         self._appl = 'sidu-manual'
         self._fnDe = Util.getTempFile('menu_de.conf', self._appl, 'config')
         self._fnEn = Util.getTempFile('menu_en.conf', self._appl, 'config')
-        self._dir = Util.getTempDir(self._appl, 'config')
+        self._dir = Util.getTempDir(self._appl, None, True)
     
     def buildDe(self):
         Util.writeFile(self._fnDe, '''* unvollstaendig
-* - home Die Startseite
-** - help Allgemeine Hilfe
-** - about Ueber uns
-*** id0 authors Authoren
-*   id1 onlygerman Nur in Deutsch
+* home Die Startseite
+** help Allgemeine Hilfe
+** about Ueber uns
+*** authors Authoren
+*   onlygerman Nur in Deutsch
 '''           )
         
     def buildEn(self):
         Util.writeFile(self._fnEn, '''* invalid
-* - home Die Startseite
+* home Die Startseite
 
-** - about About us
-** - help General Help
-** id0 authors Authors  
-* id1 content Content
+** about About us
+** help General Help
+** authors Authors  
+* content Content
 '''           )
     def buildSession(self):
         self._session = Aux.getSession(self._appl)
@@ -54,10 +54,11 @@ class Test(unittest.TestCase):
 <p>
 /tmp/sidu-manual/config/menu_de.conf-4: the link about is moved in /tmp/sidu-manual/config/menu_en.conf to line 4</p>
 <p>
-/tmp/sidu-manual/config/menu_de.conf-5: Indention is different: *** / **</p>
+/tmp/sidu-manual/config/menu_de.conf-5: Indention is different: *** / ** [authors]</p>
 <p>
-/tmp/sidu-manual/config/menu_de.conf-6: the link  is not available in /tmp/sidu-manual/config/menu_en.conf</p>'''         , msg)
-        self.assertEqual(None, diff)
+/tmp/sidu-manual/config/menu_de.conf-6: the link onlygerman is not available in /tmp/sidu-manual/config/menu_en.conf</p>'''         , msg)
+        if diff != None:
+            self.assertEqual(None, diff)
         
     def testMoreInEn(self):
         Util.writeFile(self._fnDe, '')
@@ -107,20 +108,22 @@ File does not exist: /tmp/sidu-manual/config/menu_en.conf
         self.assertEqual(None, diff)
     
     def testBuildTable(self):
-        Util.writeFile(self._fnDe, '* - main Startseite')
-        Util.writeFile(self._fnEn, '* - main Homepage')
+        Util.writeFile(self._fnDe, '* main Startseite 1')
+        Util.writeFile(self._fnEn, '* main Homepage 2')
         self.buildSession()
         checker = MenuChecker(self._session, self._dir)
         html = '\n' + checker.buildTable('de')
         diff = Aux.compareText('''
 <table border="1">
-<tr><td>main</td><td>Startseite</td><td>Homepage</td><td>main</td>
+<tr><td>main</td><td>Startseite 1</td><td>Homepage 2</td><td>main</td>
 </tr></table>'''         , html)
         self.assertEqual(None, diff)
         
     def testTooFewCols(self):
-        Util.writeFile(self._fnDe, '* - main Startseite\n* - correct Guter Link')
-        Util.writeFile(self._fnEn, '* - main Homepage\n* tofew')
+        Util.writeFile(self._fnDe, '''* main Startseite
+* correct Guter Link''')
+        Util.writeFile(self._fnEn, '''* main Homepage
+* tofew''')
         self.buildSession()
         checker = MenuChecker(self._session, self._dir)
         html = '\n' + checker.buildTable('de')

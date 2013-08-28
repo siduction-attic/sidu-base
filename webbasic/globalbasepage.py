@@ -21,15 +21,24 @@ class GlobalBasePage(Page):
         @param session: the session info
         @cookies: the COOKIE dictionary from the request 
         '''
+        session.setId(cookies)
+        session.readUserData()
         Page.__init__(self, 'global', session, False)
         
+        self.addField("wait.intro.key")
+        self.addField("wait.intro.args")
+        self.addField("wait.descr.key")
+        self.addField("wait.descr.args")
+        self.addField("wait.file.progress")
+        self.addField("wait.file.stop")
+        self.addField("wait.page")
         self.addField('session.key')
         self.addField('language')
         self.addField('browser.lang')
         self.addField('expert')
         self.defineFields()
         
-        self._pageData.importData(self._name, None, cookies)
+        self._pageData.importData(self._name, None)
         lang = self.getField('language')
         oldBrowserLanguage = self.getField('browser.lang')
         currentBrowserLang = oldBrowserLanguage

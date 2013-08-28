@@ -34,7 +34,7 @@ class TestPage(unittest.TestCase):
         self.assertEquals('xxx', data.get('f2'))
         
         data.putError('i3', 'error.format')
-        self.assertEquals('error.format', data._dict['i3']._errorKey)
+        self.assertEquals('\ferror.format', data._dict['i3']._error)
         
     def testBasicError(self):
         data = self._pageData

@@ -9,6 +9,7 @@ from webbasic.page import Page, PageResult, PageException
 from aux import Aux
 from util.util import Util, say
 from util.configurationbuilder import ConfigurationBuilder
+from webbasic.globalbasepage import GlobalBasePage
 
 class MiniPage(Page):
     def __init__(self, session):
@@ -23,7 +24,8 @@ class MiniPage(Page):
         self.addField('c1', 'F', None, 'b')
         self.addField('color', 'green', None, 'b')
         self.addField('os', 'linux')
-        self.addField('disk', '-')
+        self.addField('disk', None, 0, "v")
+        self.addField('id')
     
     def handleButton(self, button):
         pass
@@ -31,7 +33,15 @@ class MiniPage(Page):
     def changeContent(self, body):
         body = body.replace('h1', 'h2')
         return body
-        
+
+class GlobalPage(GlobalBasePage):
+    def __init__(self, session):
+        GlobalBasePage.__init__(self, session, {})
+
+    def defineFields(self):
+        self.addField('global_disk')
+        self.addField('.pages')
+               
 class TestPage(unittest.TestCase):
     _deleteConfig = True
 
@@ -40,9 +50,14 @@ class TestPage(unittest.TestCase):
         home = Aux.buildDummyHome(self._application)
         self.buildConfig()
         self._session = Aux.getSession(self._application, None, home)
+        self._session._globalPage = GlobalPage(self._session)
         Aux.buildPageFrame(self._application)
         self._template = Aux.buildPageTemplate(self._application, 'mpage')
         self._page = MiniPage(self._session)
+        self._page._globalPage = self._session._globalPage
+        self._session.addConfig(".gui.pages", ";home;edit;help")
+        self._session.addConfig(".gui.button.next", "next_button")
+        self._session.addConfig(".gui.button.prev", "prev")
         self._page.defineFields()
 
     def buildConfig(self):
@@ -125,6 +140,9 @@ mpage.opts_s2=Yes:No
         self.assertTrue(prc._body.find('MyMenu') > 0)
         self.assertTrue(prc._body.find('name="f1"') > 0)
         self.assertTrue(prc._body.find('4711') > 0)
+        page._redirect = "Hi"
+        self.assertEqual("Hi", page.handle('MyMenu', fields, cookies))
+        page._redirect = None
         
        
     def testFindButton(self):
@@ -229,7 +247,7 @@ mpage.opts_s2=Yes:No
             return self.buildErrorTable(info[6:], what, ixRow)
         if what == 'cols':
             if ixRow == 0:
-                rc = (1, 'adam')
+                rc = (1, '<xml>adam')
             else:
                 rc = (2, 'bea')
         elif what == 'rows':
@@ -260,7 +278,7 @@ Id: Name:
             self._page.buildTable(self, 'error_rows')
             self.fail("missing PageException")
         except PageException as exc:
-            self.assertEquals("mpage: wrong type for row count: a / <type 'unicode'>", 
+            self.assertEquals("mpage: wrong type for row count: a / <type 'str'>", 
                 exc.message)
             
         try:
@@ -304,6 +322,8 @@ Id: Name:
     def testAutosplit(self):
         colors = self._page.autoSplit(";red;green;blue")
         self.assertEquals(["red", "green", "blue"], colors)
+        
+        self.assertEquals([], self._page.autoSplit("", True))
         try:
             self._page.autoSplit("")
             self.fail("no exception")
@@ -324,6 +344,7 @@ Id: Name:
         self.assertEquals("10MB", self._page.humanReadableSize(10*1000*1000))
         self.assertEquals("9999MB", self._page.humanReadableSize(10*1000*1000*1000-1))
         self.assertEquals("10GB", self._page.humanReadableSize(10*1000*1000*1000))
+        self.assertEquals("-10GB", self._page.humanReadableSize(-10*1000*1000*1000))
        
     def testAutoJoinArgs(self):
         self.assertEquals(";1;2", self._page.autoJoinArgs(["1", "2"]))
@@ -337,7 +358,86 @@ Id: Name:
             self.fail("no exception")
         except Exception as e:
             pass
+    def putError(self):
+        self.assertTrue(self._page.putError("i", "key"))
+        
+    def putErrorText(self):
+        self.assertTrue(self._page.putErrorText("i", "text"))
+   
+    def testFindIndexOfOptions(self):
+        self.assertEqual(-1, self._page.findIndexOfOptions("disk"))
+        
+    def testStoreAsGlobal(self):
+        self._page.storeAsGlobal("disk", "disk")
+        
+    def testSetRefresh(self):
+        self._page.setRefresh()
+        self.assertEqual('<meta http-equiv="refresh" content="3" />', self._page._dynMeta)
+        self._page.setRefresh(2)
+        self.assertEqual('<meta http-equiv="refresh" content="2" />', self._page._dynMeta)
+        
+    def testGetButton(self):
+        html = self._page.getButton("next")
+        self.assertEqual("next_button", html)
+    
+    def testBuildNavigationButtons(self):
+        html = self._page.buildNavigationButtons(self._page._name, '''
+{{.gui.button.prev}}
+{{.gui.button.next}}''')
+        self.assertEqual("\n\n", html)
+        
+    def testBuildInfo(self):
+        self._session.error("E1")
+        self._session.error("e2")
+        self._session.log("L1")
+        html = self._page.buildInfo("{{INFO}}")
+        self.assertEqual('<p class="error">E1<br/>e2</p><p class="log">L1</p>', html)
+    
+    def testReplaceInPageFrame(self):
+        html = '''
+'''
+        html = self._page.replaceInPageFrame(html)
+        
+    def testNeighbourOf(self):
+        self.assertEquals("home", self._page.neighbourOf("edit", True))
+        self.assertEquals("help", self._page.neighbourOf("edit", False))
+        
+    def testIsValidContent(self):
+        self.assertFalse(self._page.isValidContent("f", "A-F", "A-Z", True, True))
+        self._page.putField("id", "Hans_7")
+        self.assertTrue(self._page.isValidContent("id", "A-Z_", "A-Za-z_0-9", True, True))
+        self.assertTrue(self._page.isValidContent("id", "A-Z_", "A-Za-z_0-9", True, False))
 
+        self._page.putField("id", None)
+        self.assertTrue(self._page.isValidContent("id", "A-Z_", "A-Za-z_0-9", False, False))
+        self.assertFalse(self._page.isValidContent("id", "A-Z_", "A-Za-z_0-9", True, False))
+        
+        self._page.putField("id", "_Hans7")
+        self.assertFalse(self._page.isValidContent("id", "A-F0-9", "A-Z_0-9", True, True))
+       
+    def testGetPages(self):
+        self.assertEquals(";home;edit;help", self._page.getPages())
+        
+    def testAddPage(self):
+        pages = self._page.getPages()
+        self.assertEquals(";home;edit;help", pages)
+        self._page.addPage("abc", "home")
+        pages = self._page.getPages()
+        self.assertEquals(";abc;home;edit;help", pages)
+        self._page.addPage("end", None)
+        pages = self._page.getPages()
+        self.assertEquals(";abc;home;edit;help;end", pages)
+        
+ 
+    def testDelPage(self):
+        pages = self._page.getPages()
+        self.assertEquals(";home;edit;help", pages)
+        self._page.delPage("edit")
+        pages = self._page.getPages()
+        self.assertEquals(";home;help", pages)
+       
+        
+        
 if __name__ == "__main__":
     #import sys;sys.argv = ['', 'Test.testName']
     unittest.main()

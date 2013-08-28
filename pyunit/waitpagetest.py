@@ -56,7 +56,7 @@ COMPLETE=completed 3 of 20
         self.assertFalse(self._page == None)
         
     def testChangeContent(self):
-        body = "i: {{intro}}\nd: {{description}}"
+        body = "i: {{intro}}\nd: {{txt_description}}"
         body = self._page.changeContent(body)
         self.assertEqual('''i: Shows the sample wait page X1 Y2
 d: Sample wait page z1''', body)
@@ -102,9 +102,20 @@ COMPLETEz=completed 3 of 20
         self.assertEquals("invalid progress file: /tmp/progress_test.dat taskname percentage taskno",
             self._session._errorMessages[1])
 
+    def testReadProgressFactor(self):
+        Aux.writeFile(self._fileProgress, '''PERC=0.97
+CURRENT=<b>Partition created</b>
+COMPLETE=completed 3 of 20'''         )
+        progress = self._page.readProgress(self._fileProgress)
+        self.assertEquals(progress[0], 97)
+        self.assertEquals(progress[1], "<b>Partition created</b>")
+        self.assertEquals(progress[2], 3)
+        self.assertEquals(progress[3], 20)
+
     def testProgressPage(self):
         self._page._snippets = {}
-        self._page._snippets["PROGRESS_BODY"] = "progress: {{percentage}}% {{task}} ({{no}} of {{count}})"
+        self._page._snippets["PROGRESS"] = "progress: {{percentage}}% {{task}} ({{no}} of {{count}})"
+        self._page._snippets["DESCRIPTION"] = ""
         body = "{{PROGRESS}}"
         self._page.gotoWait(None, None, self._fileProgress, None, None, None, None) 
         body = self._page.changeContent(body)

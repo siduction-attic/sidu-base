@@ -1,3 +1,4 @@
+# coding=utf-8
 '''
 Created on 02.03.2013
 
@@ -53,7 +54,10 @@ home.en_only=only English
         if not os.path.exists(fn):
             Util.writeFile(fn, '')
         self.assertEqual('/tmp/sessionbasetest/', 
-            SessionBase.isHomeDir('/tmp/sessionbasetest'))   
+            SessionBase.isHomeDir('/tmp/sessionbasetest'))
+        self.assertEqual('/tmp/sessionbasetest/', 
+            SessionBase.isHomeDir('/tmp/sessionbasetest/'))
+           
     
     def test05FindHomeDir(self):
         application = 'testappl'
@@ -203,6 +207,44 @@ home.en_only=only English
             session.getConfigOrNoneWithoutLanguage('TestVar'))
         self.assertEqual("123", 
             session.getConfigOrNone('TestVar'))
+        
+    def testDeleteFile(self):
+        fn = Util.getTempFile('test01.dat', 'testappl', "sessionbase")
+        if os.path.exists(fn):
+            os.unlink(fn)
+        self.assertFalse(os.path.exists(fn))
+        self._session.deleteFile(fn)
+        Util.writeFile(fn, "x")
+        self.assertTrue(os.path.exists(fn))
+        self._session.deleteFile(fn)
+        self.assertFalse(os.path.exists(fn))
+        
+    def testNextPowerOf2(self):
+        session = self._session
+        self.assertEqual(0, session.nextPowerOf2(-11))
+        self.assertEqual(0, session.nextPowerOf2(0))
+        self.assertEqual(1, session.nextPowerOf2(1))
+        self.assertEqual(4, session.nextPowerOf2(4))
+        self.assertEqual(4, session.nextPowerOf2(5))
+        self.assertEqual(4, session.nextPowerOf2(7))
+        self.assertEqual(8, session.nextPowerOf2(8))
+        self.assertEqual(0x100000, session.nextPowerOf2(0x1abcde))
+     
+    def testReadFile(self):
+        fn = Util.getTempFile('test01.dat', 'testappl', "sessionbase")
+        Util.writeFile(fn, "xxxx")
+        self.assertEqual("xxxx", self._session.readFile(fn))
+        content = '''Line1
+line2
+'''
+        Util.writeFile(fn, content)
+        self.assertEqual(content, self._session.readFile(fn))
+        
+    def testUnicodeToAscii(self):
+        self.assertEquals("%e4%f6%fc%c4%d6%dc%df", self._session.unicodeToAscii(u"äöüÄÖÜß"))
+        self.assertEquals("abc", self._session.unicodeToAscii(u"abc"))
+        self.assertEquals("abc", self._session.unicodeToAscii("abc"))
+        self.assertEquals(None, self._session.unicodeToAscii(None))
         
 if __name__ == "__main__":
     #import sys;sys.argv = ['', 'Test.testSessionBase']

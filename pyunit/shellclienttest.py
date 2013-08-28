@@ -16,7 +16,7 @@ class ShellClientTest(unittest.TestCase):
         self._session = Aux.getSession('testappl')
         self._tempDir = Util.getTempDir("shellserver")
         self._session.addConfig(".dir.temp", self._tempDir)
-        self._session.addConfig(".task.dir", self._tempDir)
+        self._session.addConfig(".dir.tasks", self._tempDir)
 
 
     def tearDown(self):

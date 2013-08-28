@@ -8,6 +8,9 @@ import os.path, logging, re
 from util.util import Util
 logger = logging.getLogger(__name__)
 
+MENU_COLS = 3
+MENU_UBOUND = MENU_COLS - 1
+
 class MenuChecker:
     '''
     Checks the consisty of the configuration database.
@@ -20,7 +23,7 @@ class MenuChecker:
         '''
         self._session = session
         self._baseDir = baseDir
-        self._rexpr = re.compile(r'\s')
+        self._rexpr = re.compile(r'\s+')
         
     def findLinks(self, lines, numbers):
         '''Returns a dictionary containing the links of the menu items.
@@ -33,9 +36,9 @@ class MenuChecker:
         ix = -1
         for line in lines:
             ix += 1
-            cols = self._rexpr.split(line, 3)
-            if len(cols) > 2:
-                link = cols[2]
+            cols = self._rexpr.split(line, 2)
+            if len(cols) > 1:
+                link = cols[1]
                 links[link] = numbers[ix]
         return links
     
@@ -87,22 +90,22 @@ class MenuChecker:
             count = min(len(lines1), len(lines2))
             for ix in xrange(count):
                 line = lines1[ix]
-                cols = self._rexpr.split(line, 4)
-                if len(cols) < 4:
+                cols = self._rexpr.split(line, MENU_UBOUND)
+                if len(cols) < 3:
                     msg = self._session.getConfig('.error.menu.cols.missing')
                     msg = msg.format(file1, no1[ix], line)
                     message += template.replace('{{message}}', msg)
                     continue
-                (indent1, link1) = (cols[0], cols[2])
+                (indent1, link1) = (cols[0], cols[1])
                  
                 line = lines2[ix]
-                cols = self._rexpr.split(line, 4)
-                if len(cols) < 4:
+                cols = self._rexpr.split(line, MENU_UBOUND)
+                if len(cols) < 3:
                     msg = self._session.getConfig('.error.menu.cols.missing')
                     msg = msg.format(file2, no2[ix], line)
                     message += template.replace('{{message}}', msg)
                     continue
-                (indent2, link2) = (cols[0], cols[2]) 
+                (indent2, link2) = (cols[0], cols[1]) 
                 
                 if link1 != link2:
                     if link1 not in links2:
@@ -115,7 +118,7 @@ class MenuChecker:
                         message += template.replace('{{message}}', msg)
                 elif indent1 != indent2:
                     msg = self._session.getConfig('.error.menu.indent.different') 
-                    msg = msg.format(file1, no1[ix], indent1, indent2)
+                    msg = msg.format(file1, no1[ix], indent1, indent2, link1)
                     message += template.replace('{{message}}', msg)
              
             if len(lines1) > count:
@@ -146,12 +149,12 @@ class MenuChecker:
             count = min(len(lines1), len(lines2))
             for ix in xrange(count):
                 line = lines1[ix]
-                cols1 = self._rexpr.split(line, 3)
+                cols1 = self._rexpr.split(line, MENU_UBOUND)
                 line = lines2[ix]
-                cols2 = self._rexpr.split(line, 3)
-                if len(cols1) >= 4 and len(cols2) >= 4:
+                cols2 = self._rexpr.split(line, MENU_UBOUND)
+                if len(cols1) >= MENU_COLS and len(cols2) >= MENU_COLS:
                     html += (u'<tr><td>{:s}</td><td>{:s}</td><td>{:s}</td><td>{:s}</td>\n'
-                        .format(cols1[2], cols1[3], cols2[3], cols2[2]))
+                        .format(cols1[1], cols1[2], cols2[2], cols2[1]))
                     html += '</tr>'
             html += '</table>\n'
         return html

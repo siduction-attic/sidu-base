@@ -4,7 +4,7 @@ Created on 04.03.2013
 @author: hm
 '''
 
-import re, os.path
+import re, os.path, codecs
 
 class HTMLSnippets:
     '''Administrates (short) HTML fragments which can easily switched on or off.
@@ -38,7 +38,7 @@ class HTMLSnippets:
             rexpr = re.compile(r'([A-Z0-9_.-]+):\s*$')
             body = ''
             name = ''
-            with open(fn, 'r') as fp:
+            with codecs.open(fn, 'r', encoding="utf-8") as fp:
                 for line in fp:
                     matcher = rexpr.match(line)
                     if matcher == None:

@@ -1,11 +1,37 @@
-sidu-base (0.4.4) UNRELEASED; urgency=low
+sidu-base (0.4.6) unstable; urgency=low
+
+  * unicode problems: reading with codecs.open()
+  * format of the progress answer file: percentage may be a factor < 1
+  * buildFileName(): tolerates now missing trailing slash
+  * menu check: giving link on different indention level
+  * all unit tests work. coverage: 93%
+  * reading certain files with codec UTF-8
+  * adding fields for wait has been moved from sidu-installer
+  * texts for CheckPage and ExpertPage are moved from sidu-manual
+  * ShellClient.execute(): new parameter deleteAnswer
+  * change from cookie based to file based data storage
+  * run handles the wait state of installation itself
+  * fix id because of the storage of the dynamic id in cookie
+    does not work on some browsers
+  * readProgress() and translateTask() moved from wait to sessionbase
+  * HTML entities replaced by UTF-8 chars, e.g. &auml;
+  * SessionBase.readFile() can ignore lines and produce HTML output
+
+
+ -- J. Hamatoma <hama@siduction.net>  Sat, 31 Aug 2013 08:53:28 +0200
+
+sidu-base (0.4.5) unstable; urgency=low
 
   * shellserver: logging
   * new: SessionBase.deleteFile()
   * humanReadableSize(): negative values
   * dynamic page lists: getPages(), addPage(), delPage()
+  * fix: buildFileName(): concatenation of the path elements
+  * MenuCheck: the format has now 4 instead of 5 columns
+  * evaluation of config files: references to other vars
+  * new: nextPowerOf2()
 
- -- J. Hamatoma <hama@siduction.net>  Sun, 18 Aug 2013 23:49:36 +0200
+ -- J. Hamatoma <hama@siduction.net>  Wed, 28 Aug 2013 20:35:54 +0200
 
 sidu-base (0.4.3) unstable; urgency=low
 
@@ -46,7 +72,7 @@ sidu-base (0.3.3) unstable; urgency=low
   * typo in debina/control another
   * removed bash from dependencies - a package must not depend on a unversioned
     essential package
-  * lines in changelog to long  
+  * lines in changelog to long
 
  -- Alf Gaida <agaida@siduction.org>  Sat, 15 Jun 2013 12:03:50 +0200
 
@@ -54,7 +80,7 @@ sidu-base (0.3.2) unstable; urgency=low
 
   [ J. Hamatoma ]
   * Aux: more helper methods for tests
-  * Util: getTempDir(): new signature (base, subdir, endswith) instead of 
+  * Util: getTempDir(): new signature (base, subdir, endswith) instead of
     (base, endswith)
   * SessionBase: placehoder ${varname} in configuration will be resolved
   * added: SessionBase.addConfig()
@@ -73,7 +99,7 @@ sidu-base (0.3.2) unstable; urgency=low
     fields
 
   [ Alf Gaida ]
-  * rebuild closes #1254 
+  * rebuild closes #1254
 
  -- Alf Gaida <agaida@siduction.org>  Sat, 15 Jun 2013 11:58:08 +0200
 
@@ -137,7 +163,7 @@ sidu-base (0.1.7) unstable; urgency=low
   * meaningful logging
 
   [ Alf Gaida ]
-  * rebuild closes #1120 
+  * rebuild closes #1120
 
  -- Alf Gaida <agaida@siduction.org>  Thu, 21 Mar 2013 00:46:04 +0100
 
@@ -148,7 +174,7 @@ sidu-base (0.1.4) unstable; urgency=low
   * test coverage 100%
 
   [ Alf Gaida ]
-  * rebuild fixes #1106 
+  * rebuild fixes #1106
 
  -- Alf Gaida <agaida@siduction.org>  Tue, 12 Mar 2013 01:27:24 +0100
 

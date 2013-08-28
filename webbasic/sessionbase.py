@@ -3,20 +3,21 @@ Created on 03.02.2013
 
 @author: hm
 '''
-import os.path, re, logging, math, time
-
+import os.path, re, logging, codecs, time, math
+from util.util import Util
 from util.configurationbuilder import ConfigurationBuilder
 from util.sqlitedb import SqLiteDb
-from util.util import Util
 from webbasic.page import PageResult
 from basic.shellclient import ShellClient
 
 logger = logging.getLogger(__name__)
+isInit = False
 
 class SessionBase(object):
     '''
     Manages session specific data and services.
     Live time: request
+    There is only one instance of SessionBase()
     '''
 
     @staticmethod
@@ -60,7 +61,11 @@ class SessionBase(object):
         @param application: None of the name of the application
         @param homeDir: None or the base directory (containing data/config.db)
         '''
-        self._id = Util.encodeFilenameChar(int(math.fmod(time.time()*0x100, 0x100000000)))
+        global isInit
+        if "DEBUG" in os.environ and not isInit:
+            logging.basicConfig(filename='/tmp/sidu-base.log',level=logging.DEBUG)
+            isInit = True
+        self._id = None
         self._request = request
         self._application = application
         self._pageAndBookmark = None
@@ -70,8 +75,13 @@ class SessionBase(object):
         self._errorMessages = []
         self._configAdditional = None
         self._userAgent = ''
+        # a list of lines containing the field data for all pages
+        # format: <page>.<var>=<value>
+        # lines end with '\n'
+        self._userData = None
         self._urlStatic = "../static/"
-        if request != None and 'HTTP_USER_AGENT' in request.META:
+        hasAgent = 'HTTP_USER_AGENT' in request.META
+        if request != None and hasAgent:
             self._userAgent = request.META['HTTP_USER_AGENT']
         self._expandNeedsRightMove = not re.search(
             'iceweasel|firefox|opera', 
@@ -141,7 +151,9 @@ class SessionBase(object):
         '''Deletes a file if it exists.
         @param name: the file's name
         '''
-        if os.path.exists(name):
+        if name == None:
+            pass
+        elif os.path.exists(name):
             logger.debug("deleted: " + name)
             os.unlink(name)
         
@@ -206,10 +218,12 @@ class SessionBase(object):
         if record == None:
             rc = None
         else:  
-            rc = record['value']
+            rc = unicode(record['value'])
         if (rc == None and self._configAdditional != None 
                 and key in self._configAdditional):
             rc = self._configAdditional[key]
+        if rc != None:
+            rc = self._replaceVar(rc, True)
         return rc
  
     def getConfig(self, key):
@@ -224,6 +238,27 @@ class SessionBase(object):
             rc = key
         return rc
    
+    def _replaceVar(self, text, withLanguage):
+        end = 0
+        while end >= 0:
+            start = text.find('${', end)
+            if start < 0:
+                end = -1
+            else:
+                end = text.find('}', start + 2)
+                if end > 0:
+                    name = text[start + 2:end]
+                    value = None
+                    if withLanguage:
+                        value = self.getConfigOrNone(name)
+                    if value == None:
+                        value = self.getConfigOrNoneWithoutLanguage(name)
+                    if value != None:
+                        head = '' if start == 0 else text[0:start]
+                        text = head + value + text[end+1:]
+                        # try it again:
+                        end = start
+        return text
     def getConfigOrNoneWithoutLanguage(self, key):
         '''Returns a value from the configuration db.
         The value is language independent.
@@ -231,26 +266,17 @@ class SessionBase(object):
         @return: None: the key is not in the configuration db
                 otherwise: the value from the database
         '''
-        record = self._configDb.selectByKey(self._configInfo, 'key', key)
-        rc = None if record == None else record['value']
-        if (rc == None and self._configAdditional != None 
-                and key in self._configAdditional):
-            rc = self._configAdditional[key]
-        end = -1 if rc == None else 0
-        while end >= 0:
-            start = rc.find('${', end)
-            if start < 0:
-                end = -1
-            else:
-                end = rc.find('}', start + 2)
-                if end > 0:
-                    name = rc[start + 2:end]
-                    value = self.getConfigOrNoneWithoutLanguage(name)
-                    if value != None:
-                        head = '' if start == 0 else rc[0:start]
-                        rc = head + value + rc[end+1:]
-                        # try it again:
-                        end = start
+        # None is possible in test suites
+        if self._configDb == None:
+            rc = None
+        else :
+            record = self._configDb.selectByKey(self._configInfo, 'key', key)
+            rc = None if record == None else record['value']
+            if (rc == None and self._configAdditional != None 
+                    and key in self._configAdditional):
+                rc = self._configAdditional[key]
+            if rc != None:
+                rc = self._replaceVar(rc, False)
         return rc
 
     def getConfigWithoutLanguage(self, key):
@@ -372,4 +398,222 @@ class SessionBase(object):
         rc = PageResult(None, relativeUrl, caller)
         return rc
         
+    def nextPowerOf2(self, value):
+        '''Returns the maximum of a 2**n where value > 2**n
+        @return: max(2**n) where 2**n <= value
+        '''
+        if value <= 0:
+            rc = 0
+        else:
+            n = 0
+            val = value
+            while val > 0:
+                n += 1
+                val /= 2
+            rc = 1
+            while n > 1:
+                rc *= 2
+                n -= 1
+            assert(rc <= value)
+            assert(rc*2 >= value)
+        return rc
+    '''Reads a file and returns the content as a string.
+    @param name        the file's name
+    @param marker      None or: only lines starting with this marker will be returned
+                       (without marker)
+    @param toXml       True: result can be uses as XML content ('<' '>' and '&'
+                       will be replaced by entities) 
+    @return:       the content of the file as a unicode string
+    '''
+    def readFile(self, name, marker = None, toXml = False):
+        rc = ""
+        if os.path.exists(name):
+            with codecs.open(name, "r", encoding="utf-8") as fp:
+                for line in fp:
+                    if marker == None or line.startswith(marker):
+                        if marker != None:
+                            line = line[len(marker):]
+                        if toXml:
+                            line = line.replace("&", "&amp;") 
+                            line = line.replace("<", "&lt;") 
+                            line = line.replace(">", "&gt;") 
+                        rc += line
+            fp.close()
+        return rc
+    
+    def unicodeToAscii(self, value):
+        '''Converts an unicode to ascii.
+        @param value:   unicode string to convert
+        @return:        a string with special characters converted to %HH syntax
+        '''
+        if value == None:
+            rc = None
+        else:
+            value = unicode(value)
+            hasNoAscii = True
+            for cc in value:
+                if ord(cc) > 127:
+                    hasNoAscii = False
+                    break
+            if hasNoAscii:
+                rc = str(value)
+            else:
+                rc = ""
+                for cc in value:
+                    if ord(cc) <= 127:
+                        rc += cc
+                    else:
+                        rc += "%{:02x}".format(ord(cc))
+        return rc
+    
+    def setId(self, cookies):
+        '''Sets a session specific id if that does not exist yet.
+        @param cookies: the dictionary with the cookies
+        '''
+        if self._id == None:
+            if "id" in cookies:
+                self._id = cookies["id"]
+                self.trace("ID found: " + self._id)
+            else:
+                prefix = self._application
+                if prefix.startswith("sidu-"):
+                    prefix = prefix[5:]
+                self._id = prefix + Util.encodeFilenameChar(
+                    int(math.fmod(time.time()*0x100, 0x100000000)))
+                self._id += Util.encodeFilenameChar(os.getpid())
+                fixId = True
+                if fixId:
+                    self._id = prefix +".fixid"
+                self.trace("new id: {:s} cookies contains {:d}"
+                    .format(self._id, len(cookies)))
+                stop = False
+                if stop:
+                    self.nix()
+                cookies["id"] = self._id
+                
+        
+    def readUserData(self):
+        '''Reads the user data into a list.
+        User data are the field values of all pages.
+        '''
+        if self._userData == None:
+            base = self.getConfigOrNoneWithoutLanguage(".dir.tasks")
+            self._userData = []
+            if base == None:
+                self.error("readUserData(): no task dir")
+                base = "/var/cache/sidu-base/shellserver-tasks/"
+            fn = base + self._id + ".data"
+            if os.path.exists(fn):
+                with codecs.open(fn, "r", "utf-8") as fp:
+                    for line in fp:
+                        self._userData.append(line)
+                fp.close()
+
+    def writeUserData(self):
+        '''writes the user data into a file
+        User data are the field values of all pages.
+        '''
+        base = self.getConfigOrNoneWithoutLanguage(".dir.tasks")
+        if base == None:
+            self.error("writeUserData(): no task dir")
+            base = "/var/cache/sidu-base/shellserver-tasks/"
+        fn = base + self._id + ".data"
+        with codecs.open(fn, "w", "utf-8") as fp:
+            for line in self._userData:
+                if not line.endswith("\n"):
+                    line += "\n"
+                fp.write(line)
+        fp.close()
+        
+    def putUserData(self, page, name, value):
+        '''Puts a field value of another page.
+        @param page:    name of the page
+        @param name:    name of the field
+        @param value    field value to store
+        '''
+        prefix = page + "." + name + "="
+        newLine = prefix if value == None else prefix + value + "\n"
+        found = False
+        for ix in xrange(len(self._userData)):
+            line = self._userData[ix]
+            if line.startswith(prefix):
+                self._userData[ix] = newLine
+                found = True
+                break
+        if not found:
+            self._userData.append(newLine)
+            
+    def clearUserData(self):
+        '''Delete all field values in the data store.
+        '''
+        self._userData = []
+
+    def readProgress(self, filename):
+        '''Reads the progress file.
+        Format of the file: 3 lines:
+        
+        PERC=30
+        CURRENT=<b>Partition created</b>
+        COMPLETE=completed 3 of 20
+         
+        @param filename    name of the progress file
+        @return a tuple (percentage, name_of_task, cur_no_of_task, count_of_tasks)
+        '''
+        task = None
+        percentage = None
+        currNoOfTask = countOfTasks = None
+        if os.path.exists(filename):
+            with open(filename, "r") as fp:
+                line = fp.readline()
+                if line != None:
+                    matcher = re.match(r'PERC=([\d.]+)', line)
+                    if matcher != None:
+                        percentage = float(matcher.group(1))
+                        if percentage < 1:
+                            percentage *= 100
+                        percentage = int(percentage)
+                line = fp.readline()
+                if line != None:
+                    if line.startswith("CURRENT="):
+                        task = line[8:-1]
+                line = fp.readline()
+                if line != None:
+                    matcher = re.match(r'COMPLETE=completed\s+(\d+)\s+of\s+(\d+)', line)
+                    if matcher != None:
+                        currNoOfTask = int(matcher.group(1))
+                        countOfTasks = int(matcher.group(2))
+            fp.close() 
+            msg = ""
+            if task == None:
+                msg += " taskname"
+                task = "?"
+            if percentage == None:
+                msg += " percentage"
+                percentage = 0
+            if currNoOfTask == None or countOfTasks == None:
+                msg += " taskno"
+                currNoOfTask = 0 if currNoOfTask == None else currNoOfTask
+                countOfTasks = 0 if countOfTasks == None else countOfTasks
+            if msg != "":
+                msg = "invalid progress file: " + filename + msg
+                self.error(msg)
+        if percentage == None:
+            percentage = 0
+        return (percentage, task, currNoOfTask, countOfTasks)               
+
+    def translateTask(self, keyPrefix, message):
+        '''Translate the English message into the current.
+        @param message: the English message to translate
+        @return: message: no translation available.
+                otherwise: the translation
+        '''
+        keyPrefix += "."
+        count = self.getConfigOrNone(keyPrefix + "count")
+        if count != None and count != "":
+            for no in xrange(int(count)):
+                msg = self.getConfigOrNone(keyPrefix + str(no+1))
+                if msg != None and msg.startswith(message):
+                    message = msg[len(message) + 1:]
+                    break
+        return message
         
