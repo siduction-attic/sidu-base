@@ -402,7 +402,11 @@ class SessionBase(object):
         '''Returns the maximum of a 2**n where value > 2**n
         @return: max(2**n) where 2**n <= value
         '''
+<<<<<<< HEAD
         if value <= 0:
+=======
+        if value == 0:
+>>>>>>> a82f34c15983a543cf742822cc67f9390e3bca86
             rc = 0
         else:
             n = 0
@@ -417,6 +421,7 @@ class SessionBase(object):
             assert(rc <= value)
             assert(rc*2 >= value)
         return rc
+<<<<<<< HEAD
     '''Reads a file and returns the content as a string.
     @param name        the file's name
     @param marker      None or: only lines starting with this marker will be returned
@@ -617,3 +622,13 @@ class SessionBase(object):
                     break
         return message
         
+=======
+    def readFile(self, name):
+        rc = ""
+        with open(name, "r") as fp:
+            for line in fp:
+                rc += line
+        fp.close()
+        return rc
+        
+>>>>>>> a82f34c15983a543cf742822cc67f9390e3bca86
