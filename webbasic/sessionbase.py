@@ -10,8 +10,7 @@ from util.sqlitedb import SqLiteDb
 from webbasic.page import PageResult
 from basic.shellclient import ShellClient
 
-logger = logging.getLogger(__name__)
-isInit = False
+logger = logging.getLogger("pywwetha")
 
 class SessionBase(object):
     '''
@@ -25,7 +24,7 @@ class SessionBase(object):
         if not path.endswith(os.sep):
             path += os.sep
         rc = path if os.path.exists (path + 'data/config.db') else None
-        # logger.debug('isHomeDir({:s}: {:s}'.format(path, '' if rc else rc))
+        logger.debug('isHomeDir({:s}: {:s}'.format(path, '' if rc else rc))
         return rc
     
     @staticmethod
@@ -61,10 +60,9 @@ class SessionBase(object):
         @param application: None of the name of the application
         @param homeDir: None or the base directory (containing data/config.db)
         '''
-        global isInit
-        if "DEBUG" in os.environ and not isInit:
+        if "DEBUG" in os.environ:
+            # Note: Nothing is done if the logger is already initialized 
             logging.basicConfig(filename='/tmp/sidu-base.log',level=logging.DEBUG)
-            isInit = True
         self._id = None
         self._request = request
         self._application = application
@@ -106,7 +104,7 @@ class SessionBase(object):
                 self._configDb.addTableInfo(self._configInfo)
         
         self._language = self.correctLanguage(self.getMetaVar('HTTP_ACCEPT_LANGUAGE'))
-        logger.debug('SessionBase(): lang: {:s} home: {:s} db: {:s}'.format(
+        self.trace('SessionBase(): lang: {:s} home: {:s} db: {:s}'.format(
             self._language if self._language else '',
             self._homeDir if self._homeDir else '',
             self._configDbName if self._configDbName else ''))
@@ -154,7 +152,7 @@ class SessionBase(object):
         if name == None:
             pass
         elif os.path.exists(name):
-            logger.debug("deleted: " + name)
+            self.trace("deleted: " + name)
             os.unlink(name)
         
     def handleMetaVar(self):
@@ -402,11 +400,7 @@ class SessionBase(object):
         '''Returns the maximum of a 2**n where value > 2**n
         @return: max(2**n) where 2**n <= value
         '''
-<<<<<<< HEAD
         if value <= 0:
-=======
-        if value == 0:
->>>>>>> a82f34c15983a543cf742822cc67f9390e3bca86
             rc = 0
         else:
             n = 0
@@ -421,7 +415,6 @@ class SessionBase(object):
             assert(rc <= value)
             assert(rc*2 >= value)
         return rc
-<<<<<<< HEAD
     '''Reads a file and returns the content as a string.
     @param name        the file's name
     @param marker      None or: only lines starting with this marker will be returned
@@ -621,14 +614,3 @@ class SessionBase(object):
                     message = msg[len(message) + 1:]
                     break
         return message
-        
-=======
-    def readFile(self, name):
-        rc = ""
-        with open(name, "r") as fp:
-            for line in fp:
-                rc += line
-        fp.close()
-        return rc
-        
->>>>>>> a82f34c15983a543cf742822cc67f9390e3bca86

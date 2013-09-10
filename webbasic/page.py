@@ -343,7 +343,7 @@ class Page(object):
             content = self._pageData.replaceValues(content, self._errorPrefix,
                     self._errorSuffix)
             content = self._session.replaceVars(content)
-            title = self._session.getConfig(self._name + '.title')
+            title = self._session.getConfig(self._name + '.txt_title')
             env = { 'CONTENT' : content, 
                 'MENU' : htmlMenu,
                 'META_DYNAMIC' : self._dynMeta,
