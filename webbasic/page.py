@@ -355,7 +355,8 @@ class Page(object):
             rc = PageResult(frame)
             
         self._pageData.exportData()
-        self._globalPage._pageData.exportData()
+        if self._globalPage != None:
+            self._globalPage._pageData.exportData()
         self._session.writeUserData()
         return rc
     
@@ -486,7 +487,7 @@ class Page(object):
         if argsDescr != None:
             argsDescr = ";" + ";".join(argsDescr)
         self._globalPage.putField("wait.descr.args", argsDescr)
-        if not fileStop.endswith(".txt"):
+        if fileStop != None and not fileStop.endswith(".txt"):
             self._session.deleteFile(fileStop)
         self._session.deleteFile(self._globalPage.getField("wait.file.stop"))
         self._globalPage.putField("wait.file.stop", fileStop)
@@ -670,3 +671,6 @@ class Page(object):
         pages = self.getPages()
         pages = pages.replace(pages[0] + page, "")
         self._globalPage.putField(".pages", pages)
+
+    
+        

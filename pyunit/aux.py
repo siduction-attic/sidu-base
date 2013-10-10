@@ -10,6 +10,7 @@ from webbasic.sessionbase import SessionBase
 from util.util import Util
 from util.configurationbuilder import ConfigurationBuilder
 from webbasic.page import Page
+from webbasic.globalbasepage import GlobalBasePage
 
 class Aux(object):
     '''
@@ -188,6 +189,7 @@ MAIN:
     @staticmethod    
     def buildPage(name = None, session = None):
         '''Builds a page and returns a page
+        @param name:    the page name. If None a generic name will be taken
         @param session: None or the session info
         @return: a page
         '''
@@ -197,7 +199,18 @@ MAIN:
             session = Aux.getSession('testappl')
         page = Page(name, session)
         return page
-        
+
+    @staticmethod    
+    def buildGlobalPage(session = None):
+        '''Builds a page and returns a page
+        @param session: None or the session info
+        @return: a page
+        '''
+        if session == None:
+            session = Aux.getSession('testappl')
+        page = DummyGlobalPage(session, dict())
+        return page
+       
     @staticmethod    
     def writeFile(name, content = None):
         '''Writes a string into a file.
@@ -245,4 +258,8 @@ class DummyRequest:
             "HTTP_USER_AGENT" : "testbrowser 1.0"
             }
 
+class DummyGlobalPage (GlobalBasePage):
+    def __init__(self, session, cookies):
+        GlobalBasePage.__init__(self, session, cookies)
+    
     

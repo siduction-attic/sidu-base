@@ -257,6 +257,7 @@ class SessionBase(object):
                         # try it again:
                         end = start
         return text
+    
     def getConfigOrNoneWithoutLanguage(self, key):
         '''Returns a value from the configuration db.
         The value is language independent.
@@ -348,7 +349,7 @@ class SessionBase(object):
         '''
         end = 0
         rc = ''
-        while True:
+        while source != None:
             start = source.find("{{", end)
             if start < 0:
                 if end == 0:
@@ -379,7 +380,7 @@ class SessionBase(object):
         @param relativeUrl: the target url (without domain and port)
         @return: an absolute url
         '''
-        absUrl = 'http://' + self._request.META['SERVER_NAME'];
+        absUrl = 'http://' + self._request.META['SERVER_NAME']
         if ('SERVER_PORT' in self._request.META 
                 and self._request.META['SERVER_PORT'] != 80):
             absUrl += ':' + unicode(self._request.META['SERVER_PORT'])
@@ -484,9 +485,6 @@ class SessionBase(object):
                     self._id = prefix +".fixid"
                 self.trace("new id: {:s} cookies contains {:d}"
                     .format(self._id, len(cookies)))
-                stop = False
-                if stop:
-                    self.nix()
                 cookies["id"] = self._id
                 
         
@@ -498,7 +496,7 @@ class SessionBase(object):
             base = self.getConfigOrNoneWithoutLanguage(".dir.tasks")
             self._userData = []
             if base == None:
-                self.error("readUserData(): no task dir")
+                self.error("readUserData(): no .dir.tasks")
                 base = "/var/cache/sidu-base/shellserver-tasks/"
             fn = base + self._id + ".data"
             if os.path.exists(fn):
@@ -513,7 +511,7 @@ class SessionBase(object):
         '''
         base = self.getConfigOrNoneWithoutLanguage(".dir.tasks")
         if base == None:
-            self.error("writeUserData(): no task dir")
+            self.error("writeUserData(): .dir.tasks")
             base = "/var/cache/sidu-base/shellserver-tasks/"
         fn = base + self._id + ".data"
         with codecs.open(fn, "w", "utf-8") as fp:
@@ -560,9 +558,11 @@ class SessionBase(object):
         task = None
         percentage = None
         currNoOfTask = countOfTasks = None
+        hasInfo = False
         if os.path.exists(filename):
             with open(filename, "r") as fp:
                 line = fp.readline()
+                hasInfo = line != None and line != ""
                 if line != None:
                     matcher = re.match(r'PERC=([\d.]+)', line)
                     if matcher != None:
@@ -584,7 +584,7 @@ class SessionBase(object):
             msg = ""
             if task == None:
                 msg += " taskname"
-                task = "?"
+                task = "initialization"
             if percentage == None:
                 msg += " percentage"
                 percentage = 0
@@ -592,7 +592,7 @@ class SessionBase(object):
                 msg += " taskno"
                 currNoOfTask = 0 if currNoOfTask == None else currNoOfTask
                 countOfTasks = 0 if countOfTasks == None else countOfTasks
-            if msg != "":
+            if hasInfo and msg != "":
                 msg = "invalid progress file: " + filename + msg
                 self.error(msg)
         if percentage == None:

@@ -60,23 +60,28 @@ class Menu(object):
     ***  credits#cred-team    Das siduction-Team
     '''
 
-    def __init__(self, session, name, expanded, fields = None):
+    def __init__(self, session, name, expanded, fields = None, isExtended = False):
         '''
         Constructor.
-        @param session: the session info
-        @param name:     the name of the menu. This implies the filename
-        @param expanded: true: all members of the menu tree are visible<br>
-                        false: only the current members and its siblings are visible.
-        @param fields:  None or a list containing the field values (of the checkboxes)
+        @param session:     the session info
+        @param name:        the name of the menu. This implies the filename
+        @param expanded:    True: all members of the menu tree are visible<br>
+                            False: only the current members and its siblings are visible.
+        @param fields:      None or a list containing the field values (of the checkboxes)
+        @param isExtended   False: special menu items (expert mode) will not be shown
         '''
         self._name = name
         self._fields = fields
         self._session = session
         self._expanded = expanded
+
         self._topLevelItems = []
+        self._extendedMenu = isExtended
+        # compatibility: May be removed in the future.
+        if (not isExtended and hasattr(session, "_globalPage") 
+                and session._globalPage != None): 
+            self._extendedMenu = session._globalPage.getField('expert') == 'T'
         self._snippets = None
-        self._extendedMenu = (session._globalPage != None 
-            and session._globalPage.getField('expert') == 'T')
         
     def read(self):
         '''Reads the menu definitions into internal structures.

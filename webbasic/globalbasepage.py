@@ -31,6 +31,7 @@ class GlobalBasePage(Page):
         self.addField("wait.descr.args")
         self.addField("wait.file.progress")
         self.addField("wait.file.stop")
+        self.addField("wait.translation")
         self.addField("wait.page")
         self.addField('session.key')
         self.addField('language')

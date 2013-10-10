@@ -50,26 +50,7 @@ class TestPage(unittest.TestCase):
         data.getFromHTTP(env)
         self.assertEquals('xyz', data.get('x1'))
         self.assertEquals('', data.get('x2'))
-
-    def testCookie(self):
-        data = self._pageData
-        data.add(FieldData('d1'))
-        data.add(FieldData('d2', 33, 'd'))
-        data.getFromCookie('tpage', {})
-        data.put('d1', 'data1')
-        data.put('d2', 44)
-        data.putToCookie()
-        self.assertEqual('data1~|^44', PageData._cookie['D_tpage'])
-        
-        PageData._cookie['D_page2'] = '4711~|^99'
-        PageData._cookie['V_page2'] =  PageData._cookie['V_tpage']
-        data2 = PageData(self._session)
-        data2.add(FieldData('w1'))
-        data2.add(FieldData('w2', None, 'd'))
-        data2.getFromCookie('page2', None)
-        self.assertEquals('4711', data2.get('w1'))
-        self.assertEquals(99, data2.get('w2'))
-       
+      
     def testReplaceValues(self):
         data = PageData(self._session)
         data.add(FieldData('d1', 'xxx'))
@@ -86,7 +67,7 @@ class TestPage(unittest.TestCase):
                 "!!!", "$$"))
      
     def testImportData(self):
-        self._pageData.importData('test', {}, {})
+        self._pageData.importData('test', {})
         
 if __name__ == "__main__":
     #import sys;sys.argv = ['', 'Test.testName']

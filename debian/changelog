@@ -1,10 +1,19 @@
-sidu-base (0.4.7) UNRELEASED; urgency=low
+sidu-base (0.4.8) unstable; urgency=low
+
+  * regression tests: coverage now 95%
+  * aux: buildGlobalPage()
+  * util: encryption for password storing
+  * globalbasepage: new field: translation
+
+ -- J. Hamatoma <hama@siduction.net>  Thu, 10 Oct 2013 22:00:13 +0200
+
+sidu-base (0.4.7) unstable; urgency=low
 
   * page title will be shown now
   * syntax errors (because of merge conflicts)
   * logging uses pywwetha logger
 
- -- J. Hamatoma <hama@siduction.net>  Tue, 10 Sep 2013 11:43:06 +0200
+ -- J. Hamatoma <hama@siduction.net>  Tue, 10 Sep 2013 12:17:56 +0200
 
 sidu-base (0.4.6) unstable; urgency=low
 

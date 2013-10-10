@@ -31,6 +31,7 @@ class Test(unittest.TestCase):
         Util.writeFile(fnConfigEn, '''
 wait.intro=Shows the sample wait page {{1}} {{2}}
 wait.descr=Sample wait page {{1}}
+.disk.tasks=/tmp/tasks
 ''')
         filesAndLanguages = ((fnConfig, None), (fnConfigEn, "en"))
         self._session = Aux.getSession(self._appl, request, homeDir, filesAndLanguages)
@@ -41,12 +42,16 @@ wait.descr=Sample wait page {{1}}
         self._page._globalPage.putField("wait.intro.args", ";X1;Y2")
         self._page._globalPage.putField("wait.descr.args", ";z1")
         self._page._globalPage.putField("wait.page", "home")
+        self._page._globalPage.putField("wait.translation", "mytask")
+        self._stopFile = "/tmp/wait.stop"
+        self._page._globalPage.putField("wait.file.stop", self._stopFile)
 
         self._fileProgress = "/tmp/progress_test.dat"
         Aux.writeFile(self._fileProgress, '''PERC=30
 CURRENT=<b>Partition created</b>
 COMPLETE=completed 3 of 20
 '''         )
+        self._page._globalPage.putField("wait.file.progress", self._fileProgress)
 
     def tearDown(self):
         pass
@@ -55,11 +60,31 @@ COMPLETE=completed 3 of 20
     def testBasic(self):
         self.assertFalse(self._page == None)
         
+    def testAfterInit(self):
+        self._session.deleteFile(self._stopFile) 
+        self._page.afterInit()
+        Util.writeFile(self._stopFile, "")
+        self._page.afterInit()
+        
+        
+        
     def testChangeContent(self):
         body = "i: {{intro}}\nd: {{txt_description}}"
         body = self._page.changeContent(body)
         self.assertEqual('''i: Shows the sample wait page X1 Y2
 d: Sample wait page z1''', body)
+        
+    def testChangeContent2(self):
+        globalPage = self._page._globalPage
+        globalPage.putField("wait.intro.args", "")
+        globalPage.putField("wait.descr.args", "")
+        globalPage.putField("wait.translation", "dummy")
+        globalPage.putField("wait.file.progress", "NotExistingFile")
+        body = "i: {{intro}}\nd: {{txt_description}}"
+        body = self._page.changeContent(body)
+        self.assertEqual('''i: Shows the sample wait page {{1}} {{2}}
+d: Sample wait page {{1}}''', body)
+        
         
     def testHandleButton(self):
         result = self._page.handleButton("button_cancel")
@@ -82,7 +107,7 @@ d: Sample wait page z1''', body)
         self.assertEquals(";d1", self._page._globalPage.getField("wait.descr.args"))
         
     def testReadProgress(self):
-        progress = self._page.readProgress(self._fileProgress)
+        progress = self._session.readProgress(self._fileProgress)
         self.assertEquals(progress[0], 30)
         self.assertEquals(progress[1], "<b>Partition created</b>")
         self.assertEquals(progress[2], 3)
@@ -93,20 +118,24 @@ d: Sample wait page z1''', body)
 CURRENTy=<b>Partition created</b>
 COMPLETEz=completed 3 of 20
 '''         )
-        progress = self._page.readProgress(self._fileProgress)
+        progress = self._session.readProgress(self._fileProgress)
         self.assertEquals(progress[0], 0)
-        self.assertEquals(progress[1], "?")
+        self.assertEquals(progress[1], "initialization")
         self.assertEquals(progress[2], 0)
         self.assertEquals(progress[3], 0)
-        self.assertEquals(2, len(self._session._errorMessages))
-        self.assertEquals("invalid progress file: /tmp/progress_test.dat taskname percentage taskno",
-            self._session._errorMessages[1])
+        self.assertTrue(2 <= len(self._session._errorMessages))
+        found = False
+        for msg in self._session._errorMessages:
+            if msg == "invalid progress file: /tmp/progress_test.dat taskname percentage taskno":
+                found = True
+        if not found:
+            self.assertTrue(False)
 
     def testReadProgressFactor(self):
         Aux.writeFile(self._fileProgress, '''PERC=0.97
 CURRENT=<b>Partition created</b>
 COMPLETE=completed 3 of 20'''         )
-        progress = self._page.readProgress(self._fileProgress)
+        progress = self._session.readProgress(self._fileProgress)
         self.assertEquals(progress[0], 97)
         self.assertEquals(progress[1], "<b>Partition created</b>")
         self.assertEquals(progress[2], 3)

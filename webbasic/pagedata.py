@@ -111,12 +111,13 @@ class PageData:
         '''
         self._cookieName = name
         starter = self._cookieName + "."
-        for line in self._session._userData:
-            if line.startswith(starter):
-                line = line[len(starter):-1]
-                (name, val) = line.split("=", 1)
-                if name in self._dict: 
-                    self._dict[name]._value = val
+        if self._session._userData != None:
+            for line in self._session._userData:
+                if line.startswith(starter):
+                    line = line[len(starter):-1]
+                    (name, val) = line.split("=", 1)
+                    if name in self._dict: 
+                        self._dict[name]._value = val
                         
     def exportData(self):
         '''Puts the data to the session data store.
@@ -129,7 +130,7 @@ class PageData:
         for ix in xrange(len(self._list)):
             field = self._list[ix]
             line = "{:s}{:s}={:s}\n".format(starter, field._name, 
-                "" if field._value == None else field._value )
+                "" if field._value == None else str(field._value) )
             self._session._userData.append(line)
         
     def clearFields(self):

@@ -1,4 +1,5 @@
-import sys, os.path, time, codecs, tempfile, random
+import sys, os.path, time, codecs, tempfile, random, operator
+from mercurial.fileset import matchctx
 
 FILENAMECHARS = "U^Qy9gSH#%a-pW_K2MTc!P.@r4ALEIm16RNo5Cv&dJbfnYeGD0t8l+iB~XxhF7w3=jOV$Zksuzq"
 INVERS_FILENAMECHARS = [ 20, -1, 8, 68, 9, 39, -1, -1, -1, -1, 53, -1, 11, 22,
@@ -8,7 +9,41 @@ INVERS_FILENAMECHARS = [ 20, -1, 8, 68, 9, 39, -1, -1, -1, -1, 53, -1, 11, 22,
      59, 54, 65, 70, 52, 30, 44, 35, 12, 74, 24, 71, 50, 72, 38, 62, 58, 3, 73,
      -1, -1, -1, 56, -1]
 INVALID_FILENAMECHARS = "\"'()*,/:;<>?[\\]`{|}"
-
+ALGO_REVERS = "0"
+ALGO_XOR = "1"
+ALGO_ADD = "2"
+ALGO_DEFAULT = ALGO_ADD
+CHARS10 = "9147253806"
+CHARS16 = "fadceb" + CHARS10
+CHARS26 = "zfsoeiurglhqnmwtbvpxyjakcd"
+CHARS38 = "_." + CHARS10 + CHARS26
+CHARS64 = "QASDFGHJKLWERTZUIOPYXCVBNM" + CHARS38
+CHARS76 = "!@$%&#;,/+=?" + CHARS64
+CHARS93 = "^`(>~[{<*)\" |}]-:" + CHARS76
+CHARS95 = "'\\" + CHARS93
+CHARS96 = "" + CHARS95
+TAG_CHARS10 = "9"
+TAG_CHARS16 = "f"
+TAG_CHARS26 = "z"
+TAG_CHARS38 = "_"
+TAG_CHARS64 = "Q"
+TAG_CHARS76 = "!"
+TAG_CHARS93 = "^"
+TAG_CHARS95 = "<"
+TAG_CHARS96 = ">"
+TAG_TO_CHARS = { 
+    TAG_CHARS10 : CHARS10, 
+    TAG_CHARS16 : CHARS16, 
+    TAG_CHARS26 : CHARS26, 
+    TAG_CHARS38 : CHARS38, 
+    TAG_CHARS64 : CHARS64, 
+    TAG_CHARS76 : CHARS76, 
+    TAG_CHARS93 : CHARS93, 
+    TAG_CHARS95 : CHARS95, 
+    TAG_CHARS96 : CHARS96, 
+    }
+ALL_TAGS = (TAG_CHARS10, TAG_CHARS16, TAG_CHARS26, TAG_CHARS38, TAG_CHARS64,
+            TAG_CHARS76, TAG_CHARS93, TAG_CHARS95, TAG_CHARS96)
 def exceptionString(excInfo = None, additionalInfo = None):
     '''Extracts the info as string from an exception info.
     @param excInfo:    the info given by sys.exc_info
@@ -206,8 +241,6 @@ class Util:
             invers.append(-1)
         for ii in xrange(128-offset):
             cc = chr(offset + ii)
-            if ii == 126-offset or cc == '~':
-                pass
             invers[ii] = chars.find(cc)
         say('FILENAMECHARS = "' + chars + '"')
         out = "INVERS_FILENAMECHARS = ["
@@ -226,4 +259,174 @@ class Util:
                     invalid += "\\"
                 invalid += cc
         say('INVALID_FILENAMECHARS = "' + invalid + '"')
-        return (chars, invers)            
+        return (chars, invers)  
+    
+    @staticmethod
+    def hideText(text, algorithm = ALGO_DEFAULT):
+        '''disquises the passphrase.
+        @param text         clear text
+        @param algorithm    method for hiding: ALGO_...
+        @return:    the disguised text
+        '''
+        seed = int(random.randint(0, 0xffff))
+        #seed = 0x1234
+        head = "{:02x}{:02x}".format(seed % 256, seed / 256) + algorithm
+        rc = "" 
+        #msg = ""
+        for cc in text:
+            seed = (seed * 7 + 0x1234321) & 0x8fffffff
+            if algorithm == ALGO_XOR:
+                val = operator.xor(ord(cc), seed) % 256
+            elif algorithm == ALGO_ADD:
+                val = (ord(cc) + seed % 256) % 256
+            else:
+                val = ord(cc)
+            # reverse string:
+            rc = "{:x}{:x}".format(val % 16, val / 16) + rc
+            #msg += "\ncc: {:s} seed: {:d} val: {:d}/{:x}".format(cc, seed, val, val)
+        return head + rc
+    
+    @staticmethod
+    def unhideText(text):
+        '''Unhide the text disguised with hide().
+        @param text    encrypted text
+        @return:       clear text
+        '''
+        rc = ""
+        pos = 0
+        algorithm = text[4:5]
+        seed = int(text[pos:pos+2], 16) + 256 * int(text[pos+2:pos+4], 16)
+        pos += 5
+        pos = len(text) - 2
+        while pos >= 5:
+            seed = (seed * 7 + 0x1234321) & 0x8fffffff
+            val = int(text[pos:pos+1], 16) + 16*int(text[pos+1:pos+2], 16)
+            if algorithm == ALGO_XOR:
+                val2 = operator.xor(val, seed) % 256
+            elif algorithm == ALGO_ADD:
+                val2 = val - seed % 256
+                if val2 < 0:
+                    val2 += 256
+            else:
+                val2 = val
+            # reverse string:
+            rc += chr(val2)
+            pos -= 2
+        return rc
+
+    @staticmethod
+    def getCharset(tag):
+        '''Returns the charset given by its tag.
+        @param tag:    TAG_CHAR...
+        @return:      a string containing the given charset
+        '''
+        if tag in TAG_TO_CHARS:
+            rc = TAG_TO_CHARS[tag]
+        else:
+            msg = "unknown charset: " + ("None" if tag == None else tag)
+            raise Exception(msg)
+        return rc
+
+    @staticmethod
+    def matchCharset(text, charset):
+        '''Tests whether a text has only chars from a given charset.
+        @param text:    text to inspect
+        @param charset: a string containing all allowed chars
+        @return:        True: all chars of <code>text</code> are in <code>charset</code>
+                        False: otherwise
+        '''
+        rc = True
+        for cc in text:
+            if charset.find(cc) < 0:
+                rc = False
+                break
+        return rc
+
+    @staticmethod
+    def nextTag():
+        '''Returns a generator function of all charset tags.
+        @return:    the next tag
+        '''
+        for tag in ALL_TAGS:
+            yield tag
+
+    @staticmethod
+    def findCharsetTag(text):
+        '''Finds the tag of an charset containing all chars of the given text.
+        @param text:    text to inspect
+        @return:        None: no charset found
+                        otherwise: the tag of th smallest charset possible 
+        '''
+        rc = None
+        for tag in ALL_TAGS:
+            charset = TAG_TO_CHARS[tag]
+            if Util.matchCharset(text, charset):
+                rc = tag
+                break
+        return rc
+        
+
+    @staticmethod
+    def scrambleText(text, tagCharset = None):
+        '''Disquises a text.
+        @param text         clear text
+        @param tagCharset   an id for the charset: TAG_CHARS...
+                            if None the charset will be found automatically
+        @return:            the disguised text
+        '''
+        if tagCharset == None:
+            tagCharset = Util.findCharsetTag(text)
+        seed2 = random.randint(0, 0x7fff0000)
+        charset = Util.getCharset(tagCharset) 
+        size = len(charset)
+        head = ""
+        seed = 0
+        for ii in xrange(3):
+            seedX = seed2 % size
+            seed = seed * size + seedX
+            seed2 = int(seed2 / size)
+            head += charset[seedX:seedX+1]
+        head += tagCharset
+        rc = "" 
+        msg = "seed: {:d}\n".format(seed)
+        for cc in text:
+            seed = (seed * 7 + 0x1234321) & 0x8fffffff
+            delta = 1 + seed % (size - 1)
+            ix = charset.find(cc)
+            if ix < 0:
+                raise Exception("scrambleText: unknown char {:s} allowed: {:s}"
+                        .format(cc, charset))
+            ix = (ix + delta) % size
+            rc += charset[ix:ix+1]
+            msg += "\ncc: {:s} seed: {:d} ix: {:d} delta: {:d} val: {:s}".format(cc, seed, ix, delta, charset[ix:ix+1])
+        return head + rc
+    
+    @staticmethod
+    def unscrambleText(text):
+        '''Unhide the text disguised with hide().
+        @param text    encrypted text
+        @return:       clear text
+        '''
+        tagCharset = text[3:4]
+        charset = Util.getCharset(tagCharset)
+        size = len(charset)
+        seed = 0
+        for ii in xrange(3):
+            cc = text[ii:ii+1]
+            seed = seed * size + charset.index(cc)
+        pos = 4
+        rc = ""
+        while pos < len(text):
+            seed = (seed * 7 + 0x1234321) & 0x8fffffff
+            cc = text[pos:pos+1]
+            # delta = 1 + seed % (size - 1)
+            # ix = (charset.index(cc) + delta) % size
+            delta = 1 + seed % (size - 1)
+            ix = charset.index(cc) - delta
+            if ix < 0:
+                ix += size
+            rc += charset[ix:ix+1]
+            pos += 1
+        return rc
+        
+        

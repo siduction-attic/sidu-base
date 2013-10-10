@@ -15,7 +15,6 @@ class Test(unittest.TestCase):
 
     def setUp(self):
         self._session = Aux.getSession(homeDir = Aux.buildDummyHome())
-        self._session._globalPage = None
         self._menuName = 'tmenu'
         
 
@@ -26,8 +25,7 @@ class Test(unittest.TestCase):
 
     def buildSnippet(self):
         fn = self._session._homeDir + 'templates/' + self._menuName + '.snippets'
-        if not os.path.exists(fn):
-            Util.writeFile(fn, '''
+        Util.writeFile(fn, '''
 LEVEL_0:
  <ul id="treeMenu">
 ###ENTRIES###
@@ -65,7 +63,7 @@ ENTRY_2:
        <li{{current_item}}><a href="{{link}}">{{title}}</a></li>
 
 CLASS_CURRENT:
- class="current_item"
+class="current_item"
 
 ID:
 
@@ -75,8 +73,7 @@ M{{menuid}}
             
     def buildMenuDef(self):
         fn = self._session._homeDir + 'config/' + self._menuName + '_de.conf'
-        if not os.path.exists(fn):
-            Util.writeFile(fn, '''
+        Util.writeFile(fn, '''
 *    welcome    Willkommen
 *   - siduction-Handbuch
 **    welcome#welcome-gen    Grunds&auml;tzliches
@@ -84,6 +81,7 @@ M{{menuid}}
 *   - Festplatte partitionieren
 **  - Festplatte partitionieren
 ***    part-gparted    Partitionierung der Festplatte - traditionell, GPT und LVM
++   expert    Expert settings
 '''             )   
 
     def buildMenuDefError(self):
@@ -103,14 +101,15 @@ M{{menuid}}
         self.buildSnippet()
         self.buildMenuDef()
         fields = { 'M2' : 'checked' }
-        menu = Menu(self._session, self._menuName, True, fields)
+        self._session._pageAndBookmark = "welcome"
+        menu = Menu(self._session, self._menuName, True, fields, True)
         menu.read()
         snippets = HTMLSnippets(self._session)
         snippets.read(self._menuName)
         html = '\n' + menu.buildHtml(snippets)
         diff = Aux.compareText('''
  <ul id="treeMenu">
- <li><a href="welcome">Willkommen</a></li>
+ <li class="current_item"><a href="welcome">Willkommen</a></li>
  <li> <label for="M2" class="open"> </label>
      <input name="tree" checked="checked" id="M2" type="checkbox" />
   <ul>
@@ -137,6 +136,7 @@ M{{menuid}}
   </ul>
 
  </li>
+ <li><a href="expert">Expert settings</a></li>
 
  </ul>
 ''',

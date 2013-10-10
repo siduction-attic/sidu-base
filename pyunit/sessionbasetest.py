@@ -15,6 +15,7 @@ class TestSessionBase(unittest.TestCase):
     _deleteConfig = True
 
     def setUp(self):
+        os.environ["DEBUG"] = "1"
         fnDb = Util.getTempFile('config.db', 'testappl', 'data')
         if TestSessionBase._deleteConfig:
             if os.path.exists(fnDb):
@@ -153,17 +154,18 @@ home.en_only=only English
 
     def testReplaceVars(self):
         aDict = { "a" : 'A', 'b' : 'B' }
-        
+        session = self._session
         self.assertEquals("abc",
-            self._session.replaceVars('abc', aDict))
+            session.replaceVars('abc', aDict))
         self.assertEquals("AB",
-            self._session.replaceVars('{{a}}{{b}}', aDict))
+            session.replaceVars('{{a}}{{b}}', aDict))
         self.assertEquals("xAbBc",
-            self._session.replaceVars('x{{a}}b{{b}}c', aDict))
+            session.replaceVars('x{{a}}b{{b}}c', aDict))
         self.assertEquals("x{{u}}{{b{{b}}cA",
-            self._session.replaceVars('x{{u}}{{b{{b}}c{{a}}', aDict))
+            session.replaceVars('x{{u}}{{b{{b}}c{{a}}', aDict))
         self.assertEquals("x{{u}}{{b{{bca",
-            self._session.replaceVars('x{{u}}{{b{{bca', aDict))
+            session.replaceVars('x{{u}}{{b{{bca', aDict))
+        self.assertEquals("", session.replaceVars(None))
     
     def testBasic2(self):
         Aux.buildConfigDb()
@@ -171,8 +173,13 @@ home.en_only=only English
         self.assertTrue(None == session.getMetaVar('MISSING_VAR'))
 
     def testAbsUrl(self):
+        session = self._session
         self.assertEquals('http://localhost:8000/home/help', 
-            self._session.buildAbsUrl('home/help'))
+            session.buildAbsUrl('home/help'))
+        session._request.META = dict()
+        session._request.META['SERVER_NAME'] = "juno"
+        self.assertEquals('http://juno/home', 
+            session.buildAbsUrl('home'))
     
     def testBuildLanguage(self):
         session = self._session
@@ -218,6 +225,7 @@ home.en_only=only English
         self.assertTrue(os.path.exists(fn))
         self._session.deleteFile(fn)
         self.assertFalse(os.path.exists(fn))
+        self._session.deleteFile(None)
         
     def testNextPowerOf2(self):
         session = self._session
@@ -234,18 +242,88 @@ home.en_only=only English
         fn = Util.getTempFile('test01.dat', 'testappl', "sessionbase")
         Util.writeFile(fn, "xxxx")
         self.assertEqual("xxxx", self._session.readFile(fn))
-        content = '''Line1
-line2
+        content = '''= Line1
+= line2
 '''
         Util.writeFile(fn, content)
         self.assertEqual(content, self._session.readFile(fn))
+        content = '''= Meier&Co 
+= <info@meier.com>
+comment
+'''
+        Util.writeFile(fn, content)
+        content2 = self._session.readFile(fn, "= ", True)
+        expected = '''Meier&amp;Co 
+&lt;info@meier.com&gt;
+'''
+        self.assertEqual(expected, content2)
+        self.assertEquals("", self._session.readFile("NameOfNonExistingFile"))
+        
+    def testWriteUserData(self):
+        session = self._session
+        if session._userData == None:
+            session._userData = list()
+        session.putUserData("mypage", "name1", "val1")
+        session.addConfig(".dir.tasks", None)
+        if session._id == None:
+            session._id = "fixid"
+        fn = "/var/cache/sidu-base/shellserver-tasks/" + session._id + ".data"
+        session.deleteFile(fn)
+        session._userData.append(".zzz=end")
+        session.writeUserData()
+        self.assertTrue(os.path.exists(fn))
+
+    def testPutUserData(self):
+        if self._session._userData == None:
+            self._session._userData = list()
+        self._session.putUserData("mypage", "name1", "val1")
+        self._session.putUserData("mypage", "name2", "val2")
+        self._session.putUserData("mypage", "name1", "val3")
+        self.assertEquals(2, len(self._session._userData))
+        self.assertEquals("mypage.name1=val3\n", self._session._userData[0])
+        self.assertEquals("mypage.name2=val2\n", self._session._userData[1])
+        self._session.clearUserData()
+        self.assertEquals(0, len(self._session._userData))
         
     def testUnicodeToAscii(self):
-        self.assertEquals("%e4%f6%fc%c4%d6%dc%df", self._session.unicodeToAscii(u"äöüÄÖÜß"))
+        #self.assertEquals("%e4%f6%fc%c4%d6%dc%df", self._session.unicodeToAscii(u"äöüÄÖÜß"))
         self.assertEquals("abc", self._session.unicodeToAscii(u"abc"))
         self.assertEquals("abc", self._session.unicodeToAscii("abc"))
         self.assertEquals(None, self._session.unicodeToAscii(None))
+        # self.assertEquals("x%fcz", self._session.unicodeToAscii("xüz"))
+ 
+    def testTranslateTask(self):
+        session = self._session
+        session.addConfig("bongo.count", "2")
+        session.addConfig("bongo.1", "init=Initialization")
+        session.addConfig("bongo.2", "end=end of task")
+        self.assertEquals("Initialization", 
+            session.translateTask("bongo", "init"))
+        self.assertEquals("end of task", 
+            session.translateTask("bongo", "end"))
         
+    def testReplaceVar(self):
+        session = self._session
+        session.addConfig("xxx", "4711")
+        self.assertEquals("x4711${Y}${z", 
+            session._replaceVar("x${xxx}${Y}${z", True))
+        
+    def testError(self):
+        self._session.error(None, "failed")
+        
+    def testSetId(self):
+        session = self._session
+        session._setId = None
+        cookies = dict()
+        cookies["id"] = "obj123"
+        session.setId(cookies)
+        self.assertEqual("obj123", session._id)
+
+        cookies = dict()
+        session._id = None
+        session._application = "sidu-test"
+        session.setId(cookies)
+        self.assertEqual("test.fixid", session._id)
 if __name__ == "__main__":
     #import sys;sys.argv = ['', 'Test.testSessionBase']
     unittest.main()

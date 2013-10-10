@@ -10,6 +10,9 @@ from aux import Aux
 from util.util import Util, say
 from util.configurationbuilder import ConfigurationBuilder
 from webbasic.globalbasepage import GlobalBasePage
+import logging
+
+logger = logging.getLogger("pywwetha")
 
 class MiniPage(Page):
     def __init__(self, session):
@@ -50,16 +53,16 @@ class TestPage(unittest.TestCase):
         home = Aux.buildDummyHome(self._application)
         self.buildConfig()
         self._session = Aux.getSession(self._application, None, home)
-        self._session._globalPage = GlobalPage(self._session)
         Aux.buildPageFrame(self._application)
         self._template = Aux.buildPageTemplate(self._application, 'mpage')
         self._page = MiniPage(self._session)
-        self._page._globalPage = self._session._globalPage
+        self._page._globalPage = GlobalPage(self._session)
         self._session.addConfig(".gui.pages", ";home;edit;help")
         self._session.addConfig(".gui.button.next", "next_button")
         self._session.addConfig(".gui.button.prev", "prev")
         self._page.defineFields()
-
+        logging.basicConfig(filename="/tmp/test.log", level=logging.INFO)
+        
     def buildConfig(self):
         fnDb = Util.getTempFile('config.db', self._application, 'data')
         if TestPage._deleteConfig:
@@ -73,6 +76,7 @@ class TestPage(unittest.TestCase):
             ConfigurationBuilder(None)
             Util.writeFile(fnConfig, '''
 .home.dir=/home/ws/py/disk_help/website
+.dir.tasks=/tmp/tasks
 mpage.vals_s1=,de,en,it
 mpage.vals_color=;red;green;blue
 mpage.opts_os=;windows;linux
@@ -111,7 +115,7 @@ mpage.opts_s2=Yes:No
         self.assertEqual('xxx', page._pageData.get('x4'))
 
     def testBasicError(self):
-        say('Missing template, defineFields() and handleButtons() for epage:')
+        say('Expected: Missing template, defineFields() and handleButtons() for epage:')
         page = Page('epage', self._session)
         page.defineFields()
         page.handleButton(None)
@@ -436,7 +440,6 @@ Id: Name:
         pages = self._page.getPages()
         self.assertEquals(";home;help", pages)
        
-        
         
 if __name__ == "__main__":
     #import sys;sys.argv = ['', 'Test.testName']

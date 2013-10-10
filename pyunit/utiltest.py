@@ -1,11 +1,14 @@
+# -*- coding: utf-8 -*-
 '''
 Created on 20.04.2013
 
 @author: hm
 '''
-import unittest, os.path, sys, shutil, time
+import unittest, os.path, sys, shutil, time, random
 
-from util.util import say, sayError, Util, exceptionString
+from util.util import say, sayError, Util, exceptionString, ALGO_ADD,\
+    ALGO_REVERS, ALGO_XOR, ALGO_DEFAULT, TAG_CHARS64, CHARS64, \
+    CHARS95, TAG_CHARS95, TAG_CHARS10
 from util.util import FILENAMECHARS, INVERS_FILENAMECHARS
 from util.config import Config
 
@@ -228,6 +231,8 @@ and line3'''         )
         self.assertEqual("PjsD%", fn)
         fn = Util.encodeFilenameChar(0x82345678)
         self.assertEqual("WOqQZ", fn)
+        fn = Util.encodeFilenameChar(-33)
+        self.assertEqual("R", fn)
         
     def testDecodeFilenameChar(self):
         val = 7
@@ -276,6 +281,105 @@ and line3'''         )
         self.assertTrue(chars != None)
         self.assertTrue(invers != None)
         
+    def hide(self, algorithm):
+        x = "!x"
+        y = Util.hideText(x, algorithm)
+        self.assertEqual(x, Util.unhideText(y))
+        x = "a"
+        y = Util.hideText(x, algorithm)
+        self.assertEqual(x, Util.unhideText(y))
+        x = "One thing has 2 sides!"
+        y = Util.hideText(x, algorithm)
+        self.assertEqual(x, Util.unhideText(y))
+        x = ""
+        for ii in xrange(ord(' '), 128):
+            x += chr(ii)
+        y = Util.hideText(x, algorithm)
+        self.assertEqual(x, Util.unhideText(y))
+
+        x = u"öäüÖÄÜß"
+        y = Util.hideText(x, algorithm)
+        #z = u'' + Util.unhideText(y)
+        #self.assertEqual(x, z)
+        
+    def testHide(self):
+        x = "!0A"
+        y = Util.hideText(x, ALGO_DEFAULT)
+        self.hide(ALGO_ADD)
+        self.hide(ALGO_XOR)
+        self.hide(ALGO_REVERS)
+
+    def scramble(self, tag):
+        charset = Util.getCharset(tag)
+        aSet = list(charset)
+        aSet.sort()
+        x = "".join(aSet)
+        y = Util.scrambleText(x, tag)
+        self.assertEqual(Util.unscrambleText(y), x)
+
+    def testScramble(self):
+        x = "Ab0"
+        y = Util.scrambleText(x, TAG_CHARS64)
+        x = "All you n33d is s3cret! "
+        y = Util.scrambleText(x, TAG_CHARS95)
+        self.assertEqual(x, Util.unscrambleText(y))
+        for tag in Util.nextTag():
+            self.scramble(tag)
+        x = "All you need is secret!"
+        y = Util.scrambleText(x)
+        self.assertEqual(x, Util.unscrambleText(y))
+
+    def testScrambleException(self):
+        with self.assertRaises(Exception):
+            Util.scrambleText("!abc", TAG_CHARS10)
+ 
+    def esc(self, text):
+        rc = text.replace("\\", "\\\\")
+        rc = rc.replace('"', '\\"')
+        return rc
+        
+    def shuffle(self, chars):
+        aSet = list(chars)
+        random.shuffle(aSet)
+        rc = "".join(aSet)
+        rc = self.esc(rc)
+        return rc
+        
+    def testShuffle(self):
+        msg = ""
+        lastSet = ""
+        lastSize = 0
+        msg2 = ""
+        for tag in Util.nextTag():
+            charset = Util.getCharset(tag)
+            size = len(charset)
+            msg += "CHARS{:d} = \"{:s}\"\n".format(size, self.shuffle(charset))
+            newSet = ""
+            for cc in charset:
+                if lastSet.find(cc) < 0:
+                    newSet += cc
+            msg2 += "CHARS{:d} = \"{:s}\" + CHARS{:d}\n".format(size, 
+                self.esc(newSet), 0 if len(newSet) == size else lastSize)   
+            lastSize = size
+            lastSet = charset
+        pass
+    
+    def testGetCharsetException(self):
+        with self.assertRaises(Exception):
+            Util.getCharset("unknownTag")
+        pass
+        
+    def testUniqueCharset(self):
+        for tag in Util.nextTag():
+            charset = Util.getCharset(tag)
+            aSet = list(charset)
+            aSet.sort()
+            last = ""
+            for cc in aSet:
+                if cc == last:
+                    self.assertFalse("doubles in " + charset)
+                last = cc
+            
 if __name__ == "__main__":
     #import sys;sys.argv = ['', 'Test.testName']
     unittest.main()
