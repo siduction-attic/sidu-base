@@ -1,5 +1,4 @@
 import sys, os.path, time, codecs, tempfile, random, operator
-from mercurial.fileset import matchctx
 
 FILENAMECHARS = "U^Qy9gSH#%a-pW_K2MTc!P.@r4ALEIm16RNo5Cv&dJbfnYeGD0t8l+iB~XxhF7w3=jOV$Zksuzq"
 INVERS_FILENAMECHARS = [ 20, -1, 8, 68, 9, 39, -1, -1, -1, -1, 53, -1, 11, 22,
