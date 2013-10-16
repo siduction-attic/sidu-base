@@ -30,10 +30,17 @@ class PageData:
         # String --> FieldData
         self._dict = {}
         self._list = []
-        self._generalErrors = ""
+        # errors which are not field specific:
+        self._generalErrors = None
         # the name of the page specific entry in the cookie:
         self._cookieName = None
-        
+     
+    def getGeneralErrors(self):
+        '''Returns the general errors.
+        @return:     "": no errors occurred
+                     otherwise: the error(s)
+        '''
+        return "" if self._generalErrors == None else self._generalErrors   
         
     def add(self, field):
         '''Adds a field to the fieldlist.
@@ -165,7 +172,7 @@ class PageData:
                 if errorPrefix != None:
                     value += errorSuffix
             body = body.replace('{{err_' + field._name + '}}', value)
-        body = body.replace("{{error_message}}", self._generalErrors)
+        body = body.replace("{{error_message}}", self.getGeneralErrors())
         return body
             
     def getDataVersion(self):

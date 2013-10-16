@@ -291,7 +291,8 @@ class Page(object):
                             If None pageOfField = self
         @return: the body with the supplemented field
         '''
-        selection = self.getField(field)
+        page = self if pageOfField == None else pageOfField
+        selection = page.getField(field)
         body = self.fillOpts(field, texts, values, selection, body)
         return body
      
@@ -387,24 +388,83 @@ class Page(object):
             rc = listAsString[1:].split(sep)
         return rc
     
-    def humanReadableSize(self, size):
+    def humanReadableSize(self, size, unitLength = 3):
         '''Builds a human readable size with max. 3 digits and a matching unit.
-        @param size: the size in kByte (type: int)
-        @return: a string with the size and unit, e.g. 213 MByte
+        Reverse function to sizeAndUnitToKiByte
+        @param size:         the size in Byte (type: int)
+        @param unitLength:   the length of the unit string: 1, 2 or 3
+        @return: a string with the size and unit, e.g. 213MiB
         '''
         sign = "-" if size < 0 else ""
         if sign == "-":
             size = -size
-        if size < 10*1000:
-            size = '{:d}By'.format(size)
-        elif size < 10*1000*1000:
-            size = '{:d}KB'.format(size / 1000)
-        elif size < 10*1000*1000*1000:
-            size = '{:d}MB'.format(size / 1000 / 1000)
+        if size <= 10*1024:
+            if size > 0 and size % 1024 == 0:
+                rc = '{:d}Ki'.format(size / 1024)
+            else: 
+                rc = '{:d}By'.format(size)
+        elif size <= 10*1024*1024:
+            if size % (1024*1024) == 0:
+                rc = '{:d}Mi'.format(size / 1024 / 1024)
+            else: 
+                rc = '{:d}Ki'.format(size / 1024)
+        elif size <= 10*1024*1024*1024:
+            if size % (1024*1024*1024) == 0:
+                rc = '{:d}Gi'.format(size / 1024 / 1024 / 1024)
+            else:
+                rc = '{:d}Mi'.format(size / 1024 / 1024)
         else:
-            size = '{:d}GB'.format(size / 1000 / 1000 / 1000)
-        return sign + size
+            if size % (1024*1024*1024*1024) == 0:
+                rc = '{:d}Ti'.format(size / 1024 / 1024 / 1024 / 1024)
+            else:
+                rc = '{:d}Gi'.format(size / 1024 / 1024 / 1024)
+        if unitLength == 1:
+            rc = rc[0:-1]
+        elif unitLength == 3 and rc.endswith("i"):
+            rc = rc + "B"
+        return sign + rc
 
+    def sizeAndUnitToByte(self, size, defaultUnit = "B"):
+        '''Converts a string with size and unit into an integer value
+        Rerverse function to humanReadableSize()
+        @param size:         the size or the size and optionally a unit.
+        @param defaultUnit:  if no unit is given this unit will be taken
+        @return:             -1: invalid input<br>
+                             otherwise: the size in Byte (int)
+        '''
+        rexpr = re.compile(r'(\d+)(.*)')
+        matcher = rexpr.match(size)
+        rc = -1
+        if matcher:
+            factor = 1
+            size = int(matcher.group(1))
+            unit = matcher.group(2)
+            if unit == "":
+                unit = defaultUnit
+            unit = unit.lower()
+            if unit.startswith("b"):
+                factor = 1
+            elif unit == "k" or unit.startswith("ki"):
+                factor = 1024
+            elif unit.startswith("kb"):
+                factor = 1000
+            elif unit == "m" or unit.startswith("mi"):
+                factor = 1024*1024
+            elif unit.startswith("mb"):
+                factor = 1000*1000
+            elif unit == "g" or unit.startswith("gi"):
+                factor = 1024*1024*1024
+            elif unit.startswith("gb"):
+                factor = 1000*1000*1000
+            elif unit == "t" or unit.startswith("ti"):
+                factor = 1024*1024*1024*1024
+            elif unit.startswith("tb"):
+                factor = 1000*1000*1000*1000
+            else:
+                size = -1
+            rc = -1 if size < 0 else size * factor 
+        return rc
+        
     def replaceGlobalField(self, field, defaultKey, args, snippet,
             placeholder, body):
         '''Replace a placeholder in a template with a global field.

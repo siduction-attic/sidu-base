@@ -342,13 +342,52 @@ Id: Name:
 
     def testHumanReadableSize(self):
         self.assertEquals("0By", self._page.humanReadableSize(0))
-        self.assertEquals("9999By", self._page.humanReadableSize(10*1000-1))
-        self.assertEquals("10KB", self._page.humanReadableSize(10*1000))
-        self.assertEquals("9999KB", self._page.humanReadableSize(10*1000*1000-1))
-        self.assertEquals("10MB", self._page.humanReadableSize(10*1000*1000))
-        self.assertEquals("9999MB", self._page.humanReadableSize(10*1000*1000*1000-1))
-        self.assertEquals("10GB", self._page.humanReadableSize(10*1000*1000*1000))
-        self.assertEquals("-10GB", self._page.humanReadableSize(-10*1000*1000*1000))
+        self.assertEquals("10239By", self._page.humanReadableSize(10*1024-1))
+        self.assertEquals("10KiB", self._page.humanReadableSize(10*1024+1))
+        self.assertEquals("10239KiB", self._page.humanReadableSize(10*1024*1024-1))
+        self.assertEquals("10MiB", self._page.humanReadableSize(10*1024*1024+1))
+        self.assertEquals("10239MiB", self._page.humanReadableSize(10*1024*1024*1024-1))
+        self.assertEquals("10GiB", self._page.humanReadableSize(10*1024*1024*1024+1))
+        self.assertEquals("-10GiB", self._page.humanReadableSize(-10*1024*1024*1024-1))
+
+        self.assertEquals("4M", self._page.humanReadableSize(4*1024*1024, 1))
+        self.assertEquals("4Mi", self._page.humanReadableSize(4*1024*1024, 2))
+        self.assertEquals("4MiB", self._page.humanReadableSize(4*1024*1024, 3))
+
+        self.assertEquals("4KiB", self._page.humanReadableSize(4*1024, 3))
+        self.assertEquals("5MiB", self._page.humanReadableSize(5*1024*1024, 3))
+        self.assertEquals("6GiB", self._page.humanReadableSize(6*1024*1024*1024, 3))
+        self.assertEquals("10TiB", self._page.humanReadableSize(10*1024*1024*1024*1024, 3))
+
+    def testSizeAndUnitToByte(self):
+        page = self._page
+        self.assertEqual(0, page.sizeAndUnitToByte("0"))
+        self.assertEqual(567, page.sizeAndUnitToByte("567B"))
+        self.assertEqual(567, page.sizeAndUnitToByte("567By"))
+        self.assertEqual(567, page.sizeAndUnitToByte("567Byte"))
+        
+        self.assertEqual(24*1024, page.sizeAndUnitToByte("24k"))
+        self.assertEqual(24*1024, page.sizeAndUnitToByte("24Ki"))
+        self.assertEqual(24*1024, page.sizeAndUnitToByte("24kibyte"))
+        self.assertEqual(24*1000, page.sizeAndUnitToByte("24kbyte"))
+        
+        self.assertEqual(123*1024*1024, page.sizeAndUnitToByte("123m"))
+        self.assertEqual(123*1024*1024, page.sizeAndUnitToByte("123Mi"))
+        self.assertEqual(123*1024*1024, page.sizeAndUnitToByte("123MiByte"))
+        self.assertEqual(123*1000*1000, page.sizeAndUnitToByte("123MByte"))
+
+        self.assertEqual(47*1024*1024*1024, page.sizeAndUnitToByte("47G"))
+        self.assertEqual(47*1024*1024*1024, page.sizeAndUnitToByte("47gi"))
+        self.assertEqual(47*1024*1024*1024, page.sizeAndUnitToByte("47gibyte"))
+        self.assertEqual(47*1000*1000*1000, page.sizeAndUnitToByte("47gbyte"))
+        
+        self.assertEqual(29*1024*1024*1024*1024, page.sizeAndUnitToByte("29T"))
+        self.assertEqual(29*1024*1024*1024*1024, page.sizeAndUnitToByte("29Ti"))
+        self.assertEqual(29*1024*1024*1024*1024, page.sizeAndUnitToByte("29Tibyte"))
+        self.assertEqual(29*1000*1000*1000*1000, page.sizeAndUnitToByte("29Tbyte"))
+        
+        self.assertEqual(-1, page.sizeAndUnitToByte("29x"))
+
        
     def testAutoJoinArgs(self):
         self.assertEquals(";1;2", self._page.autoJoinArgs(["1", "2"]))
@@ -394,8 +433,9 @@ Id: Name:
         self._session.error("E1")
         self._session.error("e2")
         self._session.log("L1")
+        self._session.log("L2")
         html = self._page.buildInfo("{{INFO}}")
-        self.assertEqual('<p class="error">E1<br/>e2</p><p class="log">L1</p>', html)
+        self.assertEqual('<p class="error">E1<br/>e2</p><p class="log">L1<br/>L2</p>', html)
     
     def testReplaceInPageFrame(self):
         html = '''
@@ -419,6 +459,9 @@ Id: Name:
         self._page.putField("id", "_Hans7")
         self.assertFalse(self._page.isValidContent("id", "A-F0-9", "A-Z_0-9", True, True))
        
+        self._page.putField("id", "H-7")
+        self.assertFalse(self._page.isValidContent("id", "A-Z", "0-9", True, True))
+       
     def testGetPages(self):
         self.assertEquals(";home;edit;help", self._page.getPages())
         
@@ -440,7 +483,6 @@ Id: Name:
         pages = self._page.getPages()
         self.assertEquals(";home;help", pages)
        
-        
 if __name__ == "__main__":
     #import sys;sys.argv = ['', 'Test.testName']
     unittest.main()

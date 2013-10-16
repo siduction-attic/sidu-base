@@ -1,3 +1,14 @@
+sidu-base (0.4.9) next; urgency=low
+
+  * fix: page.fillDynamicSelected(): usage of the parameter pageOfField
+  * page.humamReadableSize(): change to base 1024 (instead of 1000)
+  * new: page.sizeAndUnitToByte()
+  * fix: pagedata: the first general (= not field specific) error
+    does not start with a newline
+  * improvements of coverage
+
+ -- J. Hamatoma <hama@siduction.net>  Wed, 16 Oct 2013 08:54:36 +0200
+
 sidu-base (0.4.8) unstable; urgency=low
 
   * regression tests: coverage now 95%
