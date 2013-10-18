@@ -6,7 +6,7 @@ USER=$4
 OPTS=$5
 ARGS=$(echo $ARGS | sed -e "s/''//g")
 
-CONFIG=/etc/sidu-base/sidu-shellserver.conf
+CONFIG=/etc/sidu-base/shellserver.conf
 test -f $CONFIG && source $CONFIG
 
 test -n "$START_GUI_HOME" && export HOME=$START_GUI_HOME
