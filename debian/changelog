@@ -1,3 +1,14 @@
+sidu-base (2013.11.20) unstable; urgency=low
+
+  * perl modules: sidu_recorder, sidu_basic and sidu_test
+  * SessionBase.replaceVars(): now allowed: placeholders in the value
+    of a placeholder (recursive).
+  * new: placeholdes can be defined in a third way: local variables
+    (see SessionBase.setLocalVar())
+  * new doc/toolkit.html
+
+ -- J. Hamatoma <hama@siduction.net>  Wed, 27 Nov 2013 21:06:46 +0100
+
 sidu-base (2013.10.18) next; urgency=low
 
   * startgui.sh: include of the wrong config file

@@ -40,6 +40,13 @@ function MkLink2(){
 }
 MkLink2 $PUBLIC /usr/share/sidu-base
 
+DIR_PERL=/usr/local/lib/site_perl
+DIR_BACKEND=/usr/share/sidu-base/backend
+test -d $DIR_PERL || mkdir -p $DIR_PERL
+MkLink2 $DIR_BACKEND/sidu_basic.pm $DIR_PERL
+MkLink2 $DIR_BACKEND/sidu_test.pm $DIR_PERL
+MkLink2 $DIR_BACKEND/sidu_recorder.pm $DIR_PERL
+
 if grep -q ":1000:" /etc/passwd ; then
 	home=$(grep ":1000:" /etc/passwd | head -n 1 | cut -d: -f6)
 	sed -i -e "s%^START_GUI_HOME2=.*%START_GUI_HOME2=$home%;" $CONFIG

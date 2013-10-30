@@ -11,23 +11,242 @@
 <!---===TOC===-->
 <div class="toc">
 <ul>
-<li> <a href="#C1_">1.  Introduction</a></li>
+<li> <a href="#C1_">1. Introduction</a></li>
+<li> <a href="#C1_1_">1.1. Purpose</a></li>
+<li> <a href="#C1_2_">1.2. Architecture</a></li>
+<li> <a href="#C1_3_">1.3. Navigation</a></li>
+<li> <a href="#C1_3_1_">1.3.1. Navigation by Buttons</a></li>
+<li> <a href="#C1_3_2_">1.3.2. Menu</a></li>
+<li> <a href="#C2_">2. Plugins</a></li>
+<li> <a href="#C2_1_">2.1. Tasks of a Plugin</a></li>
+<li> <a href="#C2_2_">2.2. Methods to Overwrite (always)</a></li>
+<li> <a href="#C2_3_">2.3. Methods to Overwrite (optional)</a></li>
+<li> <a href="#C2_4_">2.4. Plugin services</a></li>
+<li> <a href="#C3_">3. Template and Snippets</a></li>
+<li> <a href="#C3_1_">3.1. Template pageframe.html </a></li>
+<li> <a href="#C3_2_">3.2. Snippets</a></li>
+<li> <a href="#C3_3_">3.3. Placeholders</a></li>
+<li> <a href="#C4_">4. Content Template</a></li>
+<li> <a href="#C5_">5. Configuration</a></li>
+<li> <a href="#C5_1_">5.1. Language Independent Configuration Data</a></li>
+<li> <a href="#C5_2_">5.2. Language Dependent Configuration Data</a></li>
+<li> <a href="#C5_3_">5.3. User Data</a></li>
+<li> <a href="#C6_">6. Data flow</a></li>
 </ul>
+</div>
 <!---===TOC===-->
-<h1><a name="C1_">1.</a>  Introduction</h1>
+<h1><a name="C1_">1.</a> Introduction</h1>
 <div class="textblock">
 <p>This document describes the project sidu-base for developers.</p>
 </div>
 
-<h2><a name="C1_1_">1.1.</a>  Purpose</h2>
+<h2><a name="C1_1_">1.1.</a> Purpose</h2>
 <div class="textblock">
-<p>sidu-base provides a toolkit for developing graphical interfaces for browser 
-based applications. It uses Django as framework.</p>
+<p>sidu-base provides a toolkit for developing graphical interfaces for browser
+based applications.</p>
 </div>
 
-<h2><a name="C1_2_">1.2.</a>  Architecture</h2>
+<h2><a name="C1_2_">1.2.</a> Architecture</h2>
 <div class="textblock">
+<p>This is a <strong>template and plugin</strong> driven approach
+which can be extended and modified easily.</p>
+<p>There is a skeleton offering flow control, handling of
+configuration, storing of user specific data and so on.</p>
+<p>Each page of the application is handled by a plugin implemented
+by a class derived from Page to administrate this page.</p>
+<p>The basic html page is defined in a template. The content area of
+the page will be created from the plugin.<br />
+This allows using one template for all pages (equal design).</p>
+</div>
+<h2><a name="C1_3_">1.3.</a> Navigation</h2>
+<div class="textblock">
+There are two methods for navigations: menu driven or button driven.
 </div>
 
+<h3><a name="C1_3_1_">1.3.1.</a>Navigation by Buttons</h3>
+<div class="textblock">
+<p>The standard http process only allows access to the input field
+values if a button inside the form has been pushed. Therefore the
+navigation uses buttons instead of links.</p>
+<p>Without this construction the user must push a "store" button and
+the data will be lost if he does not (very uncomfortable).</p>
+<p>With the navigation by buttons the plugin can store the field
+values and then it changes the page.</p>
+</div>
+
+<h3><a name="C1_3_2_">1.3.2.</a>Menu</h3>
+<div class="textblock">
+<p>The menu must be described by a content and by design:</p>
+<p>The content is written to a textfile.</p>
+<p>The HTML code is defined in a template.</p>
+</div>
+
+<h1><a name="C2_">2.</a> Plugins</h1>
+
+<h2><a name="C2_1_">2.1.</a> Tasks of a Plugin</h2>
+<div class="textblock">
+<ul>
+	<li>Builds the content area of the page.</li>
+	<li>Validates the input fields.</li>
+	<li>Sets the error messages.</li>
+	<li>Stores the field values in the user data.</li>
+</ul>
+<p>A plugin has a class (derived from Page) and and a "snippet file"
+containing the HTML parts of the page.
+</div>
+
+<h2><a name="C2_2_">2.2.</a> Methods to Overwrite (always)</h2>
+<div class="textblock">
+<p>The plugin class must overwrite the abstract methods of the class
+Page. See page.php.</p>
+</div>
+
+<h2><a name="C2_3_">2.3.</a> Methods to Overwrite (optional)</h2>
+<div class="textblock">
+<p>The following methods are predefined but can be overwritten.</p>
+<ul>
+	<li>defineField(): Defines the input fields.</li>
+	<li>changeContent(): Replaces placeholders in the snippet.</li>
+	<li>handleButton(): Processes the button pushes.</li>
+</ul>
+</div>
+
+<h2><a name="C2_4_">2.4.</a> Plugin services</h2>
+<div class="textblock">
+<p>The most important helper functions in the base class Page...</p>
+<p></p>
+<p></p>
+<ul>
+	<li>addField(): adds an input field with default value, data type...</li>
+	<li>getField(): gets the field value from the form</li>
+	<li>putField(): sets a value of an input field</li>
+	<li>putError(): shows an error message, field or page specific</li>
+	<li>buildTable(): constructs a HTML table</li>
+	<li>fillStaticSelected(): defines a combobox with texts from the configuration</li>
+	<li>fillDynamicSelected(): defines a combobox with calculated texts</li>
+	<li>autosplit(): converts a string into an array with a automatically found separator</li>
+	<li>gotoWait(): handles the change to the page "wait"</li>
+	<li>execute(): executes an external command using the shell server</li>
+	<li>setRefresh(): initiates the repeated call of the page</li>
+	<li>addPage(): puts a page into the page chain</li>
+	<li>delPage(): removes a page from the page chain</li>
+	<li></li>
+</ul>
+<p>.. and in the class SessionBase:</p>
+<p>The most important helper functions in the base class Page...</p>
+<ul>
+	<li>getConfig(): returns a language independent value from the configuration database.
+	The key must be defined</li>
+	<li>getConfigOrNone(): returns a language independent value from the configuration db.
+	If the key is not found <code>None</code> is returned</li>
+	<li>getConfigWithoutLanguage(): returns a language dependent value from the configuration database.
+	The key must be defined</li>
+	<li>getConfigOrNoneWithoutLanguage(): returns a language dependentvalue from the configuration db.
+	If the key is not found <code>None</code> is returned</li>
+	<li>log(): logs an info message</li>
+	<li>trace(): logs a debug message</li>
+	<li>error(): logs an error message</li>
+	<li>replaceVar(): replaces placeholders in a string with its values.
+	The definition of the placeholder values are in:
+		<ul>
+			<li>local variables: a dictionary in <code>Page</code></li>
+			<li>configuration db</li>
+			<li>special variables: a second dictionary</li>
+		</ul>
+	</li>
+	<li>setLocalVar(): sets a name-value pair for replaceVar()</li>
+	<li>redirect(): initiates the change to another page</li>
+	<li>readFile(): reads a file and returns the content</li>
+	<li>putUserData(): puts a field value outside of the current page</li>
+	<li>readProgress(): evaluates a progress file</li>
+	<li>translateTask(): translates an english message (from an external
+	program) into the current language</li>
+</ul>
+</div>
+<h1><a name="C3_">3.</a> Template and Snippets</h1>
+<h2><a name="C3_1_">3.1.</a> Template pageframe.html </h2>
+<div class="textblock">
+<p>The HTML pages will be built from the template file template/configuration.</p>
+<p>This file contains HTML code and placeholders:</p>
+<ul>
+	<li>{{META_DYNAMIC}}: empty or code for automatic reload.</li>
+	<li>{{CONTENT}}: will be replaced with the content produced by the current page.</li>
+	<li>{{INFO}}: empty or log/error message(s)</li>
+</ul>
+</div>
+
+<h2><a name="C3_2_">3.2.</a>Snippets</h2>
+<div class="textblock">
+<p>The snippet file contain HTML snippets. A snippet is a name and
+HTML code. Inside the code there can be placeholders.</p>
+<p>Convention: snippet names are noted in upper case.</p>
+<p>The file must define a snippet named "MAIN".</p>
+<p>Snippets will automatically read from <code>Page</code>.
+The derived class can get a single snippet by
+<code>self._snippet.get(snippetName)</code>.</p>
+</div>
+<h2><a name="C3_3_">3.3.</a> Placeholders</h2>
+<div class="textblock">
+<ul>
+	<li>{{CONTENT}} (needed): Content area. This will be replaced by
+	the plugin.</li>
+	<li>{{INFO}} (needed): An area for messages.</li>
+	<li>{{URL_STATIC}} (optional): the URL prefix for static files,
+	e.g. http://localhost/inosid/</li>
+	<li>{{URL_SCRIPT}} (optional): the URL of the main script, e.g.
+	http://example:8086/home</li>
+	<li>{{URL_FORM}} (optional): the URL of the form action, e.g.
+	http://example:8086/home</li>
+	<li>The template must contain a &lt;form&gt; element to handle the
+	buttons.</li>
+	<li>Placeholders can be defined in the configuration database:
+	Convention: the name is devided into page name and variable name,
+	e.g. {{home.txt_title}}</li>
+</ul>
+</div>
+<h1><a name="C4_">4.</a> Content Template</h1>
+<div class="textblock">
+<p>The content area will be filled by a plugin. It should use a
+template to divide design and code. The plugin should use markers to
+communicate with the template.</p>
+<p>The filling of the input fields with values inserted earlier will
+be done by the core modules. Therefore the names of the fields must be
+known.</p>
+</div>
+<h1><a name="C5_">5.</a> Configuration</h1>
+<h2><a name="C5_1_">5.1.</a> Language Independent Configuration Data</h2>
+<div class="textblock">
+<p>The file conf/applicationX.conf contains configuration data
+valid for all languages, e.g. the page chain.</p>
+<pre>
+# List of the page names separated by ','.
+# The series defines the effect of the Back and Next buttons.
+# The page name is the name of the plugin.
+.gui.pages=home,boot,user,network,run
+</pre>
+<p>Convention: the placeholder name is divided into page name
+and variable name.</p>
+</div>
+
+<h2><a name="C5_2_">5.2.</a> Language Dependent Configuration Data</h2>
+<div class="textblock">
+<p>The files conf/applicationX_lang.conf contain configuration data
+in each supported language, e.g. a title in applicationX_de.conf</p>
+<pre>
+home.txt_title=Startseite
+</pre>
+<p>Convention: the placeholder name is divided into page name
+and variable name.</p>
+</div>
+
+<h2><a name="C5_3_">5.3.</a> User Data</h2>
+<div class="textblock">
+<p>The value of the input fields will be stored into a client specific
+file. This is used as a "memory" of each page.</p>
+</div>
+
+<h1><a name="C6_">6.</a> Data flow</h1>
+<p>to be continued...
+</p>
 </body>
 </html>

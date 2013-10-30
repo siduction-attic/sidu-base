@@ -1,10 +1,24 @@
-#!/bin/sh
+#!/bin/bash
 set -e
 
 #DEBHELPER#
 
+# delete the links from the sidu-base:
+function RmLink(){
+	if [ -L $1 ] ; then
+		rm -f $1
+	fi
+}
+
 if [ -L /usr/share/siguibui/public ] ; then
 	rm /usr/share/siguibui/public
 fi
+
+pushd /tmp 2>&1 >/dev/null
+test -d /usr/local/lib/site_perl && cd /usr/local/lib/site_perl
+RmLink sidu_test.pm 
+RmLink sidu_basic.pm 
+RmLink sidu_recorder.pm 
+popd 2>&1 >/dev/null
 
 exit 0

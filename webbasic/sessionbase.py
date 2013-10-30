@@ -64,6 +64,7 @@ class SessionBase(object):
             # Note: Nothing is done if the logger is already initialized 
             logging.basicConfig(filename='/tmp/sidu-base.log',level=logging.DEBUG)
         self._id = None
+        self._localVars = dict()
         self._request = request
         self._application = application
         self._pageAndBookmark = None
@@ -331,7 +332,9 @@ class SessionBase(object):
                 otherwise: the value of the placeholder
         '''
         rc = None
-        if specialVars != None and name in specialVars:
+        if name in self._localVars:
+            rc = self._localVars[name]
+        elif specialVars != None and name in specialVars:
             rc = specialVars[name]
         elif name == '!language':
             rc = self._language
@@ -341,8 +344,18 @@ class SessionBase(object):
             rc = self.getConfigOrNone(name)
         return rc
     
+    def setLocalVar(self, name, value):
+        '''Sets a placeholder for the snippet.
+        @param name     name of the placeholder
+        @param value    value of the placeholder. Can be a placeholder to:
+                        Then the value will be catched from the configuration db
+        '''
+        self._localVars[name] = value
+        
     def replaceVars(self, source, specialVars = None):
         '''Replaces placeholders by its values.
+        Note: Because the values of placeholders can contain placeholders
+        the method is recursive.
         @param source: the text containing placeholders
         @param dict: a dictionary for special variables
         @return: the source with replaced placeholders 
@@ -371,6 +384,8 @@ class SessionBase(object):
                     if value == None:
                         rc += source[start - 2:end]
                     else:
+                        if value.find("{{") >= 0:
+                            value = self.replaceVars(value, specialVars)
                         rc += value
                 
         return rc

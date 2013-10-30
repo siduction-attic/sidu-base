@@ -166,6 +166,10 @@ home.en_only=only English
         self.assertEquals("x{{u}}{{b{{bca",
             session.replaceVars('x{{u}}{{b{{bca', aDict))
         self.assertEquals("", session.replaceVars(None))
+        # Recursive call:
+        session.setLocalVar("lA", "{{lB}}-{{lB}}")
+        session.setLocalVar("lB", "X")
+        self.assertEqual("X-X+X", session.replaceVars("{{lA}}+{{lB}}"))
     
     def testBasic2(self):
         Aux.buildConfigDb()
