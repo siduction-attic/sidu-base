@@ -1,11 +1,12 @@
-sidu-base (2013.10.18) next; urgency=low
+sidu-base (2013.10.18) unstable; urgency=low
 
+  [ J. Hamatoma ]
   * startgui.sh: include of the wrong config file
   * closes #1348
 
- -- J. Hamatoma <hama@siduction.net>  Fri, 18 Oct 2013 20:16:39 +0200
+ -- Alf Gaida <agaida@siduction.org>  Tue, 26 Nov 2013 20:52:48 +0100
 
-sidu-base (0.4.9) next; urgency=low
+sidu-base (0.4.9) unstable; urgency=low
 
   * fix: page.fillDynamicSelected(): usage of the parameter pageOfField
   * page.humamReadableSize(): change to base 1024 (instead of 1000)
