@@ -1,3 +1,11 @@
+sidu-base (2013.11.28) unstable; urgency=low
+
+  * lsb-base added as dependency
+  * fix the lintian-warning by adding th sourcing
+    W: sidu-base: init.d-script-does-not-source-init-functions 
+
+ -- Alf Gaida <agaida@siduction.org>  Thu, 28 Nov 2013 02:56:25 +0100
+
 sidu-base (2013.11.27) unstable; urgency=low
 
   * perl modules: sidu_recorder, sidu_basic and sidu_test
