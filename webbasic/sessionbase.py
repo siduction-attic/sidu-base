@@ -338,6 +338,9 @@ class SessionBase(object):
             rc = specialVars[name]
         elif name == '!language':
             rc = self._language
+        elif name == '!piwik':
+            if os.path.exists("/etc/sidu-base/piwik.html"):
+                rc = self.readFile("/etc/sidu-base/piwik.html")
         elif name == '.intro_menu' and self._expandNeedsRightMove:
             rc = self.getConfigOrNone('.intro_menu2')
         else:
@@ -492,10 +495,13 @@ class SessionBase(object):
                 prefix = self._application
                 if prefix.startswith("sidu-"):
                     prefix = prefix[5:]
-                self._id = prefix + Util.encodeFilenameChar(
-                    int(math.fmod(time.time()*0x100, 0x100000000)))
-                self._id += Util.encodeFilenameChar(os.getpid())
-                fixId = True
+                never = False
+                if never:
+                    self._id = prefix + Util.encodeFilenameChar(
+                        int(math.fmod(time.time()*0x100, 0x100000000)))
+                    self._id += Util.encodeFilenameChar(os.getpid())
+                self._id = prefix + "." + self._request.META["REMOTE_ADDR"]
+                fixId = False
                 if fixId:
                     self._id = prefix +".fixid"
                 self.trace("new id: {:s} cookies contains {:d}"

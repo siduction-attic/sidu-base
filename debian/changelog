@@ -1,3 +1,12 @@
+sidu-base (2013.12.03) unstable; urgency=low
+
+  * piwik code: makro: {{!piwik}}
+    piwik code will be included from /etc/sidu-base/piwik.html
+  * multi-user: the session id is the client IP
+    The session id is used for filenames with session data
+
+ -- J. Hamatoma <hama@siduction.net>  Wed, 04 Dec 2013 11:20:53 +0100
+
 sidu-base (2013.11.20) unstable; urgency=low
 
   * perl modules: sidu_recorder, sidu_basic and sidu_test
