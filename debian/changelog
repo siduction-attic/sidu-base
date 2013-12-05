@@ -1,4 +1,4 @@
-sidu-base (2013.12.03) unstable; urgency=low
+sidu-base (2013.12.05.2) unstable; urgency=low
 
   * piwik code: makro: {{!piwik}}
     piwik code will be included from /etc/sidu-base/piwik.html
@@ -7,7 +7,24 @@ sidu-base (2013.12.03) unstable; urgency=low
 
  -- J. Hamatoma <hama@siduction.net>  Wed, 04 Dec 2013 11:20:53 +0100
 
-sidu-base (2013.11.20) unstable; urgency=low
+sidu-base (2013.12.05) unstable; urgency=low
+
+  * added /etc/sidu-base/piwik.html.example - please note that this is
+    not my prefered way to do this. There should be a snippet for
+    piwik-integration and the configuration-file should only contain
+    the piwki-url and the piwik site id
+
+ -- Alf Gaida <agaida@siduction.org>  Thu, 05 Dec 2013 02:10:07 +0100
+
+sidu-base (2013.11.28) unstable; urgency=low
+
+  * lsb-base added as dependency
+  * fix the lintian-warning by adding th sourcing
+    W: sidu-base: init.d-script-does-not-source-init-functions
+
+ -- Alf Gaida <agaida@siduction.org>  Thu, 28 Nov 2013 02:56:25 +0100
+
+sidu-base (2013.11.27) unstable; urgency=low
 
   * perl modules: sidu_recorder, sidu_basic and sidu_test
   * SessionBase.replaceVars(): now allowed: placeholders in the value

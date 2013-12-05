@@ -16,6 +16,10 @@ test -f $CONFIG && . $CONFIG
 test -n "$SHELLSERVER_BASE" || SCRIPT_BASE=/usr/share/sidu-base
 BIN=$SHELLSERVER_BASE/backend/shellserver.sh
 
+
+# init file should source init-functions
+. /lib/lsb/init-functions
+
 start() {
   pid=$(getPid)
   if [ -n "$pid" ] ; then
