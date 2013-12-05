@@ -1,3 +1,12 @@
+sidu-base (2013.12.05) unstable; urgency=low
+
+  * added /etc/sidu-base/piwik.html.example - please note that this is 
+    not my prefered way to do this. There should be a snippet for 
+    piwik-integration and the configuration-file should only contain
+    the piwki-url and the piwik site id
+
+ -- Alf Gaida <agaida@siduction.org>  Thu, 05 Dec 2013 02:10:07 +0100
+
 sidu-base (2013.11.28) unstable; urgency=low
 
   * lsb-base added as dependency
