@@ -1,3 +1,9 @@
+sidu-base (2013.12.19) unstable; urgency=low
+
+  * fix: piwik makro is replaced by "" now
+
+ -- J. Hamatoma <hama@siduction.net>  Wed, 18 Dec 2013 23:59:43 +0100
+
 sidu-base (2013.12.18) unstable; urgency=medium
 
   * sidu-base breaks and replaces siguibui

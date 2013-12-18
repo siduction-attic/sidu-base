@@ -341,6 +341,8 @@ class SessionBase(object):
         elif name == '!piwik':
             if os.path.exists("/etc/sidu-base/piwik.html"):
                 rc = self.readFile("/etc/sidu-base/piwik.html")
+            else:
+                rc = ""
         elif name == '.intro_menu' and self._expandNeedsRightMove:
             rc = self.getConfigOrNone('.intro_menu2')
         else:
