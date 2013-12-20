@@ -460,18 +460,17 @@ class SessionBase(object):
             fp.close()
         return rc
     
-    def unicodeToAscii(self, value):
-        '''Converts an unicode to ascii.
-        @param value:   unicode string to convert
+    def toAscii(self, value):
+        '''Converts an non ascii string to ascii.
+        @param value:   string to convert
         @return:        a string with special characters converted to %HH syntax
         '''
         if value == None:
             rc = None
         else:
-            value = unicode(value)
             hasNoAscii = True
             for cc in value:
-                if ord(cc) > 127:
+                if ord(cc) <= 0 or ord(cc) > 127:
                     hasNoAscii = False
                     break
             if hasNoAscii:
@@ -483,6 +482,14 @@ class SessionBase(object):
                         rc += cc
                     else:
                         rc += "%{:02x}".format(ord(cc))
+        return rc
+    
+    def unicodeToAscii(self, value):
+        '''Converts an unicode to ascii.
+        @param value:   unicode string to convert
+        @return:        a string with special characters converted to %HH syntax
+        '''
+        rc = self.toAscii(value)
         return rc
     
     def setId(self, cookies):
