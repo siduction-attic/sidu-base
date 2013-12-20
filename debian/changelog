@@ -1,4 +1,10 @@
-sidu-base (2013.12.20) unstable; urgency=low
+sidu-base (2013.12.20.3) unstable; urgency=low
+
+  * version incremented (dput problem)
+
+ -- J. Hamatoma <hama@siduction.net>  Fri, 20 Dec 2013 23:09:50 +0100
+
+sidu-base (2013.12.20.2) unstable; urgency=low
 
   * avoiding unicode error of field values
 
