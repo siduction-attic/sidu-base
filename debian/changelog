@@ -1,3 +1,9 @@
+sidu-base (2013.12.20.4) unstable; urgency=low
+
+  * ascii error during data export
+
+ -- J. Hamatoma <hama@siduction.net>  Fri, 20 Dec 2013 23:40:02 +0100
+
 sidu-base (2013.12.20.3) unstable; urgency=low
 
   * version incremented (dput problem)

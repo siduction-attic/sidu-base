@@ -137,7 +137,7 @@ class PageData:
         for ix in xrange(len(self._list)):
             field = self._list[ix]
             line = "{:s}{:s}={:s}\n".format(starter, field._name, 
-                "" if field._value == None else unicode(field._value) )
+                "" if field._value == None else self._session.toAscii(field._value) )
             self._session._userData.append(line)
         
     def clearFields(self):
