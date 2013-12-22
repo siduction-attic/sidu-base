@@ -27,8 +27,19 @@ FOUND=$(echo $OPTS | grep -i console)
 if [ -z "$FOUND" ] ; then
 	sux $USER "$APPL" $ARGS
 else
+	LINK=$(which $CONSOLE)
+	while [ True ] ; do
+		LINK=$(readlink $LINK)
+		test -z "$LINK" && break
+		if [ $(expr $LINK : "[.][.]") != 0 ] ; then
+			LINK=/usr/bin/$LINK
+		fi
+		CONSOLE=$LINK
+	done
 	APPL2="$APPL"
-	if [ $CONSOLE = "xfce4-terminal" ] ; then
+	NODE=${CONSOLE##*/}
+	echo "terminal: $NODE"
+	if [ "$NODE" = "xfce4-terminal" -o "$NODE" = "qterminal" ] ; then
 		if [ -n "$ARGS" ] ; then
 			APPL2="$APPL $ARGS"
 			ARGS=
@@ -37,9 +48,9 @@ else
 	sux $USER $CONSOLE $CONSOLE_ARGS "$APPL2" $ARGS
 	AGAIN=1
 	while [ -n "$AGAIN" ] ; do
-		set -x
+		#set -x
 		AGAIN=$(ps aux | grep $APPL | grep -v grep | grep -v $0)
-		set +x
+		#set +x
 		sleep 1
 	done
 fi

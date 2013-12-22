@@ -1,3 +1,9 @@
+sidu-base (2013.12.21) unstable; urgency=low
+
+  * qterminal (rqt) needs one string for commands and params
+
+ -- J. Hamatoma <hama@siduction.net>  Sun, 22 Dec 2013 01:26:29 +0100
+
 sidu-base (2013.12.20.4) unstable; urgency=low
 
   * ascii error during data export
