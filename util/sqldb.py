@@ -101,7 +101,7 @@ class SqlDb:
                 if tableInfo.isBoolean(key):
                     value = 1 if value else 0
                 values.append(value)
-                sql += sep + ':' + unicode(argNo)
+                sql += sep + ':' + str(argNo)
                 argNo += 1
                 sep = ','
         sql += ')'
@@ -116,7 +116,8 @@ class SqlDb:
         '''
         if not tableInfo.isNumber(key):
             value = "'" + value + "'"
-        sql = 'select * from ' + tableInfo._tablename + ' where ' + key + '=' + unicode(value)
+        sql = ('select * from ' + tableInfo._tablename + ' where ' + key + '=' 
+            + unicode(value))
         return sql
     
     def buildSelectByValues(self, tableInfo, pairs):
@@ -131,7 +132,7 @@ class SqlDb:
         vals = []
         for pair in pairs:
             no += 1
-            sql += sep + pair[0] + '=:' + unicode(no)
+            sql += sep + pair[0] + '=:' + str(no)
             #sql += sep + pair[0] + '=?'
             sep= ' and '
             vals.append(pair[1])

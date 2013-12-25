@@ -111,6 +111,22 @@ class SessionBase(object):
             self._configDbName if self._configDbName else ''))
         self._shellClient = ShellClient(self)
 
+    def toUnicode(self, value):
+        '''Converts a string to unicode.
+        Handles conversion errors.
+        @param value:    string to convert
+        @return:         converted unicode 
+        '''
+        rc = value
+        try:
+            rc = unicode(value, "UTF-8")
+        except UnicodeDecodeError:
+            try:
+                rc = unicode(value, "iso8859-1")
+            except:
+                rc = unicode(self.toAscii(value))
+        return rc
+        
     def addConfig(self, key, value):
         '''Adds a (key, value) pair to the configuration.
         @param key: the key to store
@@ -217,7 +233,7 @@ class SessionBase(object):
         if record == None:
             rc = None
         else:  
-            rc = unicode(record['value'])
+            rc = self.toUnicode(record['value'])
         if (rc == None and self._configAdditional != None 
                 and key in self._configAdditional):
             rc = self._configAdditional[key]
@@ -403,7 +419,7 @@ class SessionBase(object):
         absUrl = 'http://' + self._request.META['SERVER_NAME']
         if ('SERVER_PORT' in self._request.META 
                 and self._request.META['SERVER_PORT'] != 80):
-            absUrl += ':' + unicode(self._request.META['SERVER_PORT'])
+            absUrl += ':' + self.toUnicode(self._request.META['SERVER_PORT'])
         if not relativeUrl.startswith('/'):
             absUrl += '/'
         absUrl += relativeUrl

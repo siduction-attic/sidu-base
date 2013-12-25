@@ -62,7 +62,7 @@ class ShellClient(object):
             if type(params) == list:
                 cmd += "\n".join(params)
             else:
-                cmd += unicode(params);
+                cmd += self._session.toUnicode(params);
         with open(tmpName, "w") as fp:
             fp.write(cmd)
         fp.close()

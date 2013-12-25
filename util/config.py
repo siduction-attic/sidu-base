@@ -47,7 +47,7 @@ class Config:
                     if os.path.exists(name):
                         self.read(name)
                     else:
-                        logging.error(filename + '-' + unicode(lineNo) 
+                        logging.error(filename + '-' + str(lineNo) 
                             + ': can not include: ' + name)
         fp.close()
         

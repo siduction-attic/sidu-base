@@ -1,3 +1,9 @@
+sidu-base (2013.12.22) UNRELEASED; urgency=low
+
+  * unicode refactoring
+
+ -- J. Hamatoma <hama@siduction.net>  Thu, 26 Dec 2013 00:04:35 +0100
+
 sidu-base (2013.12.21) unstable; urgency=low
 
   * qterminal (rqt) needs one string for commands and params

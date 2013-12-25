@@ -110,7 +110,7 @@ class PageData:
         for field in self._list:
             name = field._name
             if name in environ:
-                field._value = self._session.toAscii(environ[name])
+                field._value = self._session.toUnicode(environ[name])
     
     def getPageData(self, name):
         '''Gets the values from the client's data store.
@@ -124,7 +124,7 @@ class PageData:
                     line = line[len(starter):-1]
                     (name, val) = line.split("=", 1)
                     if name in self._dict: 
-                        self._dict[name]._value = self._session.toAscii(val)
+                        self._dict[name]._value = self._session.toUnicode(val)
                         
     def exportData(self):
         '''Puts the data to the session data store.
@@ -137,7 +137,7 @@ class PageData:
         for ix in xrange(len(self._list)):
             field = self._list[ix]
             line = "{:s}{:s}={:s}\n".format(starter, field._name, 
-                "" if field._value == None else self._session.toAscii(field._value) )
+                "" if field._value == None else self._session.toUnicode(field._value) )
             self._session._userData.append(line)
         
     def clearFields(self):
@@ -153,9 +153,10 @@ class PageData:
         @param errorPrefix: None or a phrase put in front of the error message
         @param errorSuffix: None or a phrase put behind the error message
         @return: the body with expanded placeholders
-        ''' 
+        '''
+        session = self._session
         for field in self._list:
-            value = '' if field._value == None else unicode(field._value)
+            value = '' if field._value == None else session.toUnicode(field._value)
             if (field._type != "b"):
                 body = body.replace('{{val_' + field._name + '}}', value)
             else:

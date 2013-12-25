@@ -157,23 +157,23 @@ class Menu(object):
         rc = ''
         if items != None and len(items) > 0:
             entries = ''
-            snippet = 'LEVEL_' + unicode(level)
+            snippet = 'LEVEL_' + str(level)
             template = self._snippets.get(snippet)
             index = 0
             if len(menuId) <= level:
                 menuId.append('')
             for item in items:
                 index += 1
-                menuId[level] = unicode(index)
+                menuId[level] = str(index)
                 snippet = ('ENTRY_' if item._subMenus == None 
                     or len(item._subMenus) == 0 else 'ENTRY_SUBMENU_')
-                name = snippet + unicode(level)
+                name = snippet + str(level)
                 templateEntry = self._snippets.get(name)
                 templateEntry = templateEntry.replace('{{link}}', item._link)
                 templateEntry = templateEntry.replace('{{title}}', item._title)
                 templateEntry = templateEntry.replace('{{link}}', item._link)
-                templateEntry = templateEntry.replace('{{index}}', unicode(index))
-                templateEntry = templateEntry.replace('{{level}}', unicode(level))
+                templateEntry = templateEntry.replace('{{index}}', str(index))
+                templateEntry = templateEntry.replace('{{level}}', str(level))
                 mId = '_'.join(menuId)
                 menuLabel = self._templateLabel.replace('{{menuid}}', mId)
                 templateEntry = templateEntry.replace('{{menulabel}}', menuLabel)

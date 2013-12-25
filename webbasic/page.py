@@ -158,7 +158,7 @@ class Page(object):
         rowCount = builder.buildPartOfTable(info, 'rows')
         if type(rowCount) != int:
             raise PageException(self, "wrong type for row count: {:s} / {:s}"
-                    .format(unicode(rowCount), repr(type(rowCount))))
+                    .format(str(rowCount), repr(type(rowCount))))
         rows = ''
         colTemplate =  builder.buildPartOfTable(info, 'Col')
         if colTemplate == None:
@@ -175,7 +175,7 @@ class Page(object):
             content = ''
             for col in cols:
                 if not (type(col) is str or type(col) is unicode):
-                    val = unicode(col)
+                    val = self.toUnicode(col)
                 else:
                     if col.startswith("<xml>"):
                         val = col[5:]

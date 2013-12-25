@@ -65,11 +65,11 @@ class WaitPage(Page):
                 task = ""
             if task != "" and translationKey != None:
                 task = self._session.translateTask(translationKey, task)
-            progressBody = progressBody.replace("{{percentage}}", unicode(percentage))
-            progressBody = progressBody.replace("{{width}}", unicode(percentage))
+            progressBody = progressBody.replace("{{percentage}}", str(percentage))
+            progressBody = progressBody.replace("{{width}}", str(percentage))
             progressBody = progressBody.replace("{{task}}", task)
-            progressBody = progressBody.replace("{{no}}", unicode(no))
-            progressBody = progressBody.replace("{{count}}", unicode(count))
+            progressBody = progressBody.replace("{{no}}", str(no))
+            progressBody = progressBody.replace("{{count}}", str(count))
             demo = ""
             progressBody = progressBody.replace("{{DEMO_TEXT}}", demo)
         body = body.replace("{{PROGRESS}}", progressBody)
