@@ -5,6 +5,7 @@ Created on 04.03.2013
 '''
 
 import re, os.path, codecs
+from util.util import Util
 
 class HTMLSnippets:
     '''Administrates (short) HTML fragments which can easily switched on or off.
@@ -65,8 +66,8 @@ class HTMLSnippets:
             rc = self._dict[name]
         else:
             rc = ''
-            self._session.error('HTMLSnippets.get({:s}): not defined: {:s}'
-                .format(name, self._filename))
-
+            self._session.error(u'HTMLSnippets.get({:s}): not defined: {:s}'
+                .format(Util.toUnicode(name), 
+                    Util.toUnicode(self._filename)))
         return rc
             

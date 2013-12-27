@@ -5,6 +5,7 @@ Created on 03.03.2013
 '''
 
 import os.path, re, codecs
+from util.util import Util
 
 
 class MenuItem:
@@ -123,12 +124,12 @@ class Menu(object):
                         
                         if level >= maxLevel:
                             self._session.error(
-                                '{:s}-{:d}: indent level too large'
-                                    .format(fn, lineNo))
+                                u'{:s}-{:d}: indent level too large'
+                                    .format(Util.toUnicode(fn), lineNo))
                         elif level > lastLevel + 1:
                             self._session.error(
-                                '{:s}-{:d}: indent level gap found'
-                                    .format(fn, lineNo))
+                                u'{:s}-{:d}: indent level gap found'
+                                    .format(Util.toUnicode(fn), lineNo))
                         else:
                             item = MenuItem(level, title, link)
                             menuStack[level] = item

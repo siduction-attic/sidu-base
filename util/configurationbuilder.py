@@ -169,7 +169,8 @@ def showSummary(db):
         say("No records found")
     else:
         for row in rows:
-            say("{:5s}: {:3d}".format(row[0], row[1]))
+            say(u"{:5s}: {:3d}".format(Util.toUnicode(row[0]), 
+                row[1]))
     
         
 def main(argv=None): # IGNORE:C0111

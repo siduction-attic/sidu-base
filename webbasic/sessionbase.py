@@ -24,7 +24,8 @@ class SessionBase(object):
         if not path.endswith(os.sep):
             path += os.sep
         rc = path if os.path.exists (path + 'data/config.db') else None
-        logger.debug('isHomeDir({:s}: {:s}'.format(path, '' if rc else rc))
+        logger.debug(u'isHomeDir({:s}: {:s}'.format(
+			Util.toUnicode(path), '' if rc == None else Util.toUnicode(rc)))
         return rc
     
     @staticmethod
@@ -70,6 +71,7 @@ class SessionBase(object):
         self._pageAndBookmark = None
         self._metaDynamic = ''
         self._supportedLanguages = languages
+        self._fixId = False
         self._logMessages = []
         self._errorMessages = []
         self._configAdditional = None
@@ -117,14 +119,7 @@ class SessionBase(object):
         @param value:    string to convert
         @return:         converted unicode 
         '''
-        rc = value
-        try:
-            rc = unicode(value, "UTF-8")
-        except UnicodeDecodeError:
-            try:
-                rc = unicode(value, "iso8859-1")
-            except:
-                rc = unicode(self.toAscii(value))
+        rc = Util.toUnicode(value)
         return rc
         
     def addConfig(self, key, value):
@@ -481,23 +476,7 @@ class SessionBase(object):
         @param value:   string to convert
         @return:        a string with special characters converted to %HH syntax
         '''
-        if value == None:
-            rc = None
-        else:
-            hasNoAscii = True
-            for cc in value:
-                if ord(cc) <= 0 or ord(cc) > 127:
-                    hasNoAscii = False
-                    break
-            if hasNoAscii:
-                rc = str(value)
-            else:
-                rc = ""
-                for cc in value:
-                    if ord(cc) <= 127:
-                        rc += cc
-                    else:
-                        rc += "%{:02x}".format(ord(cc))
+        rc = Util.toAscii(value)
         return rc
     
     def unicodeToAscii(self, value):
@@ -526,8 +505,7 @@ class SessionBase(object):
                         int(math.fmod(time.time()*0x100, 0x100000000)))
                     self._id += Util.encodeFilenameChar(os.getpid())
                 self._id = prefix + "." + self._request.META["REMOTE_ADDR"]
-                fixId = False
-                if fixId:
+                if self._fixId:
                     self._id = prefix +".fixid"
                 self.trace("new id: {:s} cookies contains {:d}"
                     .format(self._id, len(cookies)))

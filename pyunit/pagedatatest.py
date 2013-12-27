@@ -87,11 +87,11 @@ class TestPage(unittest.TestCase):
         data.putError("d1", "E1")
         data.add(FieldData("d2", 33, "d"))
         data.add(FieldData("d3"))
-        self.assertTrue("xxx33 err: E1", 
+        self.assertEquals("xxx33 err: E1", 
             data.replaceValues(
                 "{{val_d1}}{{val_d2}}{{val_d3}} err: {{err_d1}}{{err_d2}}",
                 None, None))
-        self.assertTrue("xxx33 err: !!!E1$$", 
+        self.assertEquals("xxx33 err: !!!E1$$", 
             data.replaceValues(
                 "{{val_d1}}{{val_d2}}{{val_d3}} err: {{err_d1}}{{err_d2}}",
                 "!!!", "$$"))

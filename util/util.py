@@ -393,11 +393,11 @@ class Util:
             delta = 1 + seed % (size - 1)
             ix = charset.find(cc)
             if ix < 0:
-                raise Exception("scrambleText: unknown char {:s} allowed: {:s}"
+                raise Exception(u"scrambleText: unknown char {:s} allowed: {:s}"
                         .format(cc, charset))
             ix = (ix + delta) % size
             rc += charset[ix:ix+1]
-            msg += "\ncc: {:s} seed: {:d} ix: {:d} delta: {:d} val: {:s}".format(cc, seed, ix, delta, charset[ix:ix+1])
+            msg += u"\ncc: {:s} seed: {:d} ix: {:d} delta: {:d} val: {:s}".format(cc, seed, ix, delta, charset[ix:ix+1])
         return head + rc
     
     @staticmethod
@@ -426,6 +426,52 @@ class Util:
                 ix += size
             rc += charset[ix:ix+1]
             pos += 1
+        return rc
+
+    @staticmethod
+    def toAscii(value):
+        '''Converts an non ascii string to ascii.
+        @param value:   string to convert
+        @return:        a string with special characters converted to %HH syntax
+        '''
+        if value == None:
+            rc = None
+        else:
+            hasNoAscii = True
+            for cc in value:
+                if ord(cc) <= 0 or ord(cc) > 127:
+                    hasNoAscii = False
+                    break
+            if hasNoAscii:
+                rc = str(value)
+            else:
+                rc = ""
+                for cc in value:
+                    if ord(cc) <= 127:
+                        rc += cc
+                    else:
+                        rc += "%{:02x}".format(ord(cc))
+        return rc
+
+    @staticmethod
+    def toUnicode(value):
+        '''Converts a string to unicode.
+        Handles conversion errors.
+        @param value:    string to convert
+        @return:         converted unicode 
+        '''
+        rc = value
+        if type(value) != unicode:
+            if type(value) == str:
+                try:
+                    rc = unicode(value, "UTF-8")
+                except UnicodeDecodeError:
+                    try:
+                        rc = unicode(value, "iso8859-1")
+                    except:
+                        rc = unicode(Util.toAscii(value))
+            else:
+                rc = str(value)
         return rc
         
         

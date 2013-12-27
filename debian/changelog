@@ -1,6 +1,8 @@
-sidu-base (2013.12.22) UNRELEASED; urgency=low
+sidu-base (2013.12.26) unstable; urgency=low
 
   * unicode refactoring
+  * *.conf: sorted by key
+  * tools for translators: check_txt.pl + sort_conf.pl
 
  -- J. Hamatoma <hama@siduction.net>  Thu, 26 Dec 2013 00:04:35 +0100
 

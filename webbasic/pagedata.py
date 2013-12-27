@@ -4,6 +4,7 @@ Created on 10.03.2013
 @author: hm
 '''
 import logging
+from util.util import Util
 
 SEPARATOR = '~|^'
 PREFIX_ERROR_KEY = "\f"
@@ -136,8 +137,9 @@ class PageData:
                 del self._session._userData[ix]
         for ix in xrange(len(self._list)):
             field = self._list[ix]
-            line = "{:s}{:s}={:s}\n".format(starter, field._name, 
-                "" if field._value == None else self._session.toUnicode(field._value) )
+            line = u"{:s}{:s}={:s}\n".format(
+                Util.toUnicode(starter), Util.toUnicode(field._name), 
+                "" if field._value == None else Util.toUnicode(field._value) )
             self._session._userData.append(line)
         
     def clearFields(self):

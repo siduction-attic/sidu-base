@@ -175,7 +175,7 @@ class Page(object):
             content = ''
             for col in cols:
                 if not (type(col) is str or type(col) is unicode):
-                    val = self.toUnicode(col)
+                    val = self._session.toUnicode(col)
                 else:
                     if col.startswith("<xml>"):
                         val = col[5:]
@@ -192,10 +192,10 @@ class Page(object):
         @return: the content of the error page
         '''
         message =  '' if self._session._configDb == None else self._session.getConfig(key)
-        rc = '''
+        rc = u'''
 <h1>{{page.error.txt_header}}</h1>
 <p class="error">+++ {:s}</p>
-'''         .format(message)
+'''         .format(Util.toUnicode(message))
         return rc
     
     def buttonError(self, button):
@@ -692,7 +692,8 @@ class Page(object):
                        ".allowed") + " " + firstChars)
                 notOk = self.putErrorText(outputField, text);
             else:
-                pattern = ".[{:s}]*([^{:s}]+)".format(restChars, restChars)
+                pattern = u".[{:s}]*([^{:s}]+)".format(
+                    Util.toUnicode(restChars), Util.toUnicode(restChars))
                 rexpr = re.match(pattern, value)
                 if rexpr != None:
                     text = (self._session.getConfig(".wrong_next")

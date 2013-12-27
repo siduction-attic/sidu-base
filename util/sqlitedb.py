@@ -3,7 +3,8 @@ Created on 31.01.2013
 
 @author: hm
 '''
-from sqldb import SqlDb
+from sqldb import SqlDb 
+from util import Util
 import sqlite3, logging, operator
 
 class SqLiteDb(SqlDb):
@@ -225,8 +226,9 @@ class ResultSet:
                     else:
                         self._cursor.execute(self._sql, self._vals)
                 except Exception as e:
-                    logging.error('ResultSet.next({:s}, {:s}): {:s}'.format(
-                        self._sql, repr(self._vals), repr(e)))
+                    logging.error(u'ResultSet.next({:s}, {:s}): {:s}'.format(
+                        self._sql, Util.toUnicode(self._vals), 
+                        Util.toUnicode(e)))
                     raise(e)
             if self._rows == None or self._ixRow >= self._resultSetSize:
                 self._rows = self._cursor.fetchmany(self._resultSetSize)

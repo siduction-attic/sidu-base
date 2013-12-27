@@ -151,7 +151,19 @@ home.en_only=only English
         self._session.addConfig(".intro_menu2", "Intro")
         self.assertEquals("Intro",
             self._session.valueOfPlaceholder('.intro_menu', aDict))
+        self.assertEqual("", 
+            self._session.valueOfPlaceholder('!piwik', aDict))
 
+    def testToUnicode(self):
+        session = self._session
+        sValue = "1234abc\t"
+        uValue = unicode(sValue)
+        self.assertEqual(uValue, session.toUnicode(sValue))
+        self.assertEqual(uValue, session.toUnicode(uValue))
+        self.assertEqual(u"123", session.toUnicode(123))
+        
+        self.assertEqual(u"\x81\x91\xa1\xb1", session.toUnicode("\x81\x91\xa1\xb1"))
+                         
     def testReplaceVars(self):
         aDict = { "a" : 'A', 'b' : 'B' }
         session = self._session
@@ -296,6 +308,12 @@ comment
         self.assertEquals(None, self._session.unicodeToAscii(None))
         # self.assertEquals("x%fcz", self._session.unicodeToAscii("xüz"))
  
+    def testToAscii(self):
+        session = self._session
+        value = "\xe1\xa2"
+        self.assertEqual("%e1%a2", session.toAscii(value))
+        self.assertEqual("1234\t", session.toAscii("1234\t"))
+        
     def testTranslateTask(self):
         session = self._session
         session.addConfig("bongo.count", "2")
@@ -327,7 +345,14 @@ comment
         session._id = None
         session._application = "sidu-test"
         session.setId(cookies)
+        self.assertEqual("test.127.0.0.1", session._id)
+        session._fixId = True
+        session._id = None
+        cookies = dict()
+        session._application = "sidu-test"
+        session.setId(cookies)
         self.assertEqual("test.fixid", session._id)
+        
 if __name__ == "__main__":
     #import sys;sys.argv = ['', 'Test.testSessionBase']
     unittest.main()
