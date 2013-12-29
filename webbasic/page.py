@@ -344,7 +344,9 @@ class Page(object):
             content = self._pageData.replaceValues(content, self._errorPrefix,
                     self._errorSuffix)
             content = self._session.replaceVars(content)
-            title = self._session.getConfig(self._name + '.txt_title')
+            title = self._session.getConfigOrNone(self._name + '.txt_title')
+            if title == None:
+                title = self._session.getConfig('.txt_title')
             env = { 'CONTENT' : content, 
                 'MENU' : htmlMenu,
                 'META_DYNAMIC' : self._dynMeta,
@@ -601,9 +603,9 @@ class Page(object):
         pages = pages[1:].split(pages[0:1])
         ix = -1 if page not in pages else  pages.index(page)
         html = '' if ix <= 0 else self.getButton('prev')
-        source = source.replace('{{.gui.button.prev}}', html)    
+        source = source.replace('{{.button.prev}}', html)    
         html = '' if ix < 0 or ix == len(pages) - 1 else self.getButton('next')
-        source = source.replace('{{.gui.button.next}}', html)
+        source = source.replace('{{.button.next}}', html)
         return source    
         
     def buildInfo(self, source):

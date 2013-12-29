@@ -1,3 +1,10 @@
+sidu-base (2013.12.27) unstable; urgency=low
+
+  * makro replacement with language
+  * page title with global fallback
+
+ -- J. Hamatoma <hama@siduction.net>  Sun, 29 Dec 2013 08:32:13 +0100
+
 sidu-base (2013.12.26) unstable; urgency=low
 
   * unicode refactoring

@@ -232,7 +232,9 @@ class SessionBase(object):
         if (rc == None and self._configAdditional != None 
                 and key in self._configAdditional):
             rc = self._configAdditional[key]
-        if rc != None:
+        if rc == None:
+            rc = self.getConfigOrNoneWithoutLanguage(key, True)
+        else:
             rc = self._replaceVar(rc, True)
         return rc
  
@@ -270,10 +272,11 @@ class SessionBase(object):
                         end = start
         return text
     
-    def getConfigOrNoneWithoutLanguage(self, key):
+    def getConfigOrNoneWithoutLanguage(self, key, makroWithLang = False):
         '''Returns a value from the configuration db.
         The value is language independent.
-        @param key: the key of the wanted value
+        @param key:             the key of the wanted value
+        @param makroWithLang:   True: expansion of placeholders with language 
         @return: None: the key is not in the configuration db
                 otherwise: the value from the database
         '''
@@ -287,7 +290,7 @@ class SessionBase(object):
                     and key in self._configAdditional):
                 rc = self._configAdditional[key]
             if rc != None:
-                rc = self._replaceVar(rc, False)
+                rc = self._replaceVar(rc, makroWithLang)
         return rc
 
     def getConfigWithoutLanguage(self, key):
