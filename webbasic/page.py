@@ -390,27 +390,29 @@ class Page(object):
             rc = listAsString[1:].split(sep)
         return rc
     
-    def humanReadableSize(self, size, unitLength = 3):
+    def humanReadableSize(self, size, unitLength = 3, maxNumber = 10):
         '''Builds a human readable size with max. 3 digits and a matching unit.
         Reverse function to sizeAndUnitToKiByte
         @param size:         the size in Byte (type: int)
         @param unitLength:   the length of the unit string: 1, 2 or 3
+        @param maxNumber:    determines the maximal count of digits.<br>
+                             10: max. digit count = 3, 100: max. d.c = 4
         @return: a string with the size and unit, e.g. 213MiB
         '''
         sign = "-" if size < 0 else ""
         if sign == "-":
             size = -size
-        if size <= 10*1024:
+        if size <= maxNumber*1024:
             if size > 0 and size % 1024 == 0:
                 rc = '{:d}Ki'.format(size / 1024)
             else: 
                 rc = '{:d}By'.format(size)
-        elif size <= 10*1024*1024:
+        elif size <= maxNumber*1024*1024:
             if size % (1024*1024) == 0:
                 rc = '{:d}Mi'.format(size / 1024 / 1024)
             else: 
                 rc = '{:d}Ki'.format(size / 1024)
-        elif size <= 10*1024*1024*1024:
+        elif size <= maxNumber*1024*1024*1024:
             if size % (1024*1024*1024) == 0:
                 rc = '{:d}Gi'.format(size / 1024 / 1024 / 1024)
             else:

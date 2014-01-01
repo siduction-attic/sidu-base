@@ -1,3 +1,9 @@
+sidu-base (2014.01.01) unstable; urgency=low
+
+  * more digits in size expressions
+
+ -- J. Hamatoma <hama@siduction.net>  Wed, 01 Jan 2014 22:22:41 +0100
+
 sidu-base (2013.12.27) unstable; urgency=low
 
   * makro replacement with language
