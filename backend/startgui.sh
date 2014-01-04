@@ -25,7 +25,7 @@ if [ -z "$DISPLAY" ] ; then
 fi
 FOUND=$(echo $OPTS | grep -i console)
 if [ -z "$FOUND" ] ; then
-	sux $USER "$APPL" $ARGS
+	su -p --login $USER "$APPL" $ARGS
 else
 	LINK=$(which $CONSOLE)
 	while [ True ] ; do
@@ -45,7 +45,7 @@ else
 			ARGS=
 		fi
 	fi
-	sux $USER $CONSOLE $CONSOLE_ARGS "$APPL2" $ARGS
+	su -p --login $USER $CONSOLE $CONSOLE_ARGS "$APPL2" $ARGS
 	AGAIN=1
 	while [ -n "$AGAIN" ] ; do
 		#set -x

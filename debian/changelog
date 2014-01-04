@@ -1,3 +1,10 @@
+sidu-base (2014.01.04) unstable; urgency=medium
+
+  * replace sux with su -p --login in 
+    startgui.sh 
+
+ -- Alf Gaida <agaida@siduction.org>  Sat, 04 Jan 2014 19:07:08 +0100
+
 sidu-base (2014.01.01) unstable; urgency=low
 
   * more digits in size expressions
