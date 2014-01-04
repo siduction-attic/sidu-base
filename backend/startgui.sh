@@ -14,18 +14,25 @@ test -d $HOME || export HOME=$START_GUI_HOME2
 
 if [ -z "$CONSOLE" ] ; then
 	CONSOLE=konsole
-	CONSOLE_ARGS=-e
+	CONSOLE_ARGS=
 fi
 which $CONSOLE || CONSOLE=x-terminal-emulator
 
 test -n "$VERBOSE" && echo "startgui: user=$USER appl=$APPL opts=$OPTS console=$CONSOLE home=$HOME"
 
+function Sux(){
+	test -z "VERBOSE" || set -x
+	USR=$1
+	su -p --login -c "$2 $3 $4 $5 $6 $7 $8" $USR
+	test -z "VERBOSE" || set +x
+}
 if [ -z "$DISPLAY" ] ; then
 	export DISPLAY=:0
 fi
 FOUND=$(echo $OPTS | grep -i console)
 if [ -z "$FOUND" ] ; then
-	sux $USER "$APPL" $ARGS
+	# sux $USER "$APPL" $ARGS
+	Sux $USER "$APPL" $ARGS
 else
 	LINK=$(which $CONSOLE)
 	while [ True ] ; do
@@ -38,14 +45,19 @@ else
 	done
 	APPL2="$APPL"
 	NODE=${CONSOLE##*/}
-	echo "terminal: $NODE"
+	test -z "$VERBOSE" && echo "terminal: $NODE"
+	CONSOLE_ARGS=-e
+	if [ $NODE = "qterminal" ] ; then
+		CONSOLE_ARGS=
+	fi
 	if [ "$NODE" = "xfce4-terminal" -o "$NODE" = "qterminal" ] ; then
 		if [ -n "$ARGS" ] ; then
 			APPL2="$APPL $ARGS"
 			ARGS=
 		fi
 	fi
-	sux $USER $CONSOLE $CONSOLE_ARGS "$APPL2" $ARGS
+	#sux $USER $CONSOLE $CONSOLE_ARGS "$APPL2" $ARGS
+	Sux $USER $CONSOLE $CONSOLE_ARGS "$APPL2" $ARGS
 	AGAIN=1
 	while [ -n "$AGAIN" ] ; do
 		#set -x

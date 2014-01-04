@@ -18,21 +18,7 @@ if [ -f $F1 -a ! -f $F2 ] ; then
 fi
 
 CONFIG=/etc/sidu-base/shellserver.conf
-if ! grep -q "^CONSOLE=" $CONFIG ; then
-	CONSOLE=
-	if which konsole ; then
-		CONSOLE=konsole
-	elif which lxterminal ; then
-		CONSOLE=lxterminal
-	elif which xfce4-terminal ; then
-		CONSOLE=xfce4-terminal
-	elif which xterm ; then
-		CONSOLE=xterm
-	else
-		CONSOLE=x-terminal-emulator
-	fi
-	test -n "$CONSOLE" && sed -i -e "s/^#CONSOLE=.*/CONSOLE=$CONSOLE/;" $CONFIG
-fi
+
 function MkLink2(){
 	if [ ! -L $2 ] ; then
 		ln -sf $1 $2

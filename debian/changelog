@@ -1,6 +1,14 @@
+sidu-base (2014.01.04) unstable; urgency=low
+
+  * sux replaced: not more available
+  * terminal dependency moved from postinst to startgui.sh
+  * closes: #1465
+
+ -- J. Hamatoma <hama@siduction.net>  Sun, 05 Jan 2014 00:10:19 +0100
+
 sidu-base (2014.01.01) unstable; urgency=low
 
-  * more digits in size expressions
+  * humanReadableSize(): optionally more digits in size expressions
 
  -- J. Hamatoma <hama@siduction.net>  Wed, 01 Jan 2014 22:22:41 +0100
 
