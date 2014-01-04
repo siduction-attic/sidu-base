@@ -1,10 +1,17 @@
-sidu-base (2014.01.04) unstable; urgency=low
+sidu-base (2014.01.05) unstable; urgency=low
 
   * sux replaced: not more available
   * terminal dependency moved from postinst to startgui.sh
   * closes: #1465
 
  -- J. Hamatoma <hama@siduction.net>  Sun, 05 Jan 2014 00:10:19 +0100
+
+sidu-base (2014.01.04) unstable; urgency=medium
+
+  * replace sux with su -p --login in 
+    startgui.sh 
+
+ -- Alf Gaida <agaida@siduction.org>  Sat, 04 Jan 2014 19:07:08 +0100
 
 sidu-base (2014.01.01) unstable; urgency=low
 
