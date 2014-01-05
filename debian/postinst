@@ -38,5 +38,7 @@ if grep -q ":1000:" /etc/passwd ; then
 	sed -i -e "s%^START_GUI_HOME2=.*%START_GUI_HOME2=$home%;" $CONFIG
 fi
 
+sidu-base-control restart
+
 #DEBHELPER#
 exit 0
