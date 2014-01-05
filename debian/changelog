@@ -1,3 +1,9 @@
+sidu-base (2014.01.05.2) unstable; urgency=medium
+
+  * rewrite prerm and postinst
+
+ -- Alf Gaida <agaida@siduction.org>  Sun, 05 Jan 2014 15:49:49 +0100
+
 sidu-base (2014.01.05.1) unstable; urgency=medium
 
   * sidu-base will be restarted after installation
