@@ -16,3 +16,6 @@ debian/source/
 backend/sdc_lvm.sh
 backend/sdc_partinfo.pl
 backend/sdc_partinfo.sh
+config/after/
+config/before/
+doc/tk_old.html

@@ -170,7 +170,7 @@ class Page(object):
             rowTemplate = '<tr>{{COLS}}</tr>'
         elif rowTemplate.find('{{COLS}}') < 0:
             raise PageException(self, 'missing {{COLS} in ' + rowTemplate)
-        for ixRow in xrange(rowCount):
+        for ixRow in range(rowCount):
             cols = builder.buildPartOfTable(info, 'cols', ixRow)
             content = ''
             for col in cols:

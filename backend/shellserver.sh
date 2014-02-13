@@ -80,7 +80,11 @@ function oneFile(){
 		echo >$ANSWER $PARAM
 		;;
 	*)
-		SCRIPT=$CMD.sh
+		if [ -e $CMD.sh ] ; then 
+			SCRIPT=$CMD.sh
+		else
+			SCRIPT=$CMD.py
+		fi
 		if [ -x $SCRIPT ] ; then
 			$TRACE_ON
 			CMD="$SOURCE ./$SCRIPT $ANSWER $PARAM"
