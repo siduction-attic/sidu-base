@@ -111,7 +111,7 @@ class Page(object):
         return self._pageData.putError(name, errorKey)
     
     def putErrorText(self, name, text):
-        '''Puts an error message (exactly its key) to a field.
+        '''Puts an error message to a field.
         @param name: the field's name. If None a standard field will be taken
         @param text: the error text
         @return: True

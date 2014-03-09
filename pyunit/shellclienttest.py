@@ -11,7 +11,6 @@ from util.util import Util
 
 class ShellClientTest(unittest.TestCase):
 
-
     def setUp(self):
         self._session = Aux.getSession('testappl')
         self._tempDir = Util.getTempDir("shellserver")

@@ -5,7 +5,9 @@ Maintainer: J. Hamatoma <hama@siduction.net>
 Uploaders: Alf Gaida <agaida@siduction.org>,
  Hendrik Lehmbruch <hendrikl@siduction.org>,
  Ferdinand Thommes <devil@siduction.org>,
-Build-Depends: debhelper (>= 9),
+Build-Depends: 
+ debhelper (>= 9),
+ dh-systemd,
 Standards-Version: 3.9.5
 Homepage: http://siduction.org
 Vcs-git: git://git3@git.siduction.org:code/sidu-base
@@ -19,6 +21,7 @@ Depends:
  python-support (>= 0.90),
  lsb-base,
  sudo,
+ pywwetha (>=2014.03.07)
 Breaks: siguibui,
 Replaces: siguibui,
 Description: Toolkit for Django (Python) based GUI applications 

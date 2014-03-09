@@ -8,6 +8,9 @@ export TRACE_ON=
 export TRACE_OFF=
 TASK_DIR=/var/cache/sidu-base/shellserver-tasks
 ETC_CONFIG=/etc/sidu-base/shellserver.conf
+DIR=$(dirname $0)
+test $DIR = . && DIR=$(pwd)
+export PYTHONPATH="$DIR/scripts:$PYTHONPATH"
 
 # Customization
 test -e $ETC_CONFIG && source $ETC_CONFIG
@@ -33,6 +36,7 @@ SHELLSERVERHOME=$(dirname $0)
 test ${SHELLSERVERHOME=:0:1} != '/' && SHELLSERVERHOME=$(pwd)/$SHELLSERVERHOME
 test -n "$VERBOSE" && echo "SHELLSERVERHOME=$SHELLSERVERHOME"	
 test -n "$VERBOSE" && echo "TASK_DIR=$TASK_DIR"	
+test -n "$VERBOSE" && echo "PYTHONPATH=$PYTHONPATH"	
 
 function oneFile(){
 	FN=$1
@@ -83,7 +87,7 @@ function oneFile(){
 		if [ -e $CMD.sh ] ; then 
 			SCRIPT=$CMD.sh
 		else
-			SCRIPT=$CMD.py
+			SCRIPT=../scripts/$CMD.py
 		fi
 		if [ -x $SCRIPT ] ; then
 			$TRACE_ON
@@ -100,6 +104,8 @@ function oneFile(){
 				$CMD
 			fi
 			$TRACE_OFF
+		elif [ -e $SCRIPT ] ; then
+			say "not executable: $SCRIPT"
 		else
 			say "Unknown command: $CMD File: $ANSWER Param: $PARAM"
 		fi

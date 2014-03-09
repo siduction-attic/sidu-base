@@ -111,6 +111,7 @@ class SessionBase(object):
             self._language if self._language else '',
             self._homeDir if self._homeDir else '',
             self._configDbName if self._configDbName else ''))
+        self._tempDir = self.getConfigWithoutLanguage(".dir.temp")
         self._shellClient = ShellClient(self)
 
     def toUnicode(self, value):
@@ -548,6 +549,21 @@ class SessionBase(object):
                 fp.write(line)
         fp.close()
         
+    def getUserData(self, page, name, defaultValue = None):
+        '''Puts a field value of another page.
+        @param page:        name of the page
+        @param name:        name of the variable
+        @param defaultValue field value to store
+        '''
+        rc = defaultValue
+        prefix = page + "." + name + "="
+        for ix in xrange(len(self._userData)):
+            line = self._userData[ix]
+            if line.startswith(prefix):
+                rc = line[len(prefix):-1]
+                break
+        return rc
+            
     def putUserData(self, page, name, value):
         '''Puts a field value of another page.
         @param page:    name of the page
