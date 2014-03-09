@@ -1,12 +1,3 @@
 #! /bin/sh
 export INTERACTIVE=True
-case "$1" in
-start|restart|stop|status)
-	systemctl $1 sidu-base.service
-	;;
-*):
-	echo "unknown argument: $*"
-	echo "usage: $0 start|stop|restart|status"
-	exit 1
-	;;
-esac
+sudo sidu-control systemctl sidu-base $1
