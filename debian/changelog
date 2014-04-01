@@ -1,11 +1,16 @@
-sidu-base (2014.03.30) unstable; urgency=medium
+sidu-base (2014.03.31) unstable; urgency=medium
 
-  * using sidu-control
   * shellserver supports now python scripts
   * added: scripts/executor.py + recorder.py
   * new Session._tempDir
 
- -- J. Hamatoma <hama@siduction.net>  Sun, 09 Mar 2014 02:09:00 +0100
+ -- J. Hamatoma <hama@siduction.net>  Mon, 31 Mar 2014 00:04:28 +0100
+
+sidu-base (2014.03.07) unstable; urgency=medium
+
+  * using sidu-control
+
+ -- J. Hamatoma <hama@siduction.net>  Sun, 09 Mar 2014 02:22:48 +0100
 
 sidu-base (2014.02.12) unstable; urgency=medium
 
