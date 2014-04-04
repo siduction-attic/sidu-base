@@ -9,4 +9,3 @@ scripts			usr/share/sidu-base
 etc/sudoers.d	etc
 etc/sidu-base	etc
 etc/pywwetha	etc
-bin				usr

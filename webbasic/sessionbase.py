@@ -24,8 +24,8 @@ class SessionBase(object):
         if not path.endswith(os.sep):
             path += os.sep
         rc = path if os.path.exists (path + 'data/config.db') else None
-        logger.debug(u'isHomeDir({:s}: {:s}'.format(
-			Util.toUnicode(path), '' if rc == None else Util.toUnicode(rc)))
+        #logger.debug(u'isHomeDir({:s}: {:s}'.format(
+        #	Util.toUnicode(path), '' if rc == None else Util.toUnicode(rc)))
         return rc
     
     @staticmethod
@@ -49,8 +49,8 @@ class SessionBase(object):
             while subdir == None and len(script) > 1:
                 subdir = SessionBase.isHomeDir(script)
                 script = os.path.dirname(script)
-        logger.debug('findHomeDir({:s}): curDir={:s} script: {:s} rc: {:s}'.format(application, 
-            curDir, script, subdir))
+        #logger.debug('findHomeDir({:s}): curDir={:s} script: {:s} rc: {:s}'.format(application, 
+        #    curDir, script, subdir))
         return subdir
     
     def __init__(self, request, languages, application, homeDir = None):
@@ -317,14 +317,15 @@ class SessionBase(object):
         '''Logs a message.
         @param msg: the message
         '''
-        logger.info(msg)
+        #logger.info(msg)
         self._logMessages.append(msg)
         
     def trace(self, msg):
         '''Logs a message.
         @param msg: the message
         '''
-        logger.debug(msg)
+        #logger.debug(msg)
+        pass
         
     def error(self, key, msg = None):
         '''Logs an error message.
