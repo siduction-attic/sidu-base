@@ -1,0 +1,2 @@
+# There will be probably never ever a man-page for sidu-base-systemd
+sidu-base-systemd: binary-without-manpage usr/bin/sidu-base-control
