@@ -8,4 +8,3 @@ backend			usr/share/sidu-base
 scripts			usr/share/sidu-base
 etc/sudoers.d	etc
 etc/sidu-base	etc
-etc/pywwetha	etc
