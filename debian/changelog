@@ -1,3 +1,10 @@
+sidu-base (2014.04.03) unstable; urgency=medium
+
+  * etc/pywwetha moved from sidu-base to sidu-base-systemd
+  * some debian files renamed (from sidu-manual-systemd)
+
+ -- J. Hamatoma <hama@siduction.net>  Mon, 07 Apr 2014 23:42:16 +0200
+
 sidu-base (2014.04.02) unstable; urgency=medium
 
   * joining sidu-base and sidu-base-systemd again
