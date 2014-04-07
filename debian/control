@@ -10,7 +10,7 @@ Build-Depends:
  dh-systemd,
 Standards-Version: 3.9.5
 Homepage: http://siduction.org
-Vcs-git: git://git3@git.siduction.org:code/sidu-base
+Vcs-git: git://git.siduction.org/code/sidu-base
 Vcs-Browser: http://git.siduction.org/?p=code/sidu-base.git
 
 Package: sidu-base
@@ -35,6 +35,9 @@ Package: sidu-base-systemd
 Architecture: all
 Depends:
  ${misc:Depends},
- pywwetha
+ python (>= 2.7),
+ python-support (>= 0.90),
+ sudo,
+ pywwetha (>=2014.03.07)
 Description: integration of sidu-base into systemd
  Necessary in desktop environments.

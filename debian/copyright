@@ -3,13 +3,13 @@ Upstream-Name: sidu-base
 Source: http://git.siduction.org/code/sidu-base
 
 Files: *
-Copyright: 2013 J. Hamatoma <hama@siduction.net>
+Copyright: 2013-2014 J. Hamatoma <hama@siduction.net>
 License: GPL-3.0+
 
 
 Files: debian/*
-Copyright: 2013 J. Hamatoma <hama@siduction.net>
-           2013 Alf Gaida <agaida@sidction.org>
+Copyright: 2013-2014 J. Hamatoma <hama@siduction.net>
+           2013-2014 Alf Gaida <agaida@sidction.org>
 License: GPL-3.0+
 
 
