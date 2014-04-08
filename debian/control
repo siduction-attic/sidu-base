@@ -35,9 +35,6 @@ Package: sidu-base-systemd
 Architecture: all
 Depends:
  ${misc:Depends},
- python (>= 2.7),
- python-support (>= 0.90),
- sudo,
- pywwetha (>=2014.03.07)
+ sidu-base (= ${binary:Version}),
 Description: integration of sidu-base into systemd
  Necessary in desktop environments.
