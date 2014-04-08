@@ -24,6 +24,7 @@ Depends:
  pywwetha (>=2014.03.07)
 Breaks: siguibui,
 Replaces: siguibui,
+Recommends: systemd,
 Description: Toolkit for Django (Python) based GUI applications 
  The approach: a easy and quick possibility to create browser based
  application.
