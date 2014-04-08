@@ -23,6 +23,8 @@ case "$1" in
         RmLink sidu_basic.pm 
         RmLink sidu_recorder.pm 
         popd 2>&1 >/dev/null
+
+        sidu-base-control stop
     ;;
 
     failed-upgrade)

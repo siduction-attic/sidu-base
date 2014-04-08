@@ -30,11 +30,3 @@ Description: Toolkit for Django (Python) based GUI applications
  Includes a shellserver: a daemon waits for predefined tasks written
  as Bash scripts. The communication (in both directions) is done by
  files. Tasks can be executed as root or as another user.
-
-Package: sidu-base-systemd
-Architecture: all
-Depends:
- ${misc:Depends},
- sidu-base (= ${binary:Version}),
-Description: integration of sidu-base into systemd
- Necessary in desktop environments.

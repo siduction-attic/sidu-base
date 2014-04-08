@@ -45,6 +45,8 @@ case "$1" in
             home=$(grep ":1000:" /etc/passwd | head -n 1 | cut -d: -f6)
             sed -i -e "s%^START_GUI_HOME2=.*%START_GUI_HOME2=$home%;" $CONFIG
         fi
+
+        sidu-base-control restart
     ;;
 
     abort-upgrade|abort-remove|abort-deconfigure)
