@@ -95,6 +95,10 @@ class SessionBase(object):
             self._homeDir = homeDir 
         else:
             self._homeDir = SessionBase.findHomeDir(application, request)
+        if self._homeDir.endswith("/public"):
+            # running under Passenger (a WSGI loader):
+            # remove the node "/public":
+            self._homeDir = self._homeDir[0:-7]
         if self._homeDir and not self._homeDir.endswith('/'):
             self._homeDir += '/'
         self._configDb = None
