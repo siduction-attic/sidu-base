@@ -1,21 +1,19 @@
 *.pyc
 .coverage
-.settings
-sqlite.db
+/.settings
+/sqlite.db
 
 ## don't track build crap
-debian/files
-debian/sidu-base.debhelper.log
-debian/sidu-base.substvars
-debian/sidu-base.postinst.debhelper
-debian/sidu-base.postrm.debhelper
-debian/sidu-base.prerm.debhelper
-debian/sidu-base/
-debian/source/
+/debian/files
+/debian/*.debhelper.log
+/debian/*.substvars
+/debian/*.debhelper
+/debian/sidu-base/
+/debian/source/
 
-backend/sdc_lvm.sh
-backend/sdc_partinfo.pl
-backend/sdc_partinfo.sh
-config/after/
-config/before/
-doc/tk_old.html
+/backend/sdc_lvm.sh
+/backend/sdc_partinfo.pl
+/backend/sdc_partinfo.sh
+/config/after/
+/config/before/
+/doc/tk_old.html

@@ -1,0 +1,4 @@
+#!/bin/sh
+
+INITSYSTEM=$(cat /proc/1/comm)
+echo $INITSYSTEM

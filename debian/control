@@ -24,20 +24,10 @@ Depends:
  pywwetha (>=2014.03.07)
 Breaks: siguibui,
 Replaces: siguibui,
+Recommends: systemd,
 Description: Toolkit for Django (Python) based GUI applications 
  The approach: a easy and quick possibility to create browser based
  application.
  Includes a shellserver: a daemon waits for predefined tasks written
  as Bash scripts. The communication (in both directions) is done by
  files. Tasks can be executed as root or as another user.
-
-Package: sidu-base-systemd
-Architecture: all
-Depends:
- ${misc:Depends},
- python (>= 2.7),
- python-support (>= 0.90),
- sudo,
- pywwetha (>=2014.03.07)
-Description: integration of sidu-base into systemd
- Necessary in desktop environments.
