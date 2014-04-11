@@ -1,5 +1,0 @@
-58d1dc1e0fdba6e4b0fc9cbcae8d5e88  lib/systemd/system/sidu-base-systemd.service
-1239436191c608dc154b9c5faddc5169  usr/bin/sidu-base-control
-dd4aded7081f95c926b1941041ef5dd6  usr/share/doc/sidu-base-systemd/changelog.gz
-af67255b6f19e05ff6c737a63de6ec46  usr/share/doc/sidu-base-systemd/copyright
-e6edd664011829a58b0fe14856f20ac4  usr/share/lintian/overrides/sidu-base-systemd

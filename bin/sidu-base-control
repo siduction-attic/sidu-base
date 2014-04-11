@@ -4,5 +4,5 @@ export INTERACTIVE=True
 INIT=$(initsystem)
 
 if [ X$INIT = "Xsystemd" ]; then
-    sudo sidu-control systemctl sidu-base-systemd $1
+    sudo sidu-control systemctl sidu-base $1
 fi

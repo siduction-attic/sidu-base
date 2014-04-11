@@ -1,8 +1,0 @@
-[Unit]
-Description=siduction base: shellserver daemon
-
-[Service]
-ExecStart=/usr/share/sidu-base/backend/shellserver.sh --daemon
-
-[Install]
-WantedBy=multi-user.target

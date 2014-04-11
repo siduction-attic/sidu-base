@@ -1,3 +1,0 @@
-#! /bin/sh
-export INTERACTIVE=True
-sudo sidu-control systemctl sidu-base-systemd $1
