@@ -9,7 +9,6 @@
 /debian/*.substvars
 /debian/*.debhelper
 /debian/sidu-base/
-/debian/source/
 
 /backend/sdc_lvm.sh
 /backend/sdc_partinfo.pl
