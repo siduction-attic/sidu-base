@@ -17,3 +17,4 @@
     <img src="http://{{piwik.domain.tld}}/piwik.php?idsite={{piwik_site_id}}&amp;rec=1" style="border:0" alt="" />
     </noscript>
 <!-- piwik integration end -->
+

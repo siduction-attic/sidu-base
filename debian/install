@@ -1,4 +1,3 @@
-
 doc            usr/share/sidu-base
 util           usr/share/sidu-base
 webbasic       usr/share/sidu-base
@@ -7,8 +6,6 @@ basic          usr/share/sidu-base
 sidu-base      usr/share/sidu-base
 backend        usr/share/sidu-base
 scripts        usr/share/sidu-base
-
 etc/sudoers.d  etc
 etc/sidu-base  etc
-etc/pywwetha   etc
 bin            usr

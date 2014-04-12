@@ -21,7 +21,6 @@ Depends:
  python-support (>= 0.90),
  lsb-base,
  sudo,
- pywwetha (>=2014.03.07)
 Breaks: siguibui,
 Replaces: siguibui,
 Recommends: systemd,
