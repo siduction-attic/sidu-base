@@ -45,7 +45,9 @@ browser)
 	VIRTHOST=$2
 	SUBCOMMAND=$3
 	BASE=$4
-	test -x /usr/bin/pywwetha-control && sudo $SCRIPT systemctl pywwetha $SUBCOMMAND	
+	if [ -x /usr/bin/pywwetha-control -o -e /etc/sidu-base/systemctl.d/pywwetha ] ; then
+		sudo $SCRIPT systemctl pywwetha $SUBCOMMAND
+	fi	
 	test -n "$BASE" && sudo $SCRIPT systemctl sidu-base $SUBCOMMAND	
 	if [ "$SUBCOMMAND" = start -o "$SUBCOMMAND" = restart ] ; then
 		if [ -n "${DISPLAY}" ] ; then
