@@ -21,8 +21,8 @@ Depends:
  python-support (>= 0.90),
  lsb-base,
  sudo,
-Breaks: siguibui,
-Replaces: siguibui,
+Breaks: siguibui, sidu-base-systemd,
+Replaces: siguibui, sidu-base-systemd,
 Recommends: systemd,
 Description: Toolkit for Django (Python) based GUI applications 
  The approach: a easy and quick possibility to create browser based
