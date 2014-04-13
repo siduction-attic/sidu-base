@@ -9,7 +9,9 @@ systemctl)
 	else
 		PACKET=$2
 		SUBCMD=$3
-		if [ ! -e /etc/sidu-base/systemctl.d/$PACKET ] ; then
+		if [ $PACKET = "pywwetha" -a ! -e /etc/sidu-base/systemctl.d/pywwetha ] ; then
+			echo "pywwetha is not installed. ignored."
+		elif [ ! -e /etc/sidu-base/systemctl.d/$PACKET ] ; then
 			echo "+++ sidu-control: Not a registered packet: $PACKET"
 			echo "+++ call: $SCRIPT $*"
 			exit 2
