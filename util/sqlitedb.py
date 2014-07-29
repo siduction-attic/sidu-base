@@ -17,7 +17,7 @@ class SqLiteDb(SqlDb):
         self._conn = None
         self._cursor = None
         self._insertCount = 0
-        self._maxCommit = 50
+        self._maxCommit = 500
         self._freeCursors = []
  
     def dropTable(self, tableInfo):

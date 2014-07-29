@@ -3,12 +3,13 @@ Created on 03.02.2013
 
 @author: hm
 '''
-import os.path, re, logging, codecs, time, math
+import os.path, re, logging, codecs, time, math, random
 from util.util import Util
 from util.configurationbuilder import ConfigurationBuilder
 from util.sqlitedb import SqLiteDb
 from webbasic.page import PageResult
 from basic.shellclient import ShellClient
+
 
 logger = logging.getLogger("pywwetha")
 
@@ -224,23 +225,34 @@ class SessionBase(object):
         @return: None: the key is not stored in the configuration db
                 otherwise: the value from the database
         '''
-        lang = language if language != None else self._language
-        record = self._configDb.selectByValues(self._configInfo,
-            (('key', key), ('language', lang)), False)
-        if record == None and lang != 'en' and language == None:
-            record = self._configDb.selectByValues(self._configInfo,
-                (('key', key), ('language', 'en')), False)
-        if record == None:
-            rc = None
-        else:  
-            rc = self.toUnicode(record['value'])
-        if (rc == None and self._configAdditional != None 
-                and key in self._configAdditional):
-            rc = self._configAdditional[key]
+        rc = None
+        if key.startswith('random'):
+            matcher = re.match(r'random(\d+)$', key)
+            if matcher:
+                width = int(matcher.group(1))
+                rc = ""
+                random.seed()
+                while width > 0:
+                    rc += chr(random.randint(ord('a'), ord('z')))
+                    width -= 1           
         if rc == None:
-            rc = self.getConfigOrNoneWithoutLanguage(key, True)
-        else:
-            rc = self._replaceVar(rc, True)
+            lang = language if language != None else self._language
+            record = self._configDb.selectByValues(self._configInfo,
+                (('key', key), ('language', lang)), False)
+            if record == None and lang != 'en' and language == None:
+                record = self._configDb.selectByValues(self._configInfo,
+                    (('key', key), ('language', 'en')), False)
+            if record == None:
+                rc = None
+            else:  
+                rc = self.toUnicode(record['value'])
+            if (rc == None and self._configAdditional != None 
+                    and key in self._configAdditional):
+                rc = self._configAdditional[key]
+            if rc == None:
+                rc = self.getConfigOrNoneWithoutLanguage(key, True)
+            else:
+                rc = self._replaceVar(rc, True)
         return rc
  
     def getConfig(self, key):
@@ -321,14 +333,14 @@ class SessionBase(object):
         '''Logs a message.
         @param msg: the message
         '''
-        #logger.info(msg)
+        logger.info(msg)
         self._logMessages.append(msg)
         
     def trace(self, msg):
         '''Logs a message.
         @param msg: the message
         '''
-        #logger.debug(msg)
+        logger.debug(msg)
         pass
         
     def error(self, key, msg = None):
