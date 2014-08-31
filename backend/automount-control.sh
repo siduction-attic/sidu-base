@@ -30,11 +30,11 @@ case "$1" in
 esac
 
 
-case "$FLAVOUR" in
-    Gnome)
+case "$FLL_FLAVOUR" in
+    gnome)
         su ${FLL_LIVE_USER} -c "gsettings set org.gnome.desktop.media-handling automount-open $ENABLE_AUTOMOUNT"
         ;;
-    Cinnamon)
+    cinnamon)
         ###su ${FLL_LIVE_USER} -c "gsettings set org.gnome.desktop.media-handling automount-open true"
 	;;
 esac
