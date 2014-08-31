@@ -1,27 +1,24 @@
 #!/bin/sh
-# Switches automounting on or off (for gnome)
+# Switches automounting on or off (for gnome, cinnamon and mate)
 #set -x
 date "+%Y.%m.%d %H:%M:%S: $1" >>/tmp/automount.log
-
-[[ ! -x /usr/bin/gsettings ]] && exit 2
 
 if [ -f /etc/default/distro ]; then
     . /etc/default/distro
 fi
 
-#if [ ! -f /etc/default/fll-gnome-desktop ]; then
-session=$(pgrep -u "${FLL_LIVE_USER}" session)
-export $(grep -z DBUS_SESSION_BUS_ADDRESS /proc/$session/environ)
-#test -z $VERBOSE || echo "DBUS_SESSION_BUS_ADDRESS=$DBUS_SESSION_BUS_ADDRESS"
-#fi
-
+get_dbus_session()
+{
+    session=$(pgrep -u "${FLL_LIVE_USER}" session)
+    export $(grep -z DBUS_SESSION_BUS_ADDRESS /proc/$session/environ)
+}
 
 case "$1" in
     enabled)
-	ENABLE_AUTOMOUNT=true
+        SET_AUTOMOUNT=true
         ;;
     disabled)
-	ENABLE_AUTOMOUNT=false
+        SET_AUTOMOUNT=false
         ;;
     *)
         echo "automount-control.sh called with unknown argument \`$1'" >&2
@@ -29,16 +26,21 @@ case "$1" in
         ;;
 esac
 
-
 case "$FLL_FLAVOUR" in
     gnome)
-        su ${FLL_LIVE_USER} -c "gsettings set org.gnome.desktop.media-handling automount-open $ENABLE_AUTOMOUNT"
+        get_dbus_session
+        su ${FLL_LIVE_USER} -c "gsettings set org.gnome.desktop.media-handling automount $SET_AUTOMOUNT"
+        su ${FLL_LIVE_USER} -c "gsettings set org.gnome.desktop.media-handling automount-open $SET_AUTOMOUNT"
         ;;
     cinnamon)
-        ###su ${FLL_LIVE_USER} -c "gsettings set org.gnome.desktop.media-handling automount-open true"
-	;;
+        get_dbus_session
+        su ${FLL_LIVE_USER} -c "gsettings set org.cinnamon.desktop automount $SET_AUTOMOUNT"
+        su ${FLL_LIVE_USER} -c "gsettings set org.cinnamon.desktop automount-open $SET_AUTOMOUNT"
+        ;;
+    mate)
+        get_dbus_session
+        su ${FLL_LIVE_USER} -c "gsettings set org.mate.media-handling automount $SET_AUTOMOUNT"
+        su ${FLL_LIVE_USER} -c "gsettings set org.mate.media-handling automount-open $SET_AUTOMOUNT"
+        ;;
 esac
-
 #set +x
-
-
