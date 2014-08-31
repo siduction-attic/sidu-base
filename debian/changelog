@@ -1,3 +1,9 @@
+sidu-base (2014.08.31) UNRELEASED; urgency=medium
+
+  * new automount-control.sh
+
+ -- Alf Gaida <agaida@siduction.org>  Sun, 31 Aug 2014 17:23:39 +0200
+
 sidu-base (2014.07.29) unstable; urgency=medium
 
   * HTML templates: {{randomN}} will be replaced by 2 random letters
