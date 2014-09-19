@@ -4,6 +4,7 @@ APPL=$2
 ARGS=$3
 USER=$4
 OPTS=$5
+GUI_LANG=$6
 ARGS=$(echo $ARGS | sed -e "s/''//g")
 
 CONFIG=/etc/sidu-base/shellserver.conf
@@ -16,9 +17,12 @@ if [ -z "$CONSOLE" ] ; then
 	CONSOLE=konsole
 	CONSOLE_ARGS=
 fi
+if [ -n "$GUI_LANG" ] ; then
+	export LANG=$GUI_LANG
+fi
 which $CONSOLE || CONSOLE=x-terminal-emulator
 
-test -n "$VERBOSE" && echo "startgui: user=$USER appl=$APPL opts=$OPTS console=$CONSOLE home=$HOME"
+test -n "$VERBOSE" && echo "startgui: user=$USER appl=$APPL opts=$OPTS console=$CONSOLE home=$HOME LANG=$LANG"
 
 function Sux(){
 	test -z "VERBOSE" || set -x

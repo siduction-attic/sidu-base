@@ -58,11 +58,19 @@ class ShellClient(object):
         if options == None:
             options = ""
         cmd = "\n".join((trueAnswer, options, command, ""))
+        lang = ""
         if params != None:
             if type(params) == list:
                 cmd += "\n".join(params)
             else:
                 cmd += self._session.toUnicode(params);
+            if cmd.find("{{lang}}") >= 0:
+                lang = self._session._language
+                if len(lang) == 2:
+                    lang = lang.lower() + '_' + lang.upper() + '.UTF8'
+                elif len(lang) == 5:
+                    lang = lang[0:1].lower() + lang[3:4].upper() + '.UTF8'
+                cmd = cmd.replace("{{lang}}", lang)
         with open(tmpName, "w") as fp:
             fp.write(cmd)
         fp.close()
