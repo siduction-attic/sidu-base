@@ -6,7 +6,7 @@ Created on 23.03.2013
 import unittest, os.path
 
 
-from webbasic.configcheck import ConfigChecker
+from webbasic.configchecker import ConfigChecker
 from util.util import Util
 from aux import Aux
 
