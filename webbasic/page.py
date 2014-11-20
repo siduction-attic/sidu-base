@@ -711,11 +711,23 @@ class Page(object):
         The listed pages are chained by "prev" and "next" buttons.
         @return: a auto delimited list of pages, e.g. ";home;info"
         '''
-        pages = self._globalPage.getField(".pages")
-        if pages == None or pages == "":
-            pages = self._session.getConfigWithoutLanguage(".gui.pages")
+        pages = self._globalPage.getField('.pages')
+        if pages == None or pages == '':
+            pages = None
+            if self.isExpert():
+                pages = self._session.getConfigOrNoneWithoutLanguage('.gui.pages.expert')
+            if pages == None:
+                pages = self._session.getConfigWithoutLanguage('.gui.pages')
         return pages
-
+    
+    def isExpert(self):
+        '''Returns whether the expert mode is on or off.
+        @return:    True: the expert mode is on<br>
+                    False: otherwise
+        '''
+        value = self._globalPage.getField('expert')
+        return value == 'T'
+ 
     def addPage(self, page, predecessor):
         '''Adds a page to the list of chained pages.
         @param page: the new page

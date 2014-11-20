@@ -294,6 +294,7 @@ sub Get{
 # For tests this can be a file.
 # @param id		defines the stream to open
 # @param device	a filename or a external command, e.g. "partprobe -s |"
+# @param content  a string which will transmitted to stdin of the process.
 sub ReadStream{
 	my $id = shift;
 	my $device = shift;
