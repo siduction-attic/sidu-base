@@ -9,7 +9,7 @@ Created on 02.02.2014
 import re
 
 rexprImageExtension = re.compile(r'\.(png|jpg|gif)$', re.IGNORECASE) 
-
+rexprManualPage = re.compile(r'(.*?)-(en|de|pl|pt-br|ro|it)\.htm(#.*)$')
 REPL_MARKER = "\x01"
 
 TYPE_UNDEF = 0
@@ -26,9 +26,9 @@ def replaceMetaChars(text):
     @param text:    text to convert
     @return:        the converted text
     '''
-    text = text.replace("&", "&amp;");
-    text = text.replace("<", "&lt;");
-    text = text.replace(">", "&gt;");
+    text = text.replace(u"&", u"&amp;");
+    text = text.replace(u"<", u"&lt;");
+    text = text.replace(u">", u"&gt;");
     return text
         
 
@@ -40,7 +40,7 @@ def storeReplacement(text):
     global replStorage
     ix = len(replStorage)
     replStorage.append(text)
-    rc = "{:s}{:03d}".format(REPL_MARKER, ix)
+    rc = u"{:s}{:04d}".format(REPL_MARKER, ix)
     return rc
 
 def externalLinkResolver(matcher):
@@ -61,9 +61,29 @@ def externalLinkResolver(matcher):
     if linkTextSuffix != None:
         text += linkTextSuffix
     text = replaceMetaChars(text)
-    rc += storeReplacement('<a href="{:s}">{:s}</a>'.format(link, text))
+    rc += storeReplacement(u'<a href="{:s}">{:s}</a>'.format(link, text))
     return rc
         
+def internalLinkResolver(matcher):
+    '''Handles the replacement of an internal link.
+    see self._rexprInternalLink for the regular expression
+    @param matcher:    the link matcher
+    @return:            the HTML string of the link
+    '''
+    global rexprManualPage
+    # r'\[\[([^|]+)\|([^\]]+)\]\]'
+    # ------1-----1--2------2
+    link = matcher.group(1)
+    #r'(.*?)-(en|de|pl|pt-br|ro|it)\.htm(#.*)$
+    #--1---1-2--------------------2-----3---3
+    matcher2 = rexprManualPage.match(link)
+    if matcher2 != None:
+        link = matcher2.group(1) + matcher2.group(3)
+    text = matcher.group(2)
+    html = u'<a href="{:s}">{:s}</a>'.format(link, text)
+    rc = storeReplacement(html)
+    return rc
+
 def simpleLinkResolver(matcher):
     '''Handles the replacement of a simple link.
     see self._rexprSimpleLink for the regular expression
@@ -76,11 +96,18 @@ def simpleLinkResolver(matcher):
     link = matcher.group(1)
     imgMatcher = rexprImageExtension.search(link)
     if imgMatcher != None:
-        rc = '<img src="{:s}" />'.format(link)
+        rc = u'<img src="{:s}" />'.format(link)
     else:
         text = replaceMetaChars(link)
-        rc = '<a href="{:s}">{:s}</a>'.format(link, text)
+        rc = u'<a href="{:s}">{:s}</a>'.format(link, text)
     rc = storeReplacement(rc)
+    return rc
+
+def storeUnchanged(matcher):
+    '''Replaces the last found pattern with a placeholder of this text.
+    The effect: the text remains unchanged.
+    '''
+    rc = storeReplacement(matcher.group(0))
     return rc
      
 def unchangedResolver(matcher):
@@ -141,7 +168,10 @@ class MediaWikiConverter:
             r'(<nowiki>(.*?)</nowiki>|<!--(.*?)-->|(<pre(\s+(style|class)=".*?")*>)(.*?)</pre>|<nowiki\s*/>|<span(\s+(style|class)=".*?")*>|</span>|</?strike>|</?code>|</?ins>|</?del>|</?blockquote>|</?tt>|</?small>|</?big>|<br ?/>)',
             re.IGNORECASE + re.DOTALL)
             # 1--------2---2--------------3---3----4--- 5---6-----------6------5--47---7------
-        self._rexprPlaceholders = re.compile(REPL_MARKER + r'(\d{3})')
+        self._rexprPlaceholders = re.compile(REPL_MARKER + r'(\d{4})')
+        self._rexprEmptyDiv = re.compile(r'<div[^/]+/>')
+        self._rexprUtfConst = re.compile(r'&#\d+')
+        self._rexprInternalLink = re.compile(r'\[\[([^|]+)\|([^\]]+)\]\]')
         
     def countPrefix(self, line, prefix, prefix2 = None):
         '''Counts the occurrencies of a char in the top of the line.
@@ -167,6 +197,9 @@ class MediaWikiConverter:
         '''
         global replStorage
         replStorage = []
+        text = self._rexprEmptyDiv.sub(storeUnchanged, text)
+        text = self._rexprInternalLink.sub(internalLinkResolver, text)
+        text = self._rexprUtfConst.sub(storeUnchanged, text)
         text = self._rexprUnchanged.sub(unchangedResolver, text)
         text = self._rexprExternalLink.sub(externalLinkResolver, text)
         text = self._rexprSimpleLink.sub(simpleLinkResolver, text)
@@ -193,7 +226,7 @@ class MediaWikiConverter:
         else:
             text = line[indent:]
         text = self.convertBlock(text)
-        rc = "<h{:d}>{:s}</h{:d}>\n".format(indent, text, indent)
+        rc = u"<h{:d}>{:s}</h{:d}>\n".format(indent, text, indent)
         return rc
       
     def endOfBlock(self, newType, line = None):
@@ -205,23 +238,23 @@ class MediaWikiConverter:
         if newType != self._currentType:
             if self._currentType == TYPE_PARAGRAPH:
                 block = self.convertBlock(self._currentBlock)
-                self._html += "<p>{:s}</p>\n".format(block)
+                self._html += u"<p>{:s}</p>\n".format(block)
             elif self._currentType == TYPE_PRE:
                 block = self.convertBlock(self._currentBlock)
-                self._html += '<pre class="wiki_pre">{:s}</pre>\n'.format(block)
+                self._html += u'<pre class="wiki_pre">{:s}</pre>\n'.format(block)
             elif self._currentType == TYPE_INDENT:
                 while self._currentIndent > 0:
-                    self._html += "</dl>"
+                    self._html += u"</dl>"
                     self._currentIndent -= 1
-                self._html += "\n"    
+                self._html += u"\n"    
             elif self._currentType == TYPE_LIST:
                 while len(self._listStack) > 0:
                     self.popList()
-                self._html += "\n"
+                self._html += u"\n"
             elif self._currentType == TYPE_UNDEF:
                 pass
             else:
-                self._html += "unknown type: " + str(self._currentType)
+                self._html += u"unknown type: " + str(self._currentType)
             self._currentType = newType
             self._currentBlock = ""
         
@@ -286,7 +319,7 @@ class MediaWikiConverter:
             self._html += "</dl>"
             self._currentIndent -= 1
         block = self.convertBlock(line[indent:])
-        self._html += "<dd>{:s}</dd>\n".format(block)
+        self._html += u"<dd>{:s}</dd>\n".format(block)
         
     def convertTable(self, line):
         '''Converts the lines belonging to a table.
@@ -302,12 +335,12 @@ class MediaWikiConverter:
             cols = line[1:].split("||")
             for col in cols:
                 block = self.convertBlock(col)
-                self._html += "<td>{:s}</td>\n".format(block) 
+                self._html += u"<td>{:s}</td>\n".format(block) 
         elif line.startswith("!"):
             cols = line[1:].split("|")
             for col in cols:
                 block = self.convertBlock(col)
-                self._html += "<th>{:s}</th>\n".format(block) 
+                self._html += u"<th>{:s}</th>\n".format(block) 
         elif line.startswith("{|"):
             self._html += "<table><tr>\n"
             self._rowNo = 0

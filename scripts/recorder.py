@@ -19,7 +19,7 @@ class Recorder:
     '''
 
 
-    def __init__(self, application, mode, fnRecorder = "/tmp/autopart.recorder.txt"):
+    def __init__(self, application, mode, fnRecorder = "/tmp/std.recorder.txt"):
         '''
         Constructor
         Initializes the session.
@@ -91,10 +91,10 @@ class Recorder:
         '''
         matcher = re.search(r'readStream id: (\w+): no: (\d+) device: (.+)', header)
         if matcher != None:
-            id = matcher.group(1)
+            ident = matcher.group(1)
             no = matcher.group(2)
             dev = matcher.group(3)
-            key = "{:s}-{:s}:{:s}".format(id, no, dev)
+            key = "{:s}-{:s}:{:s}".format(ident, no, dev)
             self._recorderStorage[key] = lines
         else:
             matcher = re.search(r'recorder (\w+):', header)
@@ -104,12 +104,12 @@ class Recorder:
             else:
                 matcher = re.search(r'FileExists id: (\w+): mode: (\S+) no: (\d+) file: (\S+) rc: (.)', header)
                 if matcher != None:
-                    id = matcher.group(1)
+                    ident = matcher.group(1)
                     mode = matcher.group(2)
                     callNo = matcher.group(3)
                     aFile = matcher.group(4)
-                    val = matcher.group(5)
-                    key = "{:s}-{:s}{:s}{:s:{:s}".format(id, callNo, mode, aFile)
+                    # val = matcher.group(5)
+                    key = "{:s}-{:s}{:s}{:s:{:s}".format(ident, callNo, mode, aFile)
                     self._recorderStorage[key] = lines
                 else:
                     print("unknown header: " + header)
@@ -165,19 +165,19 @@ class Recorder:
         self.writeFile("###recorder $name:\n" . content, "", 
                        self._fnRecorder, True)
         
-    def writeStream(self, id, device, content):
+    def writeStream(self, ident, device, content):
         '''
         Writes to a stream.
         A stream can be a file or the input of an external command.
         For tests this can be a file.
-        @param id:        identifies the caller
+        @param ident:        identifies the caller
         @param device:    a filename or a external command, 
                           e.g. "|fdisk /dev/sdb"
         @param content    this content will be written
         '''
         
         if self._mode == MODE_RECORDING:
-            header = "### writeStream id: {:s} device: {:s}\n".format(id, device)
+            header = "### writeStream id: {:s} device: {:s}\n".format(ident, device)
             self.writeFile(header . content, "", self._fnRecorder)
         if self._mode != MODE_REPLAYING:
             if device.startswith("|"):
@@ -194,45 +194,45 @@ class Recorder:
                 fp.close()
         else:
             self._outputStreamLines.append("== id: {:s} device: {:s}",
-                                           id, device)
+                                           ident, device)
             if type(content) == list:
                 self._outputStreamLines += content
             else:
                 self._outputStreamLines.append(content)
 
-    def execute(self, id, cmd, important):
+    def execute(self, ident, cmd, important):
         '''
         Execute a command.
-        @param id:         identifies the caller
+        @param ident:      identifies the caller
         @param cmd:        command to execute
         @param important:  true: the logging will be prefixed
         @return           the output of the command
         '''
-        rc = self.readStream(id, cmd + " |")
+        rc = self.readStream(ident, cmd + " |")
         return rc
 
-    def nextCallNo(self, aId):
+    def nextCallNo(self, ident):
         '''Returns the next id specific call number.
         @return: a number to make an "event" unique
         '''
-        if aId not in self._currNoIds:
-            self._currNoIds[aId] = -1
-        self._currNoIds[aId] += 1
-        return self._currNoIds[aId]
+        if ident not in self._currNoIds:
+            self._currNoIds[ident] = -1
+        self._currNoIds[ident] += 1
+        return self._currNoIds[ident]
         
-    def fileExists(self, aId, mode, aFile):
+    def fileExists(self, ident, mode, aFile):
         '''
         # Tests the existence of a file.
-        # @param aId:    id of the caller
+        # @param ident:    id of the caller
         # @param mode:   "-e", "-d", "-f" ...
         # @param aFile:  file to test
         # @return:       False: does not exist. 
         #                True: exists
         '''
-        callNo = self.nextCallNo(aId)
+        callNo = self.nextCallNo(ident)
         rc = False
         if self._mode == MODE_REPLAYING:
-            key = "{:s}-{:d}{:s}:{:s}".format(aId, callNo)
+            key = "{:s}-{:d}{:s}:{:s}".format(ident, callNo)
             entry = self.getFromStorage(key)
             if entry == None:
                 raise Exception("unknown storage key: " + key)
@@ -252,7 +252,7 @@ class Recorder:
             if mode == MODE_RECORDING:
                 callNo = self.nextCallNo()
                 content = "###FileExists id: {:s}: mode: {:s} no: {:d} file: {:s} rc: {:s}".format(
-                                aId, mode, callNo, "T" if rc else "F")
+                                ident, mode, callNo, "T" if rc else "F")
                 self.writeFile(content, "", self._fnRecorder, True)
                 
         return rc 
@@ -269,12 +269,12 @@ class Recorder:
             rc = self._storage[key]
         return rc
 
-    def readStream(self, aId, device, input = None):
+    def readStream(self, ident, device, input = None):
         '''
         Reads a stream into an array of lines.
         A stream can be a file or the output of an extern command.
         For tests this can be a file.
-        @param aId:     defines the stream to open
+        @param ident:     defines the stream to open
         @param device:  a filename, a directory, an external command 
                         e.g. "partprobe -s |"
                         "gdisk -l /dev/$disk|"
@@ -287,7 +287,7 @@ class Recorder:
                         ext.command: output of the command
         '''
         rc = "<!None>"
-        callNo = self.nextCallNo(aId)
+        callNo = self.nextCallNo(ident)
         if self._mode != MODE_REPLAYING:
             if os.path.isdir(device):
                 rc = self.listdir(device)

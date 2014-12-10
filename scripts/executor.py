@@ -12,7 +12,7 @@ STDOUT_PREFIX_IMPORTANT = "";
 PREFIX_ERROR = "+++";
 
 class Executor:
-    '''Executes and logs sytem commands.
+    '''Executes and logs system commands.
     '''
     def __init__(self, fnProgress, testRun):
         self._fnProgress = fnProgress
