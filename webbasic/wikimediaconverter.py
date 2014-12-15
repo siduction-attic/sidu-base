@@ -15,9 +15,12 @@ REPL_MARKER = "\x01"
 TYPE_UNDEF = 0
 TYPE_PARAGRAPH = 1
 TYPE_INDENT = 2
+# preceeding ' ':
 TYPE_PRE = 3
-TYPE_LIST = 4
-TYPE_TABLE = 4
+# <pre>:
+TYPE_PRE_STRONG = 4
+TYPE_LIST = 5
+TYPE_TABLE = 6
 
 replStorage = []
 
@@ -63,24 +66,74 @@ def externalLinkResolver(matcher):
     text = replaceMetaChars(text)
     rc += storeReplacement(u'<a href="{:s}">{:s}</a>'.format(link, text))
     return rc
-        
+
+def buildImage(url, arguments):
+    '''Decodes the image options.
+    @param url:        URL of the image
+    @param arguments:  the mediawiki options of the image construct
+    @return: the HTML code of the image
+    '''
+    link = None
+    caption = ""
+    opts = ""
+    clazz = None
+    args = arguments.split(r'|')
+    for arg in args:
+        matcher = re.search(r'class=(.*)', arg)
+        if matcher != None:
+            opts += ' class="{:s}"'.format(matcher.group(1))
+            clazz = matcher.group(1)
+            continue
+        matcher = re.search(r'link=(.*)', arg)
+        if matcher != None:
+            link = matcher.group(1)
+            continue
+        matcher = re.search(r'(\d+)x(\d)px', arg)
+        if matcher != None:
+            opts += ' width="{:d}" height="{:d}"'.format(matcher.group(1), matcher.group(2))
+            continue
+        matcher = re.search(r'(\d+)px', arg)
+        if matcher != None:
+            opts += ' width="{:d}""'.format(matcher.group(1))
+            continue
+        matcher = re.search(r'(\d+)px', arg)
+        if matcher != None:
+            opts += ' height="{:d}""'.format(matcher.group(1))
+            continue
+        caption += " " + arg
+    if caption != "":
+        opts += ' title="{:s}"'.format(caption[1:])
+    html = u'<img src="{:s}"{:s} />'.format(url, opts)
+    if link != None:
+        html = u'<a href="{:s}"{:s}>{:s}</a>'.format(url, args, html)
+    if clazz != None:
+        html = '<div class="{:s}">{:s}</div>'.format(clazz, html)
+    return html
+
 def internalLinkResolver(matcher):
     '''Handles the replacement of an internal link.
     see self._rexprInternalLink for the regular expression
     @param matcher:    the link matcher
     @return:            the HTML string of the link
     '''
-    global rexprManualPage
+    global rexprManualPage, rexprImageExtension
     # r'\[\[([^|]+)\|([^\]]+)\]\]'
     # ------1-----1--2------2
     link = matcher.group(1)
     #r'(.*?)-(en|de|pl|pt-br|ro|it)\.htm(#.*)$
     #--1---1-2--------------------2-----3---3
-    matcher2 = rexprManualPage.match(link)
+    matcher2 = rexprImageExtension.search(link)
     if matcher2 != None:
-        link = matcher2.group(1) + matcher2.group(3)
-    text = matcher.group(2)
-    html = u'<a href="{:s}">{:s}</a>'.format(link, text)
+        # image:
+        if link.startswith('../'):
+            link = '../static/' + link[3:]
+        html = buildImage(link, matcher.group(2))
+    else:
+        matcher2 = rexprManualPage.match(link)
+        if matcher2 != None:
+            link = matcher2.group(1) + matcher2.group(3)
+        text = matcher.group(2)
+        html = u'<a href="{:s}">{:s}</a>'.format(link, text)
     rc = storeReplacement(html)
     return rc
 
@@ -172,6 +225,8 @@ class MediaWikiConverter:
         self._rexprEmptyDiv = re.compile(r'<div[^/]+/>')
         self._rexprUtfConst = re.compile(r'&#\d+')
         self._rexprInternalLink = re.compile(r'\[\[([^|]+)\|([^\]]+)\]\]')
+        self._regexprSpanId = re.compile(r'\s*<span id="([^"]+)"></span>')
+        self._regexprSpanClass = re.compile(r'\s*<!--class="([^"]+)"-->')
         
     def countPrefix(self, line, prefix, prefix2 = None):
         '''Counts the occurrencies of a char in the top of the line.
@@ -214,6 +269,22 @@ class MediaWikiConverter:
         text = self._rexprPlaceholders.sub(storageResolver, text)
         return text  
     
+    def convertPreBlock(self, text):
+        '''Converts all meta constructs allowed inside a convertPreBlockted block.
+        @param text:    text to convert
+        @return: the formatted text
+        '''
+        text = replaceMetaChars(text)
+        text = self._rexprBoldAndItalic.sub(
+            lambda m: "<b><i>" + m.group(1) + "</i></b>" , text)
+        text = self._rexprBold.sub(
+            lambda m: "<b>" + m.group(1) + "</b>" , text)
+        text = self._rexprItalic.sub(
+            lambda m: "<i>" + m.group(1) + "</i>" , text)
+        
+        text = self._rexprPlaceholders.sub(storageResolver, text)
+        return text
+    
     def convertHeadline(self, line):
         '''Translate a headline.
         @param line: wiki line
@@ -225,8 +296,13 @@ class MediaWikiConverter:
             text = line[indent:-indent]
         else:
             text = line[indent:]
+        matcher = self._regexprSpanId.match(text)
+        ident = ''
+        if matcher != None:
+            text = text[matcher.end(0):]
+            ident = u' id="{:s}"'.format(matcher.group(1))
         text = self.convertBlock(text)
-        rc = u"<h{:d}>{:s}</h{:d}>\n".format(indent, text, indent)
+        rc = u"<h{:d}{:s}>{:s}</h{:d}>\n".format(indent, ident, text, indent)
         return rc
       
     def endOfBlock(self, newType, line = None):
@@ -237,10 +313,30 @@ class MediaWikiConverter:
         '''
         if newType != self._currentType:
             if self._currentType == TYPE_PARAGRAPH:
+                found = True
+                attr = ''
+                while found:
+                    found = False
+                    matcher = self._regexprSpanId.match(self._currentBlock)
+                    if matcher != None:
+                        self._currentBlock = self._currentBlock[matcher.end(0):]
+                        attr += u' id="{:s}"'.format(matcher.group(1))
+                        found = True
+                    else:
+                        matcher = self._regexprSpanClass.match(self._currentBlock)
+                        if matcher != None:
+                            self._currentBlock = self._currentBlock[matcher.end(0):]
+                            attr += u' class="{:s}"'.format(matcher.group(1))
+                            found = True
                 block = self.convertBlock(self._currentBlock)
-                self._html += u"<p>{:s}</p>\n".format(block)
+                if self._currentBlock != "":
+                    self._html += u"<p{:s}>{:s}</p>\n".format(attr, block)
             elif self._currentType == TYPE_PRE:
                 block = self.convertBlock(self._currentBlock)
+                self._html += u'<pre class="wiki_pre">{:s}</pre>\n'.format(block)
+            elif self._currentType == TYPE_PRE_STRONG:
+                # reaches never
+                block = u"<pre>{:s}\n</pre>\n".format(self._currentBlock)
                 self._html += u'<pre class="wiki_pre">{:s}</pre>\n'.format(block)
             elif self._currentType == TYPE_INDENT:
                 while self._currentIndent > 0:
@@ -326,6 +422,11 @@ class MediaWikiConverter:
         @param line:    line
         '''
         if line.startswith("|-"):
+            self._colPrefix = 'td'
+            self._rowNo += 1
+            self._html += "</tr><tr>\n"
+        elif line.startswith("|+"):
+            self._colPrefix = 'th'
             self._rowNo += 1
             self._html += "</tr><tr>\n"
         elif line.startswith("|}"):
@@ -335,7 +436,8 @@ class MediaWikiConverter:
             cols = line[1:].split("||")
             for col in cols:
                 block = self.convertBlock(col)
-                self._html += u"<td>{:s}</td>\n".format(block) 
+                self._html += u"<{:s}>{:s}</{:s}>\n".format(self._colPrefix,
+                    block, self._colPrefix) 
         elif line.startswith("!"):
             cols = line[1:].split("|")
             for col in cols:
@@ -344,7 +446,7 @@ class MediaWikiConverter:
         elif line.startswith("{|"):
             self._html += "<table><tr>\n"
             self._rowNo = 0
-                
+     
     def convert(self, text):
         '''Translate a wiki text into html.
         @param text: wiki text
@@ -352,18 +454,37 @@ class MediaWikiConverter:
         '''
         lines = text.split("\n")
         self._html = ""
-        ix = 0
+        linNo = 0
         if len(lines) > 0 and lines[0].startswith("mediawiki"):
-            ix = 1
+            linNo = 1
         self._currentBlock = ""
-        while ix < len(lines):
-            line = lines[ix]
-            ix += 1
-            if line.startswith(":"):
+        openPre = False
+        while linNo < len(lines):
+            line = lines[linNo]
+            linNo += 1
+            if openPre:
+                ix = line.find("</pre>")
+                if ix < 0:
+                    self._html += line + "\n"
+                else:
+                    self._currentType = TYPE_UNDEF
+                    openPre = False
+                    self._html += line[0:ix]
+                    if ix > 0 and line[ix] != "\n":
+                        self._html += "\n"
+                    self._html += "</pre>\n"
+                    if len(line) > ix + 7:
+                        self._currentBlock = line[ix+7:]
+                        self._currentType = TYPE_PARAGRAPH
+            elif line.startswith(":"):
                 self.convertIndent(line)
             elif line.startswith(" "):
                 self.endOfBlock(TYPE_PRE)
-                self._currentBlock += line[1:] + "\n"
+                self._currentBlock += self.convertPreBlock(line[1:])
+            elif line.startswith('<pre'):
+                self.endOfBlock(TYPE_PRE_STRONG)
+                openPre = True
+                self._html += line + "\n"
             elif line.startswith("----"):
                 self.endOfBlock(TYPE_UNDEF)
                 self._html += "<hr />\n"

@@ -1,12 +1,16 @@
-sidu-base (2014.11.21) UNRELEASED; urgency=medium
+sidu-base (2014.11.22) UNRELEASED; urgency=medium
 
   * wiki2html: internal links [[link|text]], UTF constants (&#dddd)
   * strings as unicode strings
   * <div ... /> will be unchanged (enables labeling with id="...")
   * removing "-xx.htm" from internal links
   * improvements in executor and recorder
+  * table: |+: interpretation as <tr><td>..
+  * separation of "preceeding ' '" and "<pre>": first allows meta-<span>
+  * internal images: prefix static/
+  * classes were be derived as comments, ids as <span> construct
 
- -- J. Hamatoma <hama@siduction.net>  Thu, 11 Dec 2014 00:19:30 +0100
+ -- J. Hamatoma <hama@siduction.net>  Tue, 16 Dec 2014 00:05:18 +0100
 
 sidu-base (2014.11.20) unstable; urgency=medium
 
