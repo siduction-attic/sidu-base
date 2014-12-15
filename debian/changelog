@@ -1,4 +1,4 @@
-sidu-base (2014.11.22) UNRELEASED; urgency=medium
+sidu-base (2014.12.15) unstable; urgency=medium
 
   * wiki2html: internal links [[link|text]], UTF constants (&#dddd)
   * strings as unicode strings
