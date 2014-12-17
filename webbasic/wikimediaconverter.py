@@ -30,6 +30,8 @@ def replaceMetaChars(text):
     @return:        the converted text
     '''
     text = text.replace(u"&", u"&amp;");
+    text = text.replace(u"<=", u"&le;");
+    text = text.replace(u">=", u"&ge;");
     text = text.replace(u"<", u"&lt;");
     text = text.replace(u">", u"&gt;");
     return text
@@ -102,12 +104,12 @@ def buildImage(url, arguments):
             continue
         caption += " " + arg
     if caption != "":
-        opts += ' title="{:s}"'.format(caption[1:])
+        opts += u' title="{:s}"'.format(caption[1:])
     html = u'<img src="{:s}"{:s} />'.format(url, opts)
     if link != None:
         html = u'<a href="{:s}"{:s}>{:s}</a>'.format(url, args, html)
     if clazz != None:
-        html = '<div class="{:s}">{:s}</div>'.format(clazz, html)
+        html = u'<div class="{:s}">{:s}</div>'.format(clazz, html)
     return html
 
 def internalLinkResolver(matcher):

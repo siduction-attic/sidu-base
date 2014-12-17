@@ -1,3 +1,10 @@
+sidu-base (2014.12.17) unstable; urgency=medium
+
+  * handling of >= and <= (as &ge; and &le;)
+  * unicode literals (avoiding crashs)
+
+ -- J. Hamatoma <hama@siduction.net>  Wed, 17 Dec 2014 23:58:21 +0100
+
 sidu-base (2014.12.15) unstable; urgency=medium
 
   * wiki2html: internal links [[link|text]], UTF constants (&#dddd)
