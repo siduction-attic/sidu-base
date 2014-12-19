@@ -242,7 +242,7 @@ class MediaWikiConverter:
             while ix < length and line[ix] == prefix:
                 ix += 1
         else:
-            while ix < length and line[ix] == prefix or line[ix] == prefix2:
+            while ix < length and (line[ix] == prefix or line[ix] == prefix2):
                 ix += 1
         return ix
           
