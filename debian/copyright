@@ -9,7 +9,7 @@ License: GPL-3.0+
 
 Files: debian/*
 Copyright: 2013-2014 J. Hamatoma <hama@siduction.net>
-           2013-2014 Alf Gaida <agaida@sidction.org>
+           2013-2015 Alf Gaida <agaida@sidction.org>
 License: GPL-3.0+
 
 
@@ -29,4 +29,3 @@ License: GPL-3.0+
  .
  On Debian systems, the complete text of the GNU General
  Public License version 3 can be found in "/usr/share/common-licenses/GPL-3".
-   

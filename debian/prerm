@@ -19,12 +19,14 @@ case "$1" in
 
         pushd /tmp 2>&1 >/dev/null
         test -d /usr/local/lib/site_perl && cd /usr/local/lib/site_perl
-        RmLink sidu_test.pm 
-        RmLink sidu_basic.pm 
-        RmLink sidu_recorder.pm 
+        RmLink sidu_test.pm
+        RmLink sidu_basic.pm
+        RmLink sidu_recorder.pm
         popd 2>&1 >/dev/null
 
-        sidu-base-control stop
+        # stopping a servisce must not break the installation of a package
+        # in no way AG 2015-10-08
+        sidu-base-control stop | true
     ;;
 
     failed-upgrade)

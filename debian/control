@@ -1,35 +1,31 @@
 Source: sidu-base
-Section: web 
-Priority: optional
 Maintainer: J. Hamatoma <hama@siduction.net>
 Uploaders: Alf Gaida <agaida@siduction.org>,
- Hendrik Lehmbruch <hendrikl@siduction.org>,
- Ferdinand Thommes <devil@siduction.org>,
-Build-Depends: 
- debhelper (>= 9),
- dh-systemd,
-Standards-Version: 3.9.5
-Homepage: http://siduction.org
-Vcs-git: git://git.siduction.org/code/sidu-base
+           Hendrik Lehmbruch <hendrikl@siduction.org>,
+           Ferdinand Thommes <devil@siduction.org>
+Section: web 
+Priority: optional
+Build-Depends: debhelper (>= 9),
+               dh-systemd
+Standards-Version: 3.9.6
 Vcs-Browser: http://git.siduction.org/?p=code/sidu-base.git
+Vcs-Git: git://git.siduction.org/code/sidu-base
+Homepage: http://siduction.org
 
 Package: sidu-base
 Architecture: all
-Depends:
- ${misc:Depends},
- python (>= 2.7),
- python-support (>= 0.90),
- lsb-base,
- sudo,
-Breaks:
- pywwetha (<<2014.04.12),
- siguibui,
- sidu-base-systemd,
-Replaces:
- pywwetha,
- siguibui,
- sidu-base-systemd,
-Recommends: systemd,
+Depends: ${misc:Depends},
+         python (>= 2.7),
+         python-support,
+         lsb-base,
+         sudo
+Recommends: systemd
+Breaks: pywwetha (<< 2014.04.12),
+        siguibui,
+        sidu-base-systemd
+Replaces: pywwetha,
+          siguibui,
+          sidu-base-systemd
 Description: Toolkit for Django (Python) based GUI applications 
  The approach: a easy and quick possibility to create browser based
  application.

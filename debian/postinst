@@ -21,10 +21,10 @@ function MkLink2(){
 
 case "$1" in
     configure)
-        if [ ! -d $TASKS ] ; then 
+        if [ ! -d $TASKS ] ; then
             mkdir -p $TASKS
         fi
-        if [ ! -d $PUBLIC ] ; then 
+        if [ ! -d $PUBLIC ] ; then
             mkdir -p $PUBLIC
         fi
         chmod uog+rwx $DIR $TASKS $PUBLIC
@@ -46,7 +46,9 @@ case "$1" in
             sed -i -e "s%^START_GUI_HOME2=.*%START_GUI_HOME2=$home%;" $CONFIG
         fi
 
-        sidu-base-control restart
+        # ok, a restart might be a good idea - but a fucking restart must not
+        # break a apt package in no ways AG 2015-10-08
+        sidu-base-control restart | true
     ;;
 
     abort-upgrade|abort-remove|abort-deconfigure)
