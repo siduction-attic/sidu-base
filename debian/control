@@ -6,7 +6,8 @@ Uploaders: Alf Gaida <agaida@siduction.org>,
 Section: web 
 Priority: optional
 Build-Depends: debhelper (>= 9),
-               dh-systemd
+               dh-systemd,
+               dh-python
 Standards-Version: 3.9.6
 Vcs-Browser: http://git.siduction.org/?p=code/sidu-base.git
 Vcs-Git: git://git.siduction.org/code/sidu-base
@@ -16,7 +17,6 @@ Package: sidu-base
 Architecture: all
 Depends: ${misc:Depends},
          python (>= 2.7),
-         python-support,
          lsb-base,
          sudo
 Recommends: systemd

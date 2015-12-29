@@ -1,3 +1,9 @@
+sidu-base (2015.12.29) unstable; urgency=medium
+
+  * removed python-support, added dh-python
+
+ -- Alf Gaida <agaida@siduction.org>  Tue, 29 Dec 2015 21:57:44 +0100
+
 sidu-base (2015.10.08) unstable; urgency=medium
 
   * fix postinstall and rules
