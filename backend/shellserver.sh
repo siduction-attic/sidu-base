@@ -6,6 +6,7 @@ SLEEP=1
 export VERBOSE=
 export TRACE_ON=
 export TRACE_OFF=
+test -e /tmp/p || ln -s /usr/share/sidu-base/backend/profile.sh /tmp/p
 TASK_DIR=/var/cache/sidu-base/shellserver-tasks
 ETC_CONFIG=/etc/sidu-base/shellserver.conf
 DIR=$(dirname $0)
