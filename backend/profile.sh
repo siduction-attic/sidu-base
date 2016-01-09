@@ -18,7 +18,7 @@ if [ "$TERM" = "xterm" -o "$TERM" = "linux" ] ; then
 fi
 PATH_FIRST_PROFILE=$(dirname $FIRST_PROFILE)
 SECOND_PROFILE=/home/bin/$HOST/local.profile
-test -e $SECOND_PROFILE || SECOND_PROFILE=FIRST_PROFILE
+test -e $SECOND_PROFILE || SECOND_PROFILE=$FIRST_PROFILE
 PATH_SECOND_PROFILE=$(dirname $SECOND_PROFILE)
 if [ -z "$EDITOR" ] ; then
 	export EDITOR=vi
@@ -77,9 +77,10 @@ alias Fn="find -iname"
 
 alias g_ub="cd /usr/share/sidu-base"
 alias g_ubb="cd /usr/share/sidu-base/backend"
+alias g_ui="cd /usr/share/sidu-installer"
 alias g_vb="cd /var/cache/sidu-base"
 alias g_vbs="cd /var/cache/sidu-base/shellserver-tasks"
-alias P="ln -sf /usr/share/sidu-base/backend/profile.sh"
+alias P="ln -sf /usr/share/sidu-base/backend/profile.sh /p"
 
 function s_agent()
 {

@@ -506,6 +506,7 @@ class Page(object):
         @param fieldGlobal: the field in the global page
         '''
         value = self.getField(fieldLocal)
+        self._session.log("storeAsGlobal: {:s}[{:s}] -> {:s}".format(fieldLocal, value, fieldGlobal))
         self._globalPage.putField(fieldGlobal, value)
 
     def autoJoinArgs(self, args):

@@ -1,3 +1,10 @@
+sidu-base (2016.01.09) unstable; urgency=medium
+
+  * logging in storeAsGlobal()
+  * new alias in profile.sh
+
+ -- J. Hamatoma <hama@siduction.net>  Sat, 09 Jan 2016 09:38:12 +0100
+
 sidu-base (2016.01.06) unstable; urgency=medium
 
   * profile.sh for debugging 
