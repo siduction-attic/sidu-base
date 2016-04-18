@@ -4,29 +4,24 @@
 
 set -e
 
-# delete the links from the sidu-base:
-function RmLink(){
-        if [ -L $1 ] ; then
-                rm -f $1
-        fi
-}
 
 case "$1" in
     remove|upgrade|deconfigure)
-        if [ -L /usr/share/siguibui/public ] ; then
-            rm /usr/share/siguibui/public
-        fi
+        rm -rf /usr/share/siguibui/public
 
         pushd /tmp 2>&1 >/dev/null
-        test -d /usr/local/lib/site_perl && cd /usr/local/lib/site_perl
-        RmLink sidu_test.pm
-        RmLink sidu_basic.pm
-        RmLink sidu_recorder.pm
+           test -d /usr/local/lib/site_perl && cd /usr/local/lib/site_perl
+           rm -f sidu_test.pm
+           rm -f sidu_basic.pm
+           rm -f sidu_recorder.pm
         popd 2>&1 >/dev/null
 
-        # stopping a servisce must not break the installation of a package
+        # stopping a service must not break the installation of a package
         # in no way AG 2015-10-08
         sidu-base-control stop | true
+
+        # wie auch immer, wech damit
+        rm -rf /usr/share/sidu-base
     ;;
 
     failed-upgrade)

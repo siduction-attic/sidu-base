@@ -1,3 +1,9 @@
+sidu-base (2016.04.18) unstable; urgency=medium
+
+  * clean up /usr/share/sidu-base the hard way
+
+ -- Alf Gaida <agaida@siduction.org>  Mon, 18 Apr 2016 02:09:00 +0200
+
 sidu-base (2016.01.09) unstable; urgency=medium
 
   * logging in storeAsGlobal()

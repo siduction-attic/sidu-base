@@ -47,7 +47,7 @@ case "$1" in
         fi
 
         # ok, a restart might be a good idea - but a fucking restart must not
-        # break a apt package in no ways AG 2015-10-08
+        # break an apt package in no ways AG 2015-10-08
         sidu-base-control restart | true
     ;;
 
